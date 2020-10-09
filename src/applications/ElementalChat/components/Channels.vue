@@ -22,15 +22,6 @@
           "
         />
         <v-list dense>
-          <v-list-item>
-            <v-list-item-icon>
-              <v-icon size="40">mdi-chat-processing-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>Channels</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider></v-divider>
           <v-list-item
             v-for="(channel, i) in channels"
             :key="i"
