@@ -23,8 +23,12 @@ export default {
   methods: {
     ...mapActions("elementalChat", ["addMessageToChannel"]),
     messageCreated(message) {
+      console.log(this.channel);
+      if (this.channel.last_seen === undefined)
+        this.channel.last_seen = { First: null };
       this.addMessageToChannel({
-        channel: this.channel,
+        last_seen: this.channel.last_seen,
+        channel: this.channel.channel,
         message: message
       }).then(() => {
         this.scrollToEnd();
@@ -46,7 +50,7 @@ export default {
 .chat-container {
   box-sizing: border-box;
   overflow-y: auto;
-  height: calc(100vh - 153px);
+  height: calc(100vh - 150px);
 }
 ul {
   list-style-type: none;

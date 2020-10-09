@@ -27,7 +27,17 @@ export default {
       });
       commit("listChannels", channelsList);
     },
-    addMessageToChannel: async ({ commit }, payload) => {
+    addMessageToChannel: async ({ commit, rootState }, payload) => {
+      const committedChannel = await rootState.holochainClient.callZome({
+        cap: null,
+        cell_id: rootState.appInterface.cellId,
+        zome_name: "chat",
+        fn_name: "create_message",
+        provenance: rootState.agentKey,
+        payload: payload
+      });
+      payload.last_seen = { Message: committedChannel.entryHash };
+      console.log(payload);
       commit("addMessageToChannel", payload);
     }
   },
@@ -70,10 +80,11 @@ export default {
     addMessageToChannel(state, payload) {
       const internalChannel = {
         ...state.channels.find(c => {
-          return c.channel.uuid === payload.channel.channel.uuid;
+          return c.channel.uuid === payload.channel.uuid;
         })
       };
       internalChannel.messages.push(payload.message);
+      internalChannel.last_seen = payload.last_seen;
       state.channels = state.channels.map(channel =>
         channel.channel.uuid !== payload.channel.uuid
           ? channel
