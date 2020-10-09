@@ -36,8 +36,9 @@ export default {
       console.log(state.channels);
     },
     listChannels(state, payload) {
-      state.channels = [...payload];
       console.log(payload);
+      state.channels = payload;
+      console.log(state.channels);
     },
     addMessageToChannel(state, payload) {
       const internalChannel = {
