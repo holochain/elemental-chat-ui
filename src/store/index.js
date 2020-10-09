@@ -32,7 +32,6 @@ export default new Vuex.Store({
   },
   actions: {
     initialiseAgent: async ({ commit, state }) => {
-      console.log(state);
       if (state.agentKey === undefined) {
         const admin = await AdminWebsocket.connect(
           `ws://localhost:${ADMIN_PORT}`

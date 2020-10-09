@@ -1,6 +1,8 @@
 export default {
   namespaced: true,
-  state: {},
+  state: {
+    channels: []
+  },
   actions: {
     createChannel: async ({ commit, rootState }, payload) => {
       const committedChannel = await rootState.holochainClient.callZome({
@@ -32,13 +34,38 @@ export default {
   mutations: {
     createChannel(state, payload) {
       if (!state.channels) state.channels = [];
-      state.channels.push(payload);
-      console.log(state.channels);
+      const newChannel = {
+        name: payload.info.name,
+        channel: payload.channel,
+        messages: []
+      };
+      state.channels.push(newChannel);
     },
     listChannels(state, payload) {
-      console.log(payload);
-      state.channels = payload;
-      console.log(state.channels);
+      payload.channels.forEach(c => {
+        let channel = state.channels.find(
+          ch => ch.channel.uuid === c.channel.uuid
+        );
+        if (channel !== undefined) {
+          const listedChannel = {
+            name: c.info.name,
+            channel: c.channel,
+            messages: channel.messages
+          };
+          state.channels = state.channels.map(c =>
+            c.channel.uuid !== listedChannel.channel.uuid
+              ? c
+              : { ...c, ...listedChannel }
+          );
+        } else {
+          const newChannel = {
+            name: c.info.name,
+            channel: c.channel,
+            messages: []
+          };
+          state.channels.push(newChannel);
+        }
+      });
     },
     addMessageToChannel(state, payload) {
       const internalChannel = {

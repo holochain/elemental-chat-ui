@@ -1,5 +1,4 @@
 import localforage from "localforage";
-import localforageGetItems from "localforage-getitems";// eslint-disable-line 
 
 export const localForageService = localforage.createInstance({
   name: "holochain",
