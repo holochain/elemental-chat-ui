@@ -13,6 +13,7 @@ export const persistencePlugin = store => {
   store.subscribe(mutation => {
     if (ofInterest(mutation.type)) {
       persistMutation(mutation).catch(error => {
+        error = "";
         console.log(error);
       });
     }
