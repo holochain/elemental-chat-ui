@@ -54,7 +54,7 @@
               >
               <v-spacer></v-spacer>
             </v-app-bar>
-            <messages :key="refreshKey" :channel="channel" />
+            <messages :key="refreshKey" :channel="internalChannel" />
           </v-card>
         </v-col>
       </v-row>
@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapMutations } from "vuex";
 export default {
   name: "ElementalChat",
   components: {
@@ -74,7 +74,7 @@ export default {
     return {
       showAdd: false,
       refreshKey: 0,
-      channel: {
+      internalChannel: {
         name: "",
         channel: { category: "General", uuid: "" },
         messages: []
@@ -82,30 +82,23 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["listChannels"]),
-    openChannel(channel) {
+    ...mapActions("elementalChat", ["listChannels", "listMessages"]),
+    ...mapMutations("elementalChat", ["setChannel"]),
+    async openChannel(channel) {
+      this.internalChannel = { ...channel };
+      this.setChannel(channel);
+      this.listMessages({ channel: channel, date: this.today });
       this.refreshKey += 1;
-      this.channel = { ...channel };
     },
     channelAdded() {
       this.showAdd = false;
-    },
-
-    connect() {
-      var sleep = time => new Promise(resolve => setTimeout(resolve, time));
-      var poll = (promiseFn, time) =>
-        promiseFn().then(sleep(time).then(() => poll(promiseFn, time)));
-      poll(
-        () =>
-          new Promise(() => {
-            this.listChannels({ category: "General" });
-          }),
-        10000
-      );
     }
   },
   computed: {
-    ...mapState("elementalChat", ["channels"])
+    ...mapState("elementalChat", ["channels", "channel", "today"])
+  },
+  mounted() {
+    this.internalChannel = { ...this.channel };
   }
 };
 </script>
