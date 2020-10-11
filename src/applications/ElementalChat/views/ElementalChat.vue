@@ -14,6 +14,22 @@
                   icon
                   v-bind="attrs"
                   v-on="on"
+                  @click="listChannels({ category: 'General' })"
+                  small
+                >
+                  <v-icon>mdi-refresh</v-icon>
+                </v-btn>
+              </template>
+              <span>Check for new channels</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  id="add-channel"
+                  color="action"
+                  icon
+                  v-bind="attrs"
+                  v-on="on"
                   @click="showAdd = true"
                   small
                 >

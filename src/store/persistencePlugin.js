@@ -2,7 +2,8 @@ import { persistMutation } from "./stateMapper";
 const mutationsOfInterest = [
   "setAgentKey",
   "setAppInterface",
-  "setHolochainClient"
+  "setHolochainClient",
+  "setAgentHandle"
 ];
 
 const ofInterest = mutation => {
