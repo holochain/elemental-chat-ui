@@ -1,10 +1,3 @@
-function today() {
-  var today = new Date();
-  var dd = String(today.getUTCDate());
-  var mm = String(today.getUTCMonth() + 1); //January is 0!
-  var yyyy = String(today.getUTCFullYear());
-  return { year: yyyy, month: mm, day: dd };
-}
 export default {
   namespaced: true,
   state: {
@@ -13,77 +6,118 @@ export default {
       name: "",
       channel: { category: "General", uuid: "" },
       messages: []
-    },
-    today: today()
+    }
   },
   actions: {
-    createChannel: async ({ commit, rootState }, payload) => {
-      const committedChannel = await rootState.holochainClient.callZome({
-        cap: null,
-        cell_id: rootState.appInterface.cellId,
-        zome_name: "chat",
-        fn_name: "create_channel",
-        provenance: rootState.agentKey,
-        payload: payload
-      });
-      payload.info = committedChannel.info;
-      commit("createChannel", payload);
+    setChannel: async ({ commit, rootState, state, dispatch }, payload) => {
+      commit("setChannel", payload);
+      dispatch("listMessages", { channel: payload, date: rootState.today });
+      clearInterval(state.intervalId);
+      const intervalId = setInterval(() => {
+        console.log(payload);
+        dispatch("listMessages", { channel: payload, date: rootState.today });
+      }, 1000);
+      commit("setIntervalId", intervalId);
     },
-    listChannels: async ({ commit, rootState }, payload) => {
-      const channelsList = await rootState.holochainClient.callZome({
-        cap: null,
-        cell_id: rootState.appInterface.cellId,
-        zome_name: "chat",
-        fn_name: "list_channels",
-        provenance: rootState.agentKey,
-        payload: payload
-      });
-      commit("listChannels", channelsList);
+    createChannel: async ({ commit, rootState, dispatch }, payload) => {
+      rootState.holochainClient
+        .callZome({
+          cap: null,
+          cell_id: rootState.appInterface.cellId,
+          zome_name: "chat",
+          fn_name: "create_channel",
+          provenance: rootState.agentKey,
+          payload: payload
+        })
+        .then(committedChannel => {
+          const newChannel = {
+            name: committedChannel.info.name,
+            channel: committedChannel.channel,
+            messages: []
+          };
+          commit("createChannel", newChannel);
+          dispatch("setChannel", newChannel);
+        });
+    },
+    listChannels({ commit, rootState, state, dispatch }, payload) {
+      rootState.holochainClient
+        .callZome({
+          cap: null,
+          cell_id: rootState.appInterface.cellId,
+          zome_name: "chat",
+          fn_name: "list_channels",
+          provenance: rootState.agentKey,
+          payload: payload
+        })
+        .then(result => {
+          console.log(result);
+          commit("setChannels", result);
+          if (state.channel.name === "" && result.channels.length > 0) {
+            const firstChannel = {
+              name: result.channels[0].info.name,
+              channel: result.channels[0].channel,
+              messages: []
+            };
+            console.log(firstChannel);
+            dispatch("setChannel", firstChannel);
+          }
+        });
     },
     addMessageToChannel: async ({ commit, rootState }, payload) => {
-      const committedChannel = await rootState.holochainClient.callZome({
-        cap: null,
-        cell_id: rootState.appInterface.cellId,
-        zome_name: "chat",
-        fn_name: "create_message",
-        provenance: rootState.agentKey,
-        payload: payload
-      });
-      payload.last_seen = { Message: committedChannel.entryHash };
-      commit("addMessageToChannel", payload);
+      const holochainPayload = {
+        last_seen: payload.channel.last_seen,
+        channel: payload.channel.channel,
+        message: payload.message
+      };
+      rootState.holochainClient
+        .callZome({
+          cap: null,
+          cell_id: rootState.appInterface.cellId,
+          zome_name: "chat",
+          fn_name: "create_message",
+          provenance: rootState.agentKey,
+          payload: holochainPayload
+        })
+        .then(message => {
+          commit("addChannelMessage", {
+            channel: payload.channel,
+            message: message
+          });
+        });
     },
     listMessages: async ({ commit, rootState }, payload) => {
       const holochainPayload = {
         channel: payload.channel.channel,
         date: payload.date
       };
-      const messagesList = await rootState.holochainClient.callZome({
-        cap: null,
-        cell_id: rootState.appInterface.cellId,
-        zome_name: "chat",
-        fn_name: "list_messages",
-        provenance: rootState.agentKey,
-        payload: holochainPayload
-      });
-      payload.channel.messages = messagesList.messages;
-      commit("listMessages", payload.channel);
+      rootState.holochainClient
+        .callZome({
+          cap: null,
+          cell_id: rootState.appInterface.cellId,
+          zome_name: "chat",
+          fn_name: "list_messages",
+          provenance: rootState.agentKey,
+          payload: holochainPayload
+        })
+        .then(result => {
+          commit("setChannelMessages", {
+            ...payload.channel,
+            messages: result.messages
+          });
+        });
     }
   },
   mutations: {
     setChannel(state, payload) {
       state.channel = payload;
     },
-    createChannel(state, payload) {
-      if (!state.channels) state.channels = [];
-      const newChannel = {
-        name: payload.info.name,
-        channel: payload.channel,
-        messages: []
-      };
-      state.channel = newChannel;
-      state.channels.push(newChannel);
+    setIntervalId(state, payload) {
+      state.intervalId = payload;
     },
-    listChannels(state, payload) {
+    createChannel(state, payload) {
+      state.channels.push(payload);
+    },
+    setChannels(state, payload) {
       const internalChannels = [];
       payload.channels.forEach(c => {
         const newChannel = {
@@ -94,32 +128,23 @@ export default {
         internalChannels.push(newChannel);
       });
       state.channels = internalChannels;
-      console.log(state.channels);
     },
-    addMessageToChannel(state, payload) {
+    addChannelMessage(state, payload) {
+      const internalChannel = payload.channel;
+      const internalMessage = payload.message;
       console.log(payload);
-      const internalChannel = {
-        ...state.channels.find(c => {
-          console.log(c.channel);
-          console.log(payload.channel);
-          return c.channel.uuid === payload.channel.uuid;
-        })
-      };
-      console.log(state.channels);
-      console.log(internalChannel);
-      internalChannel.messages.push(payload.message);
-      internalChannel.last_seen = payload.last_seen;
+      internalMessage.content = internalMessage.message.content;
+      internalChannel.last_seen = { Message: internalMessage.entryHash };
+      internalChannel.messages.push(internalMessage);
       state.channel = { ...internalChannel };
     },
-    listMessages(state, payload) {
-      console.log(payload);
+    setChannelMessages(state, payload) {
       const internalChannel = payload;
       payload.messages.map(m => {
         m.content = m.message.content;
+        internalChannel.last_seen = { Message: m.entryHash };
       });
-      internalChannel.messages = payload.messages;
       state.channel = { ...internalChannel };
-      console.log(state);
     }
   }
 };

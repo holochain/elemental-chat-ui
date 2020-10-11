@@ -9,23 +9,25 @@
           label="Channel Name"
           dense
           outlined
+          autofocus
           @keydown.enter="
             createChannel(actionChannel);
             $emit('channel-added');
-            $emit('open-channel', actionChannel);
           "
           append-icon="mdi-plus-box-outline"
           @click:append="
             createChannel(actionChannel);
             $emit('channel-added');
-            $emit('open-channel', actionChannel);
           "
         />
         <v-list dense>
           <v-list-item
             v-for="(channel, i) in channels"
             :key="i"
-            @click="$emit('open-channel', channel)"
+            @click="
+              $emit('open-channel');
+              setChannel(channel);
+            "
           >
             <v-list-item-icon>
               <v-icon>mdi-chat-processing-outline</v-icon>
@@ -40,7 +42,7 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { mapState, mapActions } from "vuex";
 import { v4 as uuidv4 } from "uuid";
 export default {
   name: "Channels",
@@ -55,11 +57,17 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["createChannel"])
+    ...mapActions("elementalChat", [
+      "setChannel",
+      "createChannel",
+      "listMessages"
+    ])
+  },
+  computed: {
+    ...mapState(["today"])
   },
   watch: {
     showAdd() {
-      this.name = "";
       this.actionChannel = {
         name: "",
         channel: { category: "General", uuid: uuidv4() },

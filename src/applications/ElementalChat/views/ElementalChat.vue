@@ -14,22 +14,6 @@
                   icon
                   v-bind="attrs"
                   v-on="on"
-                  @click="listChannels({ category: 'General' })"
-                  small
-                >
-                  <v-icon>mdi-refresh</v-icon>
-                </v-btn>
-              </template>
-              <span>Check for new channels</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  id="add-channel"
-                  color="action"
-                  icon
-                  v-bind="attrs"
-                  v-on="on"
                   @click="showAdd = true"
                   small
                 >
@@ -54,7 +38,7 @@
               >
               <v-spacer></v-spacer>
             </v-app-bar>
-            <messages :key="refreshKey" :channel="internalChannel" />
+            <messages :key="channel.channel.uuid" :channel="channel" />
           </v-card>
         </v-col>
       </v-row>
@@ -63,7 +47,7 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapMutations } from "vuex";
+import { mapState, mapActions } from "vuex";
 export default {
   name: "ElementalChat",
   components: {
@@ -73,21 +57,12 @@ export default {
   data() {
     return {
       showAdd: false,
-      refreshKey: 0,
-      internalChannel: {
-        name: "",
-        channel: { category: "General", uuid: "" },
-        messages: []
-      }
+      refreshKey: 0
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["listChannels", "listMessages"]),
-    ...mapMutations("elementalChat", ["setChannel"]),
-    async openChannel(channel) {
-      this.internalChannel = { ...channel };
-      this.setChannel(channel);
-      this.listMessages({ channel: channel, date: this.today });
+    ...mapActions("elementalChat", ["listChannels"]),
+    openChannel() {
       this.refreshKey += 1;
     },
     channelAdded() {
@@ -95,10 +70,13 @@ export default {
     }
   },
   computed: {
-    ...mapState("elementalChat", ["channels", "channel", "today"])
+    ...mapState(["connectedToHolochain"]),
+    ...mapState("elementalChat", ["channels", "channel"])
   },
-  mounted() {
-    this.internalChannel = { ...this.channel };
+  watch: {
+    connectedToHolochain(val) {
+      if (val) this.listChannels({ category: "General" });
+    }
   }
 };
 </script>

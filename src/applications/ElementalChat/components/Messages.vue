@@ -2,8 +2,16 @@
   <v-card flat>
     <div id="container" class="chat-container rounded">
       <ul class="pb-10 pl-0">
-        <li v-for="(message, i) in channel.messages" :key="i" class="message">
-          <message :message="message" mode="display" />
+        <li
+          v-for="message in messages"
+          :key="message.message.uuid"
+          class="message"
+        >
+          <message
+            :message="message"
+            :key="message.message.uuid"
+            mode="display"
+          />
         </li>
       </ul>
     </div>
@@ -13,51 +21,37 @@
   </v-card>
 </template>
 <script>
-import { mapActions } from "vuex";
-
+import { mapActions, mapState } from "vuex";
 export default {
   name: "Messages",
   components: {
     Message: () => import("./Message.vue")
   },
-  props: ["channel"],
   methods: {
     ...mapActions("elementalChat", ["addMessageToChannel"]),
     messageCreated(message) {
-      console.log(this.channel);
-      if (this.channel.last_seen === undefined)
+      if (this.channel.last_seen === undefined) {
         this.channel.last_seen = { First: null };
+      }
       this.addMessageToChannel({
-        last_seen: this.channel.last_seen,
-        channel: this.channel.channel,
-        messages: this.channel.messages,
+        channel: this.channel,
         message: message
       }).then(() => {
         this.scrollToEnd();
       });
     },
-    scrollToEnd: function() {
+    scrollToEnd() {
       var container = this.$el.querySelector("#container");
       container.scrollTop = container.scrollHeight;
     }
   },
   computed: {
+    ...mapState(["connectedToHolochain", "today"]),
+    ...mapState("elementalChat", ["channel"]),
     messages() {
       return this.channel.messages;
     }
   }
-  // mounted() {
-  //   const sleep = time => new Promise(resolve => setTimeout(resolve, time));
-  //   const poll = (promiseFn, time) =>
-  //     promiseFn().then(sleep(time).then(() => poll(promiseFn, time)));
-  //   poll(
-  //     () =>
-  //       new Promise(() => {
-  //         this.listMessages({ channel: this.channel.channel, date: today() });
-  //       }),
-  //     10000
-  //   );
-  // }
 };
 </script>
 <style>
