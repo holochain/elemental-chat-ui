@@ -15,19 +15,22 @@ const yyyy = String(today.getUTCFullYear());
 export default new Vuex.Store({
   state: {
     connectedToHolochain: false,
-    today: { year: yyyy, month: mm, day: dd }
+    needsHandle: false,
+    today: { year: yyyy, month: mm, day: dd },
+    agentHandle: ""
   },
   mutations: {
     setAgentKey(state, payload) {
       state.agentKey = payload;
     },
-    setPersistedAgentKey(state, payload) {
-      state.agentKey = payload;
+    needsHandle(state) {
+      state.needsHandle = true;
+    },
+    setAgentHandle(state, payload) {
+      state.agentHandle = payload;
+      state.needsHandle = false;
     },
     setAppInterface(state, payload) {
-      state.appInterface = payload;
-    },
-    setPersistedAppInterface(state, payload) {
       state.appInterface = payload;
     },
     setHolochainClient(state, payload) {
@@ -38,7 +41,6 @@ export default new Vuex.Store({
   actions: {
     initialiseAgent({ commit }) {
       getPersistedState("setAgentKey").then(agentKey => {
-        console.log(agentKey);
         if (agentKey === undefined || agentKey === null) {
           AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`).then(admin => {
             admin.generateAgentPubKey().then(agentKey => {
@@ -73,19 +75,27 @@ export default new Vuex.Store({
             });
           });
         } else {
-          commit("setPersistedAgentKey", agentKey);
+          commit("setAgentKey", agentKey);
           getPersistedState("setAppInterface").then(appInterface => {
-            commit("setPersistedAppInterface", {
+            commit("setAppInterface", {
               port: appInterface.port,
               cellId: appInterface.cellId
             });
             AppWebsocket.connect(`ws://localhost:${appInterface.port}`).then(
               client => {
-                console.log("persist");
                 commit("setHolochainClient", client);
               }
             );
           });
+        }
+      });
+      getPersistedState("setAgentHandle").then(agentHandle => {
+        console.log("setAgentHandle", agentHandle);
+        if (agentHandle === null || agentHandle === undefined) {
+          commit("setAgentHandle", "");
+          commit("needsHandle");
+        } else {
+          commit("setAgentHandle", agentHandle);
         }
       });
     }

@@ -14,7 +14,6 @@ export default {
       dispatch("listMessages", { channel: payload, date: rootState.today });
       clearInterval(state.intervalId);
       const intervalId = setInterval(() => {
-        console.log(payload);
         dispatch("listMessages", { channel: payload, date: rootState.today });
       }, 1000);
       commit("setIntervalId", intervalId);
@@ -50,7 +49,6 @@ export default {
           payload: payload
         })
         .then(result => {
-          console.log(result);
           commit("setChannels", result);
           if (state.channel.name === "" && result.channels.length > 0) {
             const firstChannel = {
@@ -58,7 +56,6 @@ export default {
               channel: result.channels[0].channel,
               messages: []
             };
-            console.log(firstChannel);
             dispatch("setChannel", firstChannel);
           }
         });
@@ -67,7 +64,11 @@ export default {
       const holochainPayload = {
         last_seen: payload.channel.last_seen,
         channel: payload.channel.channel,
-        message: payload.message
+        message: {
+          ...payload.message,
+          content: `${rootState.agentHandle}
+        ${payload.message.content}`
+        }
       };
       rootState.holochainClient
         .callZome({
