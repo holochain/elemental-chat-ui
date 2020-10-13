@@ -5,7 +5,7 @@
         <v-text-field
           id="channel-name"
           v-if="showAdd"
-          v-model="actionChannel.name"
+          v-model="actionChannel.info.name"
           label="Channel Name"
           dense
           outlined
@@ -33,7 +33,7 @@
               <v-icon>mdi-chat-processing-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title v-text="channel.name" />
+              <v-list-item-title v-text="channel.info.name" />
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -50,7 +50,7 @@ export default {
   data() {
     return {
       actionChannel: {
-        name: "",
+        info: { name: "" },
         channel: { category: "General", uuid: uuidv4() },
         messages: []
       }
@@ -69,7 +69,7 @@ export default {
   watch: {
     showAdd() {
       this.actionChannel = {
-        name: "",
+        info: { name: "" },
         channel: { category: "General", uuid: uuidv4() },
         messages: []
       };

@@ -1,6 +1,6 @@
 <template>
   <v-card flat>
-    <div id="container" class="chat-container rounded">
+    <div id="container" class="chat-container rounded" @scroll="personScroll">
       <ul class="pb-10 pl-0">
         <li
           v-for="message in messages"
@@ -27,20 +27,31 @@ export default {
   components: {
     Message: () => import("./Message.vue")
   },
+  data() {
+    return {
+      personScrolling: false
+    };
+  },
   methods: {
     ...mapActions("elementalChat", ["addMessageToChannel"]),
     messageCreated(message) {
-      if (this.channel.last_seen === undefined) {
-        this.channel.last_seen = { First: null };
-      }
       this.addMessageToChannel({
         channel: this.channel,
         message: message
-      }).then(() => {
-        this.scrollToEnd();
       });
     },
+    personScroll() {
+      var container = this.$el.querySelector("#container");
+      container.onscroll = () => {
+        this.personScrolling = true;
+        const height = container.offsetHeight + container.scrollTop;
+        if (height === container.scrollHeight) {
+          this.personScrolling = false;
+        }
+      };
+    },
     scrollToEnd() {
+      if (this.personScrolling) return;
       var container = this.$el.querySelector("#container");
       container.scrollTop = container.scrollHeight;
     }
@@ -51,6 +62,14 @@ export default {
     messages() {
       return this.channel.messages;
     }
+  },
+  watch: {
+    channel() {
+      this.scrollToEnd();
+    }
+  },
+  mounted() {
+    this.scrollToEnd();
   }
 };
 </script>
