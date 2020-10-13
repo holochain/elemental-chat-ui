@@ -10,6 +10,25 @@ const today = new Date();
 const dd = String(today.getUTCDate());
 const mm = String(today.getUTCMonth() + 1); //January is 0!
 const yyyy = String(today.getUTCFullYear());
+
+(function() {
+  if ("File" in self) {
+    File.prototype.arrayBuffer = File.prototype.arrayBuffer || myArrayBuffer;
+  }
+  Blob.prototype.arrayBuffer = Blob.prototype.arrayBuffer || myArrayBuffer;
+
+  function myArrayBuffer() {
+    // this: File or Blob
+    return new Promise(resolve => {
+      let fr = new FileReader();
+      fr.onload = () => {
+        resolve(fr.result);
+      };
+      fr.readAsArrayBuffer(this);
+    });
+  }
+})();
+
 export default new Vuex.Store({
   state: {
     connectedToHolochain: false,
