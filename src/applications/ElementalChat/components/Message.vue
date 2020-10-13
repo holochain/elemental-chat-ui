@@ -46,8 +46,8 @@ export default {
   created() {
     if (this.message) {
       this.internalMode = this.mode;
-      this.content = this.message.content;
-      this.uuid = this.message.uuid;
+      this.content = this.message.message.content;
+      this.uuid = this.message.message.uuid;
     }
   }
 };

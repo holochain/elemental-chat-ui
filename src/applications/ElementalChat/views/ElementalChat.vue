@@ -1,11 +1,33 @@
 <template>
   <div>
+    <v-app-bar app dense dark tile elevation="5">
+      <v-toolbar-title class="title pl-0"
+        >Elemental Chat - {{ channel.info.name }}</v-toolbar-title
+      >
+      <v-spacer></v-spacer>
+    </v-app-bar>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">
-        <v-col cols="3">
+        <v-col cols="5" md="3">
           <v-toolbar dense dark tile class="mb-1">
             <v-toolbar-title>Channels</v-toolbar-title>
             <v-spacer></v-spacer>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  id="add-channel"
+                  color="action"
+                  icon
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="breakIt"
+                  small
+                >
+                  <v-icon>mdi-paper-roll-outline</v-icon>
+                </v-btn>
+              </template>
+              <span>How far can we go?</span>
+            </v-tooltip>
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -46,14 +68,8 @@
             @channel-added="channelAdded"
           />
         </v-col>
-        <v-col cols="9">
+        <v-col cols="7" md="9">
           <v-card class="ma-0 pt-n1 pl-1" dark>
-            <v-app-bar app dense dark tile elevation="5">
-              <v-toolbar-title class="title pl-0"
-                >Elemental Chat - {{ channel.name }}</v-toolbar-title
-              >
-              <v-spacer></v-spacer>
-            </v-app-bar>
             <messages :key="channel.channel.uuid" :channel="channel" />
           </v-card>
         </v-col>
@@ -77,7 +93,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["listChannels"]),
+    ...mapActions("elementalChat", ["listChannels", "breakIt"]),
     openChannel() {
       this.refreshKey += 1;
     },

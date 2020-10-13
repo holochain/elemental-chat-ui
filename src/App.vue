@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapMutations } from "vuex";
+import { mapState, mapActions } from "vuex";
 export default {
   name: "App",
   components: {},
@@ -53,9 +53,9 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["initialiseAgent"]),
-    ...mapMutations(["setAgentHandle"]),
+    ...mapActions(["setAgentHandle"]),
     agentHandleEntered() {
+      if (this.internalAgentHandle === "") return;
       this.setAgentHandle(this.internalAgentHandle);
       this.dialog = false;
     }
@@ -67,7 +67,7 @@ export default {
     }
   },
   created() {
-    this.initialiseAgent();
+    this.$store.dispatch("initialiseStore");
     this.$vuetify.theme.dark = true;
   }
 };
