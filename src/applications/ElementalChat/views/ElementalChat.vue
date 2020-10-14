@@ -20,22 +20,6 @@
                   icon
                   v-bind="attrs"
                   v-on="on"
-                  @click="breakIt"
-                  small
-                >
-                  <v-icon>mdi-paper-roll-outline</v-icon>
-                </v-btn>
-              </template>
-              <span>How far can we go?</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  id="add-channel"
-                  color="action"
-                  icon
-                  v-bind="attrs"
-                  v-on="on"
                   @click="listChannels({ category: 'General' })"
                   small
                 >
