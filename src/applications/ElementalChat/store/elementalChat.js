@@ -80,7 +80,7 @@ export default {
           clearInterval(intervalId);
           intervalId = setInterval(function() {
             pollMessages(dispatch, payload, rootState.today);
-          }, 9500000);
+          }, 15000);
         })
         .catch(error => logItToConsole(error));
     },
