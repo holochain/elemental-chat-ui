@@ -44,7 +44,7 @@ const manageSignals = (signal, dispatch) => {
     case "channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");
       // trigger action in elemental_chat module to add channel to channel list
-      dispatch("elementalChat/addChannel", signalPayload.ChannelData);
+      dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
 
       break;
     default:
