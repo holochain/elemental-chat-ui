@@ -54,8 +54,8 @@ function pollMessages(dispatch, channel, date) {
     date: date
   });
 }
-function logItToConsole(log) { // eslint-disable-line
-  // console.log(log);
+function logItToConsole(what, time) { // eslint-disable-line
+  console.log(time, what);
 }
 let intervalId = 0;
 export default {
@@ -77,10 +77,11 @@ export default {
           logItToConsole("setChannel dexie done", Date.now());
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
+          pollMessages(dispatch, payload, rootState.today);
           clearInterval(intervalId);
           intervalId = setInterval(function() {
             pollMessages(dispatch, payload, rootState.today);
-          }, 15000);
+          }, 50000);
         })
         .catch(error => logItToConsole(error));
     },

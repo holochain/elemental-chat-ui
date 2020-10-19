@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
+import dexiePlugin from "./dexiePlugin";
 
 Vue.use(Vuex);
 const ADMIN_PORT = 3301;
@@ -168,5 +169,6 @@ export default new Vuex.Store({
   },
   modules: {
     elementalChat
-  }
+  },
+  plugins: [dexiePlugin]
 });
