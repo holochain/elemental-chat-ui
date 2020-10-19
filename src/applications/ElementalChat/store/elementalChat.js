@@ -54,8 +54,8 @@ function pollMessages(dispatch, channel, date) {
     date: date
   });
 }
-function logItToConsole(what, time) { // eslint-disable-line
-  console.log(time, what);
+function logItToConsole(log) { // eslint-disable-line
+  // console.log(log);
 }
 let intervalId = 0;
 export default {
@@ -77,13 +77,35 @@ export default {
           logItToConsole("setChannel dexie done", Date.now());
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
-          pollMessages(dispatch, payload, rootState.today);
           clearInterval(intervalId);
           intervalId = setInterval(function() {
             pollMessages(dispatch, payload, rootState.today);
-          }, 50000);
+          }, 15000);
         })
         .catch(error => logItToConsole(error));
+    },
+    addChannel: async ({ commit, state, rootState, dispatch }, payload) => {
+      const committedChannel = payload;
+      // don't add channel if already exists
+      const exists = state.channels.includes(
+        channel => channel.channel.uuid === committedChannel.channel.uuid
+      );
+      if (exists) return console.log("Channel already exists...");
+
+      // currently this follows the same logic as if we had created our own channel...
+      // todo: distinguish between committed and received channels
+      logItToConsole("addChannel signal received", Date.now());
+      console.log(">>>>>>> received Channel : ", committedChannel);
+      committedChannel.last_seen = { First: null };
+      commit("createChannel", { ...committedChannel, messages: [] });
+      rootState.hcDb.elementalChat
+        .put(
+          { ...committedChannel, messages: [] },
+          committedChannel.channel.uuid
+        )
+        .then(logItToConsole("createChannel dexie done", Date.now()))
+        .catch(error => logItToConsole(error));
+      dispatch("setChannel", { ...committedChannel, messages: [] });
     },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       logItToConsole("createChannel start", Date.now());
@@ -102,6 +124,9 @@ export default {
         })
         .then(committedChannel => {
           logItToConsole("createChannel zome done", Date.now());
+
+          console.log(">>>>>>> created channel : ", committedChannel);
+
           committedChannel.last_seen = { First: null };
           commit("createChannel", { ...committedChannel, messages: [] });
           rootState.hcDb.elementalChat
@@ -142,6 +167,44 @@ export default {
           if (state.channel.info.name === "" && result.channels.length > 0) {
             dispatch("setChannel", { ...result.channels[0], messages: [] });
           }
+        });
+    },
+    addSignalMessageToChannel: async ({ rootState, state }, payload) => {
+      const { channel: signalChannel, ...signalMessage } = payload;
+      console.log("signal channel ", signalChannel);
+      console.log("S message >> ", signalMessage);
+
+      logItToConsole("addSignalMessageToChannel signal received", Date.now());
+      // verify channel (for message) already exists
+      const appChannel = state.channels.find(
+        channel => channel.channel.uuid === signalChannel.uuid
+      );
+      if (!appChannel)
+        return console.error("ERROR: No channel exists for this message");
+
+      rootState.hcDb.elementalChat
+        .get(appChannel.channel.uuid)
+        .then(channel => {
+          // verify message for channel does not already exist
+          const messageExists = channel.messages.includes(
+            message => message === signalMessage
+          );
+          if (messageExists)
+            return console.error("ERROR: Message already exists...");
+
+          // if new message push to channel message list and update the channel
+          const internalMessages = channel.messages.push(signalMessage);
+          const internalChannel = {
+            ...signalChannel,
+            last_seen: { Message: signalMessage.entryHash },
+            messages: internalMessages
+          };
+
+          logItToConsole("addMessageToChannel dexie start", Date.now());
+          rootState.hcDb.elementalChat
+            .put(internalChannel, appChannel.channel.uuid)
+            .then(logItToConsole("addMessageToChannel dexie done", Date.now()))
+            .catch(error => logItToConsole(error));
         });
     },
     addMessageToChannel: async ({ commit, rootState, state }, payload) => {
@@ -199,6 +262,7 @@ export default {
         })
         .then(result => {
           logItToConsole("listMessages zome done", Date.now());
+          // console.log('>>>>>>> list messages : ', result)
           payload.channel.last_seen = { First: null };
           if (result.messages.length > 0) {
             payload.channel.last_seen = {

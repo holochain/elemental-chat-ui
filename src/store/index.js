@@ -2,7 +2,6 @@ import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
-import dexiePlugin from "./dexiePlugin";
 
 Vue.use(Vuex);
 const ADMIN_PORT = 3301;
@@ -29,6 +28,29 @@ const yyyy = String(today.getUTCFullYear());
     });
   }
 })();
+
+const manageSignals = (signal, dispatch) => {
+  const signalData = signal.data.payload;
+  const { signal_name: signalName, signal_payload: signalPayload } = signalData;
+  switch (signalName) {
+    case "message":
+      console.log("INCOMING SIGNAL > NEW MESSAGE");
+      // trigger action in elemental_chat to add message to message list
+      dispatch(
+        "elementalChat/addSignalMessageToChannel",
+        signalPayload.SignalMessageData
+      );
+      break;
+    case "channel":
+      console.log("INCOMING SIGNAL > NEW CHANNEL");
+      // trigger action in elemental_chat module to add channel to channel list
+      dispatch("elementalChat/addChannel", signalPayload.ChannelData);
+
+      break;
+    default:
+      throw new Error("Received an unsupported signal by name : ", name);
+  }
+};
 
 export default new Vuex.Store({
   state: {
@@ -64,9 +86,9 @@ export default new Vuex.Store({
       });
       dispatch("initialiseAgent");
     },
-    initialiseAgent({ commit, state }) {
+    initialiseAgent({ commit, state, dispatch }) {
       state.hcDb.agent.get("agentKey").then(agentKey => {
-        console.log(agentKey);
+        console.log("agentKey : ", agentKey);
         if (agentKey === undefined || agentKey === null) {
           AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`).then(admin => {
             admin.generateAgentPubKey().then(agentKey => {
@@ -81,15 +103,18 @@ export default new Vuex.Store({
                   dnas: [
                     {
                       path:
-                        "/Users/philipbeadle/holochain-rsm/elemental-chat/elemental-chat.dna.gz",
+                        "/home/lisa/Documents/gitrepos/holochain/holochain-new/elemental-chat/elemental-chat.dna.gz",
                       nick: "Elemental Chat"
                     }
                   ]
                 })
                 .then(app => {
+                  console.log("INSTALLED APP...");
+
                   const cellId = app.cell_data[0][0];
                   admin.activateApp({ app_id: APP_ID });
                   admin.attachAppInterface({ port: 0 }).then(appInterface => {
+                    console.log("APP INTERFACE : ", appInterface);
                     commit("setAppInterface", {
                       port: appInterface.port,
                       cellId
@@ -102,7 +127,8 @@ export default new Vuex.Store({
                       "appInterface"
                     );
                     AppWebsocket.connect(
-                      `ws://localhost:${appInterface.port}`
+                      `ws://localhost:${appInterface.port}`,
+                      signal => manageSignals(signal, dispatch)
                     ).then(holochainClient => {
                       commit("setHolochainClient", holochainClient);
                     });
@@ -113,15 +139,17 @@ export default new Vuex.Store({
         } else {
           commit("setAgentKey", agentKey);
           state.hcDb.agent.get("appInterface").then(appInterface => {
+            console.log("APP INTERFACE : ", appInterface);
             commit("setAppInterface", {
               port: appInterface.port,
               cellId: appInterface.cellId
             });
-            AppWebsocket.connect(`ws://localhost:${appInterface.port}`).then(
-              holochainClient => {
-                commit("setHolochainClient", holochainClient);
-              }
-            );
+            AppWebsocket.connect(
+              `ws://localhost:${appInterface.port}`,
+              signal => manageSignals(signal, dispatch)
+            ).then(holochainClient => {
+              commit("setHolochainClient", holochainClient);
+            });
           });
         }
       });
@@ -140,6 +168,5 @@ export default new Vuex.Store({
   },
   modules: {
     elementalChat
-  },
-  plugins: [dexiePlugin]
+  }
 });
