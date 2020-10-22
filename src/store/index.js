@@ -1,12 +1,13 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
-import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
+import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
 
 Vue.use(Vuex);
-const ADMIN_PORT = 3301;
-const APP_ID = "ElementalChat";
+const HPOS_WEB_CLIENT_PORT = 4444;
+const DNA_ALIAS = "elemental-chat";
+
 const today = new Date();
 const dd = String(today.getUTCDate());
 const mm = String(today.getUTCMonth() + 1); //January is 0!
@@ -65,66 +66,31 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, state }) {
-      state.hcDb.agent.get("agentKey").then(agentKey => {
-        console.log(agentKey);
-        if (agentKey === undefined || agentKey === null) {
-          AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`).then(admin => {
-            admin.generateAgentPubKey().then(agentKey => {
-              commit("setAgentKey", agentKey);
-              state.hcDb.agent
-                .put(agentKey, "agentKey")
-                .catch(error => console.log(error));
-              admin
-                .installApp({
-                  app_id: APP_ID,
-                  agent_key: agentKey,
-                  dnas: [
-                    {
-                      path:
-                        "/Users/philipbeadle/holochain-rsm/elemental-chat/elemental-chat.dna.gz",
-                      nick: "Elemental Chat"
-                    }
-                  ]
-                })
-                .then(app => {
-                  const cellId = app.cell_data[0][0];
-                  admin.activateApp({ app_id: APP_ID });
-                  admin.attachAppInterface({ port: 0 }).then(appInterface => {
-                    commit("setAppInterface", {
-                      port: appInterface.port,
-                      cellId
-                    });
-                    state.hcDb.agent.put(
-                      {
-                        port: appInterface.port,
-                        cellId
-                      },
-                      "appInterface"
-                    );
-                    AppWebsocket.connect(
-                      `ws://localhost:${appInterface.port}`
-                    ).then(holochainClient => {
-                      commit("setHolochainClient", holochainClient);
-                    });
-                  });
+      AppWebsocket.connect(`ws://localhost:${HPOS_WEB_CLIENT_PORT}`).then(
+        holochainClient => {
+          commit("setHolochainClient", holochainClient);
+          state.hcDb.agent.get("agentKey").then(agentKey => {
+            console.log(agentKey);
+            if (agentKey === undefined || agentKey === null) {
+              holochainClient.appInfo({ app_id: DNA_ALIAS }).then(appInfo => {
+                const cellId = appInfo.cell_data[0][0];
+                commit("setAppInterface", {
+                  port: HPOS_WEB_CLIENT_PORT,
+                  cellId
                 });
-            });
-          });
-        } else {
-          commit("setAgentKey", agentKey);
-          state.hcDb.agent.get("appInterface").then(appInterface => {
-            commit("setAppInterface", {
-              port: appInterface.port,
-              cellId: appInterface.cellId
-            });
-            AppWebsocket.connect(`ws://localhost:${appInterface.port}`).then(
-              holochainClient => {
-                commit("setHolochainClient", holochainClient);
-              }
-            );
+              });
+            } else {
+              commit("setAgentKey", agentKey);
+              state.hcDb.agent.get("appInterface").then(appInterface => {
+                commit("setAppInterface", {
+                  port: appInterface.port,
+                  cellId: appInterface.cellId
+                });
+              });
+            }
           });
         }
-      });
+      );
       state.hcDb.agent.get("agentHandle").then(agentHandle => {
         if (agentHandle === null || agentHandle === undefined) {
           commit("needsHandle", true);
