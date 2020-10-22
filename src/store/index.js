@@ -68,16 +68,32 @@ export default new Vuex.Store({
     initialiseAgent({ commit, state }) {
       AppWebsocket.connect(`ws://localhost:${HPOS_WEB_CLIENT_PORT}`).then(
         holochainClient => {
+          console.log("holochainClient connected : ", holochainClient);
           commit("setHolochainClient", holochainClient);
           state.hcDb.agent.get("agentKey").then(agentKey => {
             console.log(agentKey);
             if (agentKey === undefined || agentKey === null) {
               holochainClient.appInfo({ app_id: DNA_ALIAS }).then(appInfo => {
+                console.log("appInfo fetched : ", appInfo);
                 const cellId = appInfo.cell_data[0][0];
+                const agentId = cellId[1];
+
+                commit("setAgentKey", agentId);
                 commit("setAppInterface", {
                   port: HPOS_WEB_CLIENT_PORT,
                   cellId
                 });
+
+                state.hcDb.agent
+                  .put(agentId, "agentKey")
+                  .catch(error => console.log(error));
+                state.hcDb.agent.put(
+                  {
+                    port: HPOS_WEB_CLIENT_PORT,
+                    cellId
+                  },
+                  "appInterface"
+                );
               });
             } else {
               commit("setAgentKey", agentKey);
