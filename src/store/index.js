@@ -6,8 +6,9 @@ import dexiePlugin from "./dexiePlugin";
 
 Vue.use(Vuex);
 const HPOS_WEB_CLIENT_PORT = 4444;
-const DNA_ALIAS = "elemental-chat";
-
+const DOMAIN = window.location.hostname;
+const AGENT_KEY = "AGENT_KEY_VALUE"; // injected into built files when served in hpos
+const CELL_ID = "CELL_ID_VALUE"; // injected into built files when served in hpos
 const today = new Date();
 const dd = String(today.getUTCDate());
 const mm = String(today.getUTCMonth() + 1); //January is 0!
@@ -66,35 +67,29 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, state }) {
-      AppWebsocket.connect(`ws://localhost:${HPOS_WEB_CLIENT_PORT}`).then(
+      AppWebsocket.connect(`ws://${DOMAIN}:${HPOS_WEB_CLIENT_PORT}`).then(
         holochainClient => {
           console.log("holochainClient connected : ", holochainClient);
           commit("setHolochainClient", holochainClient);
           state.hcDb.agent.get("agentKey").then(agentKey => {
             console.log(agentKey);
             if (agentKey === undefined || agentKey === null) {
-              holochainClient.appInfo({ app_id: DNA_ALIAS }).then(appInfo => {
-                console.log("appInfo fetched : ", appInfo);
-                const cellId = appInfo.cell_data[0][0];
-                const agentId = cellId[1];
-
-                commit("setAgentKey", agentId);
-                commit("setAppInterface", {
-                  port: HPOS_WEB_CLIENT_PORT,
-                  cellId
-                });
-
-                state.hcDb.agent
-                  .put(agentId, "agentKey")
-                  .catch(error => console.log(error));
-                state.hcDb.agent.put(
-                  {
-                    port: HPOS_WEB_CLIENT_PORT,
-                    cellId
-                  },
-                  "appInterface"
-                );
+              commit("setAgentKey", AGENT_KEY);
+              commit("setAppInterface", {
+                port: HPOS_WEB_CLIENT_PORT,
+                cellId: CELL_ID
               });
+
+              state.hcDb.agent
+                .put(AGENT_KEY, "agentKey")
+                .catch(error => console.log(error));
+              state.hcDb.agent.put(
+                {
+                  port: HPOS_WEB_CLIENT_PORT,
+                  cellId: CELL_ID
+                },
+                "appInterface"
+              );
             } else {
               commit("setAgentKey", agentKey);
               state.hcDb.agent.get("appInterface").then(appInterface => {
