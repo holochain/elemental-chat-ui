@@ -5,6 +5,7 @@ import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
 
 Vue.use(Vuex);
+
 const HPOS_WEB_CLIENT_PORT = 443; // This is the correct port for HPOS context but it isn't used anyway.
 const DNA_ALIAS = "elemental-chat";
 const DOMAIN = window.location.hostname;
