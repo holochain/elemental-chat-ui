@@ -5,8 +5,9 @@ import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
 
 Vue.use(Vuex);
-const HPOS_WEB_CLIENT_PORT = 4444;
+const HPOS_WEB_CLIENT_PORT = 443; // This is the correct port for HPOS context but it isn't used anyway.
 const DNA_ALIAS = "elemental-chat";
+const DOMAIN = window.location.hostname;
 
 const today = new Date();
 const dd = String(today.getUTCDate());
@@ -66,7 +67,7 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, state }) {
-      AppWebsocket.connect(`ws://localhost:${HPOS_WEB_CLIENT_PORT}`).then(
+      AppWebsocket.connect(`wss://${DOMAIN}/api/v1/ws`).then(
         holochainClient => {
           console.log("holochainClient connected : ", holochainClient);
           commit("setHolochainClient", holochainClient);
