@@ -68,7 +68,7 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, state }) {
-      AppWebsocket.connect(`wss://${DOMAIN}/api/v1/ws`).then(
+      AppWebsocket.connect(`wss://${DOMAIN}/api/v1/ws/`).then(
         holochainClient => {
           console.log("holochainClient connected : ", holochainClient);
           commit("setHolochainClient", holochainClient);
