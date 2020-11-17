@@ -67,11 +67,9 @@ export default new Vuex.Store({
       });
       dispatch("initialiseAgent");
     },
-    initialiseAgent({ commit, state }) {
+    initialiseAgent({ commit, dispatch, state }) {
       AppWebsocket.connect(`wss://${DOMAIN}/api/v1/ws/`).then(
         holochainClient => {
-          console.log("holochainClient connected : ", holochainClient);
-          commit("setHolochainClient", holochainClient);
           state.hcDb.agent.get("agentKey").then(agentKey => {
             console.log(agentKey);
             if (agentKey === undefined || agentKey === null) {
@@ -107,6 +105,17 @@ export default new Vuex.Store({
               });
             }
           });
+          holochainClient.onclose = function(e) {
+            console.log(
+              "Socket is closed. Reconnect will be attempted in 1 second.",
+              e.reason
+            );
+            setTimeout(function() {
+              dispatch("initialiseAgent");
+            }, 1000);
+          };
+          console.log("holochainClient connected : ", holochainClient);
+          commit("setHolochainClient", holochainClient);
         }
       );
       state.hcDb.agent.get("agentHandle").then(agentHandle => {
