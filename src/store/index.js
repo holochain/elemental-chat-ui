@@ -1,12 +1,15 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
-import { AdminWebsocket, AppWebsocket } from "@holochain/conductor-api";
+import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
 
 Vue.use(Vuex);
-const ADMIN_PORT = 3301;
-const APP_ID = "ElementalChat";
+
+const HPOS_WEB_CLIENT_PORT = 443; // This is the correct port for HPOS context but it isn't used anyway.
+const DNA_ALIAS = "elemental-chat";
+const DOMAIN = window.location.hostname;
+
 const today = new Date();
 const dd = String(today.getUTCDate());
 const mm = String(today.getUTCMonth() + 1); //January is 0!
@@ -46,7 +49,6 @@ const manageSignals = (signal, dispatch) => {
       console.log("INCOMING SIGNAL > NEW CHANNEL");
       // trigger action in elemental_chat module to add channel to channel list
       dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
-
       break;
     default:
       throw new Error("Received an unsupported signal by name : ", name);
@@ -87,73 +89,60 @@ export default new Vuex.Store({
       });
       dispatch("initialiseAgent");
     },
-    initialiseAgent({ commit, state, dispatch }) {
-      state.hcDb.agent.get("agentKey").then(agentKey => {
-        console.log("agentKey : ", agentKey);
-        if (agentKey === undefined || agentKey === null) {
-          AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`).then(admin => {
-            admin.generateAgentPubKey().then(agentKey => {
-              commit("setAgentKey", agentKey);
-              state.hcDb.agent
-                .put(agentKey, "agentKey")
-                .catch(error => console.log(error));
-              admin
-                .installApp({
-                  app_id: APP_ID,
-                  agent_key: agentKey,
-                  dnas: [
-                    {
-                      path:
-                        "/home/lisa/Documents/gitrepos/holochain/holochain-new/elemental-chat/elemental-chat.dna.gz",
-                      nick: "Elemental Chat"
-                    }
-                  ]
-                })
-                .then(app => {
-                  console.log("INSTALLED APP...");
+    initialiseAgent({ commit, dispatch, state }) {
+      AppWebsocket.connect(
+          `wss://${DOMAIN}/api/v1/ws/`,
+          signal => manageSignals(signal, dispatch)
+        .then(
+        holochainClient => {
+          state.hcDb.agent.get("agentKey").then(agentKey => {
+            console.log(agentKey);
+            if (agentKey === undefined || agentKey === null) {
+              holochainClient.appInfo({ app_id: DNA_ALIAS }).then(appInfo => {
+                console.log("appInfo fetched : ", appInfo);
+                const cellId = appInfo.cell_data[0][0];
+                const agentId = cellId[1];
 
-                  const cellId = app.cell_data[0][0];
-                  admin.activateApp({ app_id: APP_ID });
-                  admin.attachAppInterface({ port: 0 }).then(appInterface => {
-                    console.log("APP INTERFACE : ", appInterface);
-                    commit("setAppInterface", {
-                      port: appInterface.port,
-                      cellId
-                    });
-                    state.hcDb.agent.put(
-                      {
-                        port: appInterface.port,
-                        cellId
-                      },
-                      "appInterface"
-                    );
-                    AppWebsocket.connect(
-                      `ws://localhost:${appInterface.port}`,
-                      signal => manageSignals(signal, dispatch)
-                    ).then(holochainClient => {
-                      commit("setHolochainClient", holochainClient);
-                    });
-                  });
+                commit("setAgentKey", agentId);
+                commit("setAppInterface", {
+                  port: HPOS_WEB_CLIENT_PORT,
+                  cellId
                 });
-            });
+
+                state.hcDb.agent
+                  .put(agentId, "agentKey")
+                  .catch(error => console.log(error));
+                state.hcDb.agent.put(
+                  {
+                    port: HPOS_WEB_CLIENT_PORT,
+                    cellId
+                  },
+                  "appInterface"
+                );
+              });
+            } else {
+              commit("setAgentKey", agentKey);
+              state.hcDb.agent.get("appInterface").then(appInterface => {
+                commit("setAppInterface", {
+                  port: appInterface.port,
+                  cellId: appInterface.cellId
+                });
+              });
+            }
           });
-        } else {
-          commit("setAgentKey", agentKey);
-          state.hcDb.agent.get("appInterface").then(appInterface => {
-            console.log("APP INTERFACE : ", appInterface);
-            commit("setAppInterface", {
-              port: appInterface.port,
-              cellId: appInterface.cellId
-            });
-            AppWebsocket.connect(
-              `ws://localhost:${appInterface.port}`,
-              signal => manageSignals(signal, dispatch)
-            ).then(holochainClient => {
-              commit("setHolochainClient", holochainClient);
-            });
-          });
+          holochainClient.onclose = function(e) {
+            console.log(
+              "Socket is closed. Reconnect will be attempted in 1 second.",
+              e.reason
+            );
+            setTimeout(function() {
+              dispatch("initialiseAgent");
+            }, 1000);
+          };
+          console.log("holochainClient connected : ", holochainClient);
+          commit("setHolochainClient", holochainClient);
         }
-      });
+      );
       state.hcDb.agent.get("agentHandle").then(agentHandle => {
         if (agentHandle === null || agentHandle === undefined) {
           commit("needsHandle", true);
