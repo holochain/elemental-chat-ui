@@ -1,14 +1,56 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
-import { AppWebsocket } from "@holochain/conductor-api";
+import { AppWebsocket } from "@holochain/conductor-api"; // AdminWebsocket,
 import dexiePlugin from "./dexiePlugin";
+import waitUntil from "async-wait-until";
 
 Vue.use(Vuex);
 
-const HPOS_WEB_CLIENT_PORT = 443; // This is the correct port for HPOS context but it isn't used anyway.
-const DNA_ALIAS = "elemental-chat";
-const DOMAIN = window.location.hostname;
+// const ADMIN_PORT = 1234;
+
+const APP_ID =
+  // agent 1 is served at port 8888, and agent 2 at port 9999
+  process.env.VUE_APP_WEB_CLIENT_PORT === "8888"
+    ? "elemental-chat-1"
+    : "elemental-chat-2" || "elemental-chat"; // default to elemental-chat
+
+console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
+console.log(
+  "process.env.VUE_APP_WEB_CLIENT_PORT : ",
+  process.env.VUE_APP_WEB_CLIENT_PORT
+);
+
+const WEB_CLIENT_PORT =
+  process.env.VUE_APP_CONTEXT === "holo-host"
+    ? 443
+    : process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
+
+const WEB_CLIENT_URI =
+  process.env.VUE_APP_CONTEXT === "holo-host"
+    ? `wss://${window.location.hostname}/api/v1/ws/`
+    : `ws://localhost:${WEB_CLIENT_PORT}`;
+
+console.log("APP_ID : ", APP_ID);
+console.log("WEB_CLIENT_PORT : ", WEB_CLIENT_PORT);
+console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
+
+// switch (process.env.VUE_APP_CONTEXT) {
+//   case "holo-host":8888
+//     WEB_CLIENT_PORT = 443;
+//     WEB_CLIENT_URI = `wss://${window.location.hostname}/api/v1/ws/`;
+//     break;
+//   // default to holochain case
+//   default:
+//     WEB_CLIENT_PORT = 8888;
+//     WEB_CLIENT_URI = `ws://localhost:${WEB_CLIENT_PORT}`;
+//     break;
+// }
+
+const connectionReady = async webClient => {
+  await waitUntil(() => webClient !== null, 30000, 100);
+  return webClient;
+};
 
 const today = new Date();
 const dd = String(today.getUTCDate());
@@ -33,12 +75,85 @@ const yyyy = String(today.getUTCFullYear());
   }
 })();
 
+const resetState = state => {
+  state.hcDb.agent.put(null, "agentKey");
+  state.hcDb.agent.put("", "agentHandle");
+  // should we keep record of the port we are on or not...,
+  // if we don't we could run into io error/ port already in use... etc.
+  // state.hcDb.agent.put({ port: null, cellId: null },"appInterface")
+
+  state.holochainClient = null;
+  state.connectedToHolochain = false;
+  state.needsHandle = true;
+  state.agentHandle = "";
+  state.appInterface = null;
+};
+
+const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
+  AppWebsocket.connect(port).then(holochainClient => {
+    state.hcDb.agent.get("agentKey").then(agentKey => {
+      console.log("agent key: ", agentKey);
+
+      if (agentKey === undefined || agentKey === null) {
+        holochainClient.appInfo({ app_id: APP_ID }).then(appInfo => {
+          console.log(">>>>> appInfo fetched : ", appInfo);
+          const cellId = appInfo.cell_data[0][0];
+          const agentId = cellId[1];
+
+          commit("setAgentKey", agentId);
+          commit("setAppInterface", {
+            port: WEB_CLIENT_PORT,
+            cellId
+          });
+
+          state.hcDb.agent
+            .put(agentId, "agentKey")
+            .catch(error => console.log(error));
+          state.hcDb.agent
+            .put(
+              {
+                port: WEB_CLIENT_PORT,
+                cellId
+              },
+              "appInterface"
+            )
+            .catch(error => console.log(error));
+        });
+      } else {
+        commit("setAgentKey", agentKey);
+        state.hcDb.agent.get("appInterface").then(appInterface => {
+          commit("setAppInterface", {
+            port: appInterface.port,
+            cellId: appInterface.cellId
+          });
+        });
+      }
+    });
+    holochainClient.onclose = function(e) {
+      console.log(
+        "Socket is closed. Reconnect will be attempted in 1 second.",
+        e.reason
+      );
+      // whenever we disconnect from conductor in dev setup (running 'holochain-run-dna'),
+      // we create new keys... therefore the identity shouold not be held inbetween sessions
+      resetState();
+      setTimeout(function() {
+        dispatch("initialiseAgent");
+      }, 1000);
+    };
+    console.log("holochainClient connected : ", holochainClient);
+    commit("setHolochainClient", holochainClient);
+  });
+};
+
 export default new Vuex.Store({
   state: {
+    holochainClient: null,
     connectedToHolochain: false,
     needsHandle: false,
     today: { year: yyyy, month: mm, day: dd },
-    agentHandle: ""
+    agentHandle: "",
+    appInterface: null
   },
   mutations: {
     setAgentKey(state, payload) {
@@ -68,56 +183,21 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, dispatch, state }) {
-      AppWebsocket.connect(`wss://${DOMAIN}/api/v1/ws/`).then(
-        holochainClient => {
-          state.hcDb.agent.get("agentKey").then(agentKey => {
-            console.log(agentKey);
-            if (agentKey === undefined || agentKey === null) {
-              holochainClient.appInfo({ app_id: DNA_ALIAS }).then(appInfo => {
-                console.log("appInfo fetched : ", appInfo);
-                const cellId = appInfo.cell_data[0][0];
-                const agentId = cellId[1];
+      // if (process.env.VUE_APP_CONTEXT === "holochain") {
+      //   AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`).then(admin => {
+      //     console.log("ADMIN : ", admin);
 
-                commit("setAgentKey", agentId);
-                commit("setAppInterface", {
-                  port: HPOS_WEB_CLIENT_PORT,
-                  cellId
-                });
+      //     // Q: would this attach a new interface everytime?
+      //     admin.attachAppInterface({ port: 0 }).then(appInterface => {
+      //       console.log("New App Interface : ", appInterface);
+      //       console.log("Attached New App Interface at : ", appInterface.port);
+      //       initializeApp(commit, dispatch, state, appInterface.port)
+      //     });
+      //   })
+      // } else {
+      initializeApp(commit, dispatch, state);
+      // }
 
-                state.hcDb.agent
-                  .put(agentId, "agentKey")
-                  .catch(error => console.log(error));
-                state.hcDb.agent.put(
-                  {
-                    port: HPOS_WEB_CLIENT_PORT,
-                    cellId
-                  },
-                  "appInterface"
-                );
-              });
-            } else {
-              commit("setAgentKey", agentKey);
-              state.hcDb.agent.get("appInterface").then(appInterface => {
-                commit("setAppInterface", {
-                  port: appInterface.port,
-                  cellId: appInterface.cellId
-                });
-              });
-            }
-          });
-          holochainClient.onclose = function(e) {
-            console.log(
-              "Socket is closed. Reconnect will be attempted in 1 second.",
-              e.reason
-            );
-            setTimeout(function() {
-              dispatch("initialiseAgent");
-            }, 1000);
-          };
-          console.log("holochainClient connected : ", holochainClient);
-          commit("setHolochainClient", holochainClient);
-        }
-      );
       state.hcDb.agent.get("agentHandle").then(agentHandle => {
         if (agentHandle === null || agentHandle === undefined) {
           commit("needsHandle", true);
@@ -127,6 +207,7 @@ export default new Vuex.Store({
       });
     },
     setAgentHandle({ commit, state }, payload) {
+      connectionReady(state.holochainClient);
       commit("setAgentHandle", payload);
       state.hcDb.agent.put(payload, "agentHandle");
     }
