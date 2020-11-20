@@ -85,6 +85,32 @@ export default {
         })
         .catch(error => logItToConsole(error));
     },
+    addSignalChannel: async (
+      { commit, state, rootState, dispatch },
+      payload
+    ) => {
+      const committedChannel = payload;
+      // don't add channel if already exists
+      const channelExists = !!state.channels.find(
+        channel => channel.channel.uuid === committedChannel.channel.uuid
+      );
+      if (channelExists) return;
+
+      // currently this follows the same logic as if we had created our own channel...
+      // todo: distinguish between self committed and received channels
+      logItToConsole("new channel signal received", Date.now());
+      console.log("received channel : ", committedChannel);
+      committedChannel.last_seen = { First: null };
+      commit("createChannel", { ...committedChannel, messages: [] });
+      rootState.hcDb.elementalChat
+        .put(
+          { ...committedChannel, messages: [] },
+          committedChannel.channel.uuid
+        )
+        .then(logItToConsole("createChannel dexie done", Date.now()))
+        .catch(error => logItToConsole(error));
+      dispatch("setChannel", { ...committedChannel, messages: [] });
+    },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       logItToConsole("createChannel start", Date.now());
       const holochainPayload = {
@@ -143,6 +169,45 @@ export default {
             dispatch("setChannel", { ...result.channels[0], messages: [] });
           }
         });
+    },
+    addSignalMessageToChannel: async ({ rootState, state }, payload) => {
+      const { channel: signalChannel, ...signalMessage } = payload;
+      logItToConsole("new message signal received", Date.now());
+      // verify channel (within which the message belongs) exists
+      const appChannel = state.channels.find(
+        channel => channel.channel.uuid === signalChannel.uuid
+      );
+      if (!appChannel) throw new Error("No channel exists for this message...");
+
+      rootState.hcDb.elementalChat
+        .get(appChannel.channel.uuid)
+        .then(channel => {
+          // verify message for channel does not already exist
+          const messageExists = !!channel.messages.find(
+            message => message.message.uuid === signalMessage.message.uuid
+          );
+          console.log("messageExists", messageExists);
+          if (messageExists) return;
+
+          console.log("received signal message : ", signalMessage);
+          // if new message push to channel message list and update the channel
+          const internalMessages = channel.messages.push(signalMessage);
+          const internalChannel = {
+            ...signalChannel,
+            last_seen: { Message: signalMessage.entryHash },
+            messages: internalMessages
+          };
+
+          console.log("adding signal message to the channel", internalChannel);
+          logItToConsole("addSignalMessageToChannel dexie start", Date.now());
+          rootState.hcDb.elementalChat
+            .put(internalChannel, appChannel.channel.uuid)
+            .then(
+              logItToConsole("addSignalMessageToChannel dexie done", Date.now())
+            )
+            .catch(error => logItToConsole(error));
+        })
+        .catch(error => logItToConsole(error));
     },
     addMessageToChannel: async ({ commit, rootState, state }, payload) => {
       logItToConsole("addMessageToChannel start", Date.now());

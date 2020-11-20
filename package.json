@@ -1,21 +1,22 @@
 {
   "name": "elemental-chat-ui",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
-    "serve:agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:holochain",
-    "serve:agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:holochain",
+    "serve:hc-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:holochain",
+    "serve:hc-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:holochain",
     "serve:holochain": "VUE_APP_CONTEXT='holochain' yarn serve",
     "serve:holo-host": "VUE_APP_CONTEXT='holo-host' yarn serve",
-    "serve:holo-hosted": "VUE_APP_CONTEXT='holo-hosted' yarn serve",
     "serve": "vue-cli-service serve",
+    "build:holochain": "VUE_APP_CONTEXT='holochain' yarn build",
+    "build:holo-host": "VUE_APP_CONTEXT='holo-host' yarn build",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@holochain/conductor-api": "0.0.1-dev.10",
+    "@holochain/conductor-api": "0.0.1-dev.11",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",
     "dexie": "^3.0.2",
