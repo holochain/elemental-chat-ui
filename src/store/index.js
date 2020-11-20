@@ -131,6 +131,7 @@ const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
           });
         }
       });
+      // TODO: Determine why this doesn't trigger when closed...
       holochainClient.onclose = function(e) {
         console.log(
           "Socket is closed. Reconnect will be attempted in 1 second.",
