@@ -33,28 +33,6 @@ const yyyy = String(today.getUTCFullYear());
   }
 })();
 
-const manageSignals = (signal, dispatch) => {
-  const signalData = signal.data.payload;
-  const { signal_name: signalName, signal_payload: signalPayload } = signalData;
-  switch (signalName) {
-    case "message":
-      console.log("INCOMING SIGNAL > NEW MESSAGE");
-      // trigger action in elemental_chat to add message to message list
-      dispatch(
-        "elementalChat/addSignalMessageToChannel",
-        signalPayload.SignalMessageData
-      );
-      break;
-    case "channel":
-      console.log("INCOMING SIGNAL > NEW CHANNEL");
-      // trigger action in elemental_chat module to add channel to channel list
-      dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
-      break;
-    default:
-      throw new Error("Received an unsupported signal by name : ", name);
-  }
-};
-
 export default new Vuex.Store({
   state: {
     connectedToHolochain: false,
@@ -90,10 +68,7 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, dispatch, state }) {
-      AppWebsocket.connect(
-          `wss://${DOMAIN}/api/v1/ws/`,
-          signal => manageSignals(signal, dispatch)
-        .then(
+      AppWebsocket.connect(`wss://${DOMAIN}/api/v1/ws/`).then(
         holochainClient => {
           state.hcDb.agent.get("agentKey").then(agentKey => {
             console.log(agentKey);
