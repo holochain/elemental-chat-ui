@@ -6,6 +6,7 @@ import dexiePlugin from "./dexiePlugin";
 import waitUntil from "async-wait-until";
 
 Vue.use(Vuex);
+// const APP_ID = "test-app";
 const APP_ID =
   // agent 1 is served at port 8888, and agent 2 at port 9999
   process.env.VUE_APP_WEB_CLIENT_PORT === "8888"
@@ -25,8 +26,8 @@ const WEB_CLIENT_URI =
     ? `wss://${window.location.hostname}/api/v1/ws/`
     : `ws://localhost:${WEB_CLIENT_PORT}`;
 
-// console.log("APP_ID : ", APP_ID);
-// console.log("WEB_CLIENT_PORT : ", WEB_CLIENT_PORT);
+console.log("APP_ID : ", APP_ID);
+console.log("WEB_CLIENT_PORT : ", WEB_CLIENT_PORT);
 // console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 
 const connectionReady = async webClient => {
@@ -62,7 +63,7 @@ const resetState = state => {
   state.hcDb.agent.put("", "agentHandle");
   // should we keep record of the port we are on or not...,
   // if we don't we could run into io error/ port already in use... etc.
-  // state.hcDb.agent.put({ port: null, cellId: null },"appInterface")
+  state.hcDb.agent.put({ port: null, cellId: null }, "appInterface");
 
   state.holochainClient = null;
   state.connectedToHolochain = false;
@@ -99,6 +100,7 @@ const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
       state.hcDb.agent.get("agentKey").then(agentKey => {
         if (agentKey === undefined || agentKey === null) {
           holochainClient.appInfo({ app_id: APP_ID }).then(appInfo => {
+            console.log(appInfo);
             const cellId = appInfo.cell_data[0][0];
             const agentId = cellId[1];
 
