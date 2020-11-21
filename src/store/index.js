@@ -1,12 +1,13 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
-import { AppWebsocket } from "@holochain/conductor-api"; // AdminWebsocket,
+import { AppWebsocket } from "@holochain/conductor-api"; // AdminWebsocket
 import dexiePlugin from "./dexiePlugin";
 import waitUntil from "async-wait-until";
 
 Vue.use(Vuex);
 
+// const ADMIN_PORT = 4444
 const APP_ID =
   // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
   process.env.VUE_APP_WEB_CLIENT_PORT === "8888"
@@ -15,12 +16,6 @@ const APP_ID =
     ? "elemental-chat-2"
     : "elemental-chat"; // default to elemental-chat
 
-console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
-console.log(
-  "process.env.VUE_APP_WEB_CLIENT_PORT : ",
-  process.env.VUE_APP_WEB_CLIENT_PORT
-);
-
 const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
 
 const WEB_CLIENT_URI =
@@ -28,6 +23,11 @@ const WEB_CLIENT_URI =
     ? `wss://${window.location.hostname}/api/v1/ws/`
     : `ws://localhost:${WEB_CLIENT_PORT}`;
 
+console.log(
+  "process.env.NODE_ENV === 'development' : ",
+  process.env.NODE_ENV === "development"
+);
+console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
 console.log("APP_ID : ", APP_ID);
 console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 
@@ -73,8 +73,8 @@ const resetState = state => {
   state.appInterface = null;
 };
 
-const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
-  AppWebsocket.connect(port).then(holochainClient => {
+const initializeApp = (commit, dispatch, state) => {
+  AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
     state.hcDb.agent.get("agentKey").then(agentKey => {
       console.log("agent key : ", agentKey);
       if (agentKey === undefined || agentKey === null) {
@@ -117,7 +117,7 @@ const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
         "Socket is closed. Reconnect will be attempted in 1 second.",
         e.reason
       );
-      // whenever we disconnect from conductor in dev setup (running 'holochain-run-dna'),
+      // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
       // we create new keys... therefore the identity shouold not be held inbetween sessions
       resetState();
       setTimeout(function() {
@@ -166,7 +166,20 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, dispatch, state }) {
+      // if (process.env.VUE_APP_CONTEXT === "holochain") {
+      //   AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`).then(admin => {
+      //     console.log("ADMIN : ", admin);
+
+      //     // Q: would this attach a new interface everytime?
+      //     admin.attachAppInterface({ port: 0 }).then(appInterface => {
+      //       console.log("New App Interface : ", appInterface);
+      //       console.log("Attached New App Interface at : ", appInterface.port);
+      //       initializeApp(commit, dispatch, state, appInterface.port)
+      //     });
+      //   })
+      // } else {
       initializeApp(commit, dispatch, state);
+      // }
       state.hcDb.agent.get("agentHandle").then(agentHandle => {
         if (agentHandle === null || agentHandle === undefined) {
           commit("needsHandle", true);
