@@ -5,9 +5,8 @@
   "scripts": {
     "serve:dev-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:develop",
     "serve:dev-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:develop",
-    "serve:develop": "VUE_APP_CONTEXT='holochain' yarn serve",
-    "serve:holo-host": "VUE_APP_CONTEXT='holo-host' yarn serve",
-    "serve": "vue-cli-service serve",
+    "serve:develop": "VUE_APP_CONTEXT='holochain' vue-cli-service serve",
+    "serve": "VUE_APP_CONTEXT='holo-host' vue-cli-service serve",
     "build": "VUE_APP_CONTEXT='holo-host' vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
