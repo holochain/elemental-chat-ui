@@ -15,12 +15,6 @@ const APP_ID =
     ? "elemental-chat-2"
     : "elemental-chat"; // default to elemental-chat
 
-console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
-console.log(
-  "process.env.VUE_APP_WEB_CLIENT_PORT : ",
-  process.env.VUE_APP_WEB_CLIENT_PORT
-);
-
 const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
 
 const WEB_CLIENT_URI =
@@ -28,6 +22,11 @@ const WEB_CLIENT_URI =
     ? `wss://${window.location.hostname}/api/v1/ws/`
     : `ws://localhost:${WEB_CLIENT_PORT}`;
 
+console.log(
+  "process.env.NODE_ENV === 'development' : ",
+  process.env.NODE_ENV === "development"
+);
+console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
 console.log("APP_ID : ", APP_ID);
 console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 
