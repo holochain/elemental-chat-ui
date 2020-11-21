@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
-import { AppWebsocket } from "@holochain/conductor-api"; // AdminWebsocket,
+import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
 import waitUntil from "async-wait-until";
 
@@ -72,8 +72,8 @@ const resetState = state => {
   state.appInterface = null;
 };
 
-const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
-  AppWebsocket.connect(port).then(holochainClient => {
+const initializeApp = (commit, dispatch, state) => {
+  AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
     state.hcDb.agent.get("agentKey").then(agentKey => {
       console.log("agent key : ", agentKey);
       if (agentKey === undefined || agentKey === null) {
@@ -116,7 +116,7 @@ const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
         "Socket is closed. Reconnect will be attempted in 1 second.",
         e.reason
       );
-      // whenever we disconnect from conductor in dev setup (running 'holochain-run-dna'),
+      // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
       // we create new keys... therefore the identity shouold not be held inbetween sessions
       resetState();
       setTimeout(function() {
