@@ -7,13 +7,13 @@ import waitUntil from "async-wait-until";
 
 Vue.use(Vuex);
 
-// const ADMIN_PORT = 1234;
-
 const APP_ID =
-  // agent 1 is served at port 8888, and agent 2 at port 9999
+  // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
   process.env.VUE_APP_WEB_CLIENT_PORT === "8888"
     ? "elemental-chat-1"
-    : "elemental-chat-2" || "elemental-chat"; // default to elemental-chat
+    : process.env.VUE_APP_WEB_CLIENT_PORT === "9999"
+    ? "elemental-chat-2"
+    : "elemental-chat"; // default to elemental-chat
 
 console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
 console.log(
@@ -21,10 +21,7 @@ console.log(
   process.env.VUE_APP_WEB_CLIENT_PORT
 );
 
-const WEB_CLIENT_PORT =
-  process.env.VUE_APP_CONTEXT === "holo-host"
-    ? 443
-    : process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
+const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
 
 const WEB_CLIENT_URI =
   process.env.VUE_APP_CONTEXT === "holo-host"
@@ -32,20 +29,7 @@ const WEB_CLIENT_URI =
     : `ws://localhost:${WEB_CLIENT_PORT}`;
 
 console.log("APP_ID : ", APP_ID);
-console.log("WEB_CLIENT_PORT : ", WEB_CLIENT_PORT);
 console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
-
-// switch (process.env.VUE_APP_CONTEXT) {
-//   case "holo-host":8888
-//     WEB_CLIENT_PORT = 443;
-//     WEB_CLIENT_URI = `wss://${window.location.hostname}/api/v1/ws/`;
-//     break;
-//   // default to holochain case
-//   default:
-//     WEB_CLIENT_PORT = 8888;
-//     WEB_CLIENT_URI = `ws://localhost:${WEB_CLIENT_PORT}`;
-//     break;
-// }
 
 const connectionReady = async webClient => {
   await waitUntil(() => webClient !== null, 30000, 100);
@@ -80,7 +64,7 @@ const resetState = state => {
   state.hcDb.agent.put("", "agentHandle");
   // should we keep record of the port we are on or not...,
   // if we don't we could run into io error/ port already in use... etc.
-  // state.hcDb.agent.put({ port: null, cellId: null },"appInterface")
+  state.hcDb.agent.put({ port: null, cellId: null }, "appInterface");
 
   state.holochainClient = null;
   state.connectedToHolochain = false;
@@ -92,11 +76,10 @@ const resetState = state => {
 const initializeApp = (commit, dispatch, state, port = WEB_CLIENT_URI) => {
   AppWebsocket.connect(port).then(holochainClient => {
     state.hcDb.agent.get("agentKey").then(agentKey => {
-      console.log("agent key: ", agentKey);
-
+      console.log("agent key : ", agentKey);
       if (agentKey === undefined || agentKey === null) {
         holochainClient.appInfo({ app_id: APP_ID }).then(appInfo => {
-          console.log(">>>>> appInfo fetched : ", appInfo);
+          console.log("appInfo : ", appInfo);
           const cellId = appInfo.cell_data[0][0];
           const agentId = cellId[1];
 
@@ -183,21 +166,7 @@ export default new Vuex.Store({
       dispatch("initialiseAgent");
     },
     initialiseAgent({ commit, dispatch, state }) {
-      // if (process.env.VUE_APP_CONTEXT === "holochain") {
-      //   AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`).then(admin => {
-      //     console.log("ADMIN : ", admin);
-
-      //     // Q: would this attach a new interface everytime?
-      //     admin.attachAppInterface({ port: 0 }).then(appInterface => {
-      //       console.log("New App Interface : ", appInterface);
-      //       console.log("Attached New App Interface at : ", appInterface.port);
-      //       initializeApp(commit, dispatch, state, appInterface.port)
-      //     });
-      //   })
-      // } else {
       initializeApp(commit, dispatch, state);
-      // }
-
       state.hcDb.agent.get("agentHandle").then(agentHandle => {
         if (agentHandle === null || agentHandle === undefined) {
           commit("needsHandle", true);
