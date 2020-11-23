@@ -7,7 +7,7 @@ import waitUntil from "async-wait-until";
 
 Vue.use(Vuex);
 
-const APP_ID =
+const INSTALLED_APP_ID =
   // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
   process.env.VUE_APP_WEB_CLIENT_PORT === "8888"
     ? "elemental-chat-1"
@@ -27,7 +27,7 @@ console.log(
   process.env.NODE_ENV === "development"
 );
 console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
-console.log("APP_ID : ", APP_ID);
+console.log("INSTALLED_APP_ID : ", INSTALLED_APP_ID);
 console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 
 const today = new Date();
@@ -60,6 +60,7 @@ const connectionReady = async webClient => {
 };
 
 const resetState = state => {
+  console.log("RESETTING STATE");
   state.hcDb.agent.put(null, "agentKey");
   state.hcDb.agent.put("", "agentHandle");
   // should we keep record of the port we are on or not...,
@@ -78,30 +79,33 @@ const initializeApp = (commit, dispatch, state) => {
     state.hcDb.agent.get("agentKey").then(agentKey => {
       console.log("agent key : ", agentKey);
       if (agentKey === undefined || agentKey === null) {
-        holochainClient.appInfo({ app_id: APP_ID }).then(appInfo => {
-          console.log("appInfo : ", appInfo);
-          const cellId = appInfo.cell_data[0][0];
-          const agentId = cellId[1];
+        holochainClient
+          .appInfo({ installed_app_id: INSTALLED_APP_ID })
+          .then(appInfo => {
+            console.log("appInfo : ", appInfo);
+            const cellId = appInfo.cell_data[0][0];
+            console.log("cellId : ", cellId);
+            const agentId = cellId[1];
 
-          commit("setAgentKey", agentId);
-          commit("setAppInterface", {
-            port: WEB_CLIENT_PORT,
-            cellId
+            commit("setAgentKey", agentId);
+            commit("setAppInterface", {
+              port: WEB_CLIENT_PORT,
+              cellId
+            });
+
+            state.hcDb.agent
+              .put(agentId, "agentKey")
+              .catch(error => console.log(error));
+            state.hcDb.agent
+              .put(
+                {
+                  port: WEB_CLIENT_PORT,
+                  cellId
+                },
+                "appInterface"
+              )
+              .catch(error => console.log(error));
           });
-
-          state.hcDb.agent
-            .put(agentId, "agentKey")
-            .catch(error => console.log(error));
-          state.hcDb.agent
-            .put(
-              {
-                port: WEB_CLIENT_PORT,
-                cellId
-              },
-              "appInterface"
-            )
-            .catch(error => console.log(error));
-        });
       } else {
         commit("setAgentKey", agentKey);
         state.hcDb.agent.get("appInterface").then(appInterface => {
