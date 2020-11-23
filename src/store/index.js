@@ -13,7 +13,7 @@ const APP_ID =
     ? "elemental-chat-1"
     : process.env.VUE_APP_WEB_CLIENT_PORT === "9999"
     ? "elemental-chat-2"
-    : "elemental-chat"; // default to elemental-chat
+    : "elemental-chat:1"; // default to elemental-chat:<dna version number> (appId format for holo self-hosted)
 
 const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
 
@@ -29,11 +29,6 @@ console.log(
 console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
 console.log("APP_ID : ", APP_ID);
 console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
-
-const connectionReady = async webClient => {
-  await waitUntil(() => webClient !== null, 30000, 100);
-  return webClient;
-};
 
 const today = new Date();
 const dd = String(today.getUTCDate());
@@ -57,6 +52,12 @@ const yyyy = String(today.getUTCFullYear());
     });
   }
 })();
+
+const connectionReady = async webClient => {
+  await waitUntil(() => webClient !== null, 30000, 100);
+  console.log("holochainClient : ", webClient);
+  return webClient;
+};
 
 const resetState = state => {
   state.hcDb.agent.put(null, "agentKey");
@@ -123,7 +124,8 @@ const initializeApp = (commit, dispatch, state) => {
         dispatch("initialiseAgent");
       }, 1000);
     };
-    console.log("holochainClient connected : ", holochainClient);
+    console.log("holochainClient connected");
+    console.log("holochainClient set in indexDb");
     commit("setHolochainClient", holochainClient);
   });
 };
@@ -172,10 +174,11 @@ export default new Vuex.Store({
         } else {
           commit("setAgentHandle", agentHandle);
         }
+        // ensure we're connected before finishing init (...starting zome calls)
+        connectionReady(state.holochainClient);
       });
     },
     setAgentHandle({ commit, state }, payload) {
-      connectionReady(state.holochainClient);
       commit("setAgentHandle", payload);
       state.hcDb.agent.put(payload, "agentHandle");
     }

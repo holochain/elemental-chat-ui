@@ -1,63 +1,18 @@
 import { v4 as uuidv4 } from "uuid";
 
-// function createMessage(
-//   holochainClient,
-//   agentKey,
-//   channel,
-//   last_seen,
-//   agentHandle,
-//   cellId,
-//   index
-// ) {
-//   logItToConsole(channel);
-//   const content = `${index} - ${agentHandle} message`;
-//   const holochainPayload = {
-//     last_seen: last_seen,
-//     channel: channel,
-//     message: {
-//       uuid: uuidv4(),
-//       content: content
-//     }
-//   };
-//   holochainClient
-//     .callZome({
-//       cap: null,
-//       cell_id: cellId,
-//       zome_name: "chat",
-//       fn_name: "create_message",
-//       provenance: agentKey,
-//       payload: holochainPayload
-//     })
-//     .then(commitedMessage => {
-//       index++;
-//       channel.last_seen = commitedMessage.entryHash;
-//       logItToConsole(commitedMessage);
-//       if (index < 10) {
-//         createMessage(
-//           holochainClient,
-//           agentKey,
-//           channel,
-//           last_seen,
-//           agentHandle,
-//           cellId,
-//           index
-//         );
-//       } else {
-//         logItToConsole(new Date());
-//       }
-//     });
-// }
-
 function pollMessages(dispatch, channel, date) {
   dispatch("listMessages", {
     channel: channel,
     date: date
   });
 }
+
 function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
 }
+
 let intervalId = 0;
+
 export default {
   namespaced: true,
   state: {
@@ -218,6 +173,7 @@ export default {
         })
         .catch(error => logItToConsole(error));
     },
+    // TODO: What is this test for? Do we still need this? Remove when possible.
     breakIt: async ({ rootState }) => {
       logItToConsole("Start test", new Date());
       for (let i = 0; i < 10; i++) {
@@ -237,15 +193,6 @@ export default {
           .then(committedChannel => {
             logItToConsole("Channel Created:", new Date());
             logItToConsole(committedChannel);
-            // createMessage(
-            //   rootState.holochainClient,
-            //   rootState.agentKey,
-            //   committedChannel.channel,
-            //   { First: null },
-            //   rootState.agentHandle,
-            //   rootState.appInterface.cellId,
-            //   0
-            // );
           });
       }
     }
