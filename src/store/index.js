@@ -4,6 +4,7 @@ import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
 import waitUntil from "async-wait-until";
+import { arrayBufferToBase64 } from "./utils";
 
 Vue.use(Vuex);
 
@@ -77,7 +78,7 @@ const resetState = state => {
 const initializeApp = (commit, dispatch, state) => {
   AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
     state.hcDb.agent.get("agentKey").then(agentKey => {
-      console.log("agent key : ", agentKey);
+      console.log("agent key : ", arrayBufferToBase64(agentKey));
       if (agentKey === undefined || agentKey === null) {
         holochainClient
           .appInfo({ installed_app_id: INSTALLED_APP_ID })
