@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-
 function pollMessages(dispatch, channel, date) {
   dispatch("listMessages", {
     channel: channel,
@@ -239,29 +237,6 @@ export default {
             .catch(error => logItToConsole(error));
         })
         .catch(error => logItToConsole(error));
-    },
-    // TODO: What is this test for? Do we still need this? Remove when possible.
-    breakIt: async ({ rootState }) => {
-      logItToConsole("Start test", new Date());
-      for (let i = 0; i < 10; i++) {
-        const internalChannel = {
-          name: `${rootState.agentHandle}-channel${i}`,
-          channel: { category: "General", uuid: uuidv4() }
-        };
-        rootState.holochainClient
-          .callZome({
-            cap: null,
-            cell_id: rootState.appInterface.cellId,
-            zome_name: "chat",
-            fn_name: "create_channel",
-            provenance: rootState.agentKey,
-            payload: internalChannel
-          })
-          .then(committedChannel => {
-            logItToConsole("Channel Created:", new Date());
-            logItToConsole(committedChannel);
-          });
-      }
     }
   },
   mutations: {

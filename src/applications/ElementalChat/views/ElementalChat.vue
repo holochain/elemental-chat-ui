@@ -2,9 +2,12 @@
   <div>
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0"
-        >Elemental Chat - {{ channel.info.name }}</v-toolbar-title
-      >
+        >Elemental Chat {{ channel.info.name ? "-" + channel.info.name : "" }}
+      </v-toolbar-title>
       <v-spacer></v-spacer>
+      <v-toolbar-title class="subtitle-2" v-if="appInterface"
+        >App Id - {{ appInterface.appId }}</v-toolbar-title
+      >
     </v-app-bar>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">
@@ -77,7 +80,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["listChannels", "breakIt"]),
+    ...mapActions("elementalChat", ["listChannels"]),
     openChannel() {
       this.refreshKey += 1;
     },
@@ -87,6 +90,7 @@ export default {
   },
   computed: {
     ...mapState(["connectedToHolochain"]),
+    ...mapState(["appInterface"]),
     ...mapState("elementalChat", ["channels", "channel"])
   },
   watch: {
