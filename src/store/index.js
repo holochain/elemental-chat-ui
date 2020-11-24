@@ -85,7 +85,11 @@ const initializeApp = (commit, dispatch, state) => {
           .then(appInfo => {
             console.log("appInfo : ", appInfo);
             const cellId = appInfo.cell_data[0][0];
-            console.log("cellId : ", cellId);
+            console.log(
+              "cellId : ",
+              arrayBufferToBase64(cellId[0]),
+              arrayBufferToBase64(cellId[1])
+            );
             const agentId = cellId[1];
 
             commit("setAgentKey", agentId);
