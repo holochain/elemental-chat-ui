@@ -47,6 +47,10 @@ export default {
     }
   },
   actions: {
+    updateHandle: async ({ rootState }) => {
+      logItToConsole("updateHandle start", Date.now());
+      rootState.needsHandle = true;
+    },
     setChannel: async ({ commit, rootState, dispatch }, payload) => {
       logItToConsole("setChannel start", Date.now());
       rootState.hcDb.elementalChat
@@ -179,7 +183,7 @@ export default {
         channel: payload.channel.channel,
         message: {
           ...payload.message,
-          content: `${rootState.agentHandle}
+          content: `${rootState.agentHandle}:
         ${payload.message.content}`
         }
       };

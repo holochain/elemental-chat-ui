@@ -60,13 +60,13 @@ const initializeApp = (commit, dispatch) => {
       .then(appInfo => {
         console.log("appInfo : ", appInfo);
         const cellId = appInfo.cell_data[0][0];
-       console.log(
+        console.log(
           "cellId : ",
           arrayBufferToBase64(cellId[0]),
           arrayBufferToBase64(cellId[1])
         );
         const agentId = cellId[1];
-        console.log("agent key : ", arrayBufferToBase64(agentKey));
+        console.log("agent key : ", arrayBufferToBase64(agentId));
         commit("setAgentKey", agentId);
         commit("setAppInterface", {
           port: WEB_CLIENT_PORT,

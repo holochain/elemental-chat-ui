@@ -3,6 +3,22 @@
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0"
         >Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              id="update-handle"
+              color="action"
+              icon
+              v-bind="attrs"
+              v-on="on"
+              @click="updateHandle()"
+              small
+            >
+              <v-icon>mdi-account-cog</v-icon>
+            </v-btn>
+          </template>
+          <span>Update user handle</span>
+        </v-tooltip>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-title class="subtitle-2" v-if="appInterface"
@@ -80,7 +96,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["listChannels"]),
+    ...mapActions("elementalChat", ["listChannels", "updateHandle"]),
     openChannel() {
       this.refreshKey += 1;
     },
