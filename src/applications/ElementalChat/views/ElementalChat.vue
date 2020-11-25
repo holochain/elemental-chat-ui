@@ -2,7 +2,7 @@
   <div>
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0"
-        >Elemental Chat {{ channel.info.name ? "-" + channel.info.name : "" }}
+        >Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-title class="subtitle-2" v-if="appInterface"

@@ -19,6 +19,10 @@ export default {
       info: { name: "" },
       channel: { category: "General", uuid: "" },
       messages: []
+    },
+    error: {
+      shouldShow: false,
+      message: ""
     }
   },
   actions: {
@@ -237,6 +241,9 @@ export default {
             .catch(error => logItToConsole(error));
         })
         .catch(error => logItToConsole(error));
+    },
+    diplayErrorMessage({ commit }, payload) {
+      commit("setError", payload);
     }
   },
   mutations: {
@@ -258,6 +265,9 @@ export default {
     },
     createChannel(state, payload) {
       state.channels.push(payload);
+    },
+    setError(state, payload) {
+      state.error = payload;
     }
   }
 };

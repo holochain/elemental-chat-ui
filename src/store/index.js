@@ -60,11 +60,6 @@ const connectionReady = async webClient => {
 };
 
 const initializeApp = (commit, dispatch) => {
-  commit("setAppInterface", {
-    port: WEB_CLIENT_PORT,
-    appId: INSTALLED_APP_ID,
-    cellId: "mock-id"
-  });
   AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
     holochainClient
       .appInfo({ installed_app_id: INSTALLED_APP_ID })
