@@ -95,15 +95,6 @@ export default {
         name: payload.info.name,
         channel: payload.channel
       };
-      // rootState.holochainClient
-      //   .callZome({
-      //     cap: null,
-      //     cell_id: rootState.appInterface.cellId,
-      //     zome_name: "chat",
-      //     fn_name: "create_channel",
-      //     provenance: rootState.agentKey,
-      //     payload: holochainPayload
-      //   })
       callZome(rootState, "chat", "create_channel", holochainPayload).then(
         committedChannel => {
           logItToConsole("createChannel zome done", Date.now());
@@ -129,27 +120,18 @@ export default {
         commit("setChannels", channels);
       });
       logItToConsole("listChannels zome start", Date.now());
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "list_channels",
-          provenance: rootState.agentKey,
-          payload: payload
-        })
-        .then(result => {
-          logItToConsole("listChannels zome done", Date.now());
-          commit("setChannels", result.channels);
-          logItToConsole("put listChannels dexie start", Date.now());
-          rootState.hcDb.elementalChat
-            .put(result.channels, payload.category)
-            .then(logItToConsole("put listChannels dexie done", Date.now()))
-            .catch(error => logItToConsole(error));
-          if (state.channel.info.name === "" && result.channels.length > 0) {
-            dispatch("setChannel", { ...result.channels[0], messages: [] });
-          }
-        });
+      callZome(rootState, "chat", "list_channels", payload).then(result => {
+        logItToConsole("listChannels zome done", Date.now());
+        commit("setChannels", result.channels);
+        logItToConsole("put listChannels dexie start", Date.now());
+        rootState.hcDb.elementalChat
+          .put(result.channels, payload.category)
+          .then(logItToConsole("put listChannels dexie done", Date.now()))
+          .catch(error => logItToConsole(error));
+        if (state.channel.info.name === "" && result.channels.length > 0) {
+          dispatch("setChannel", { ...result.channels[0], messages: [] });
+        }
+      });
     },
     addSignalMessageToChannel: async ({ rootState, state }, payload) => {
       const { channel: signalChannel, ...signalMessage } = payload;
@@ -201,15 +183,7 @@ export default {
         ${payload.message.content}`
         }
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "create_message",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
+      callZome(rootState, "chat", "create_message", holochainPayload)
         .then(message => {
           logItToConsole("addMessageToChannel zome done", Date.now());
           const internalMessages = [...state.channel.messages];
@@ -235,15 +209,7 @@ export default {
         channel: payload.channel.channel,
         date: payload.date
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "list_messages",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
+      callZome(rootState, "chat", "list_messages", holochainPayload)
         .then(result => {
           logItToConsole("listMessages zome done", Date.now());
           payload.channel.last_seen = { First: null };
