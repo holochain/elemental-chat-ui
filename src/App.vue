@@ -2,22 +2,7 @@
   <v-app>
     <v-app-bar app dense dark />
     <v-main>
-      <v-dialog v-model="error.shouldShow" persistent max-width="320">
-        <v-card>
-          <v-card-title class="headline">
-            Hm... Something doesn't look right.
-          </v-card-title>
-          <v-card-text>{{ error.message }}</v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text @click="clearErrorMessage">
-              Ok
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-      <v-dialog v-model="needHandle" persistent max-width="320">
+      <v-dialog v-model="shouldDisplayNickPrompt" persistent max-width="320">
         <v-card>
           <v-card-title class="headline">
             Tell us your nick name 😎
@@ -43,6 +28,20 @@
             <v-spacer></v-spacer>
             <v-btn text @click="agentHandleEntered">
               Let's Go
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-dialog v-model="error.shouldShow" persistent max-width="460">
+        <v-card>
+          <v-card-title class="headline">
+            Hm... Something doesn't look right.
+          </v-card-title>
+          <v-card-text>{{ error.message }}</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="clearErrorMessage">
+              Ok
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -82,8 +81,8 @@ export default {
   computed: {
     ...mapState("elementalChat", ["error"]),
     ...mapState(["agentHandle", "needsHandle"]),
-    needHandle() {
-      return this.needsHandle;
+    shouldDisplayNickPrompt() {
+      return this.needsHandle && !this.error.message;
     }
   },
   created() {

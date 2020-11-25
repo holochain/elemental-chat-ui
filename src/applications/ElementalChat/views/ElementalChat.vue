@@ -3,6 +3,9 @@
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0"
         >Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-toolbar-title class="title pl-0">
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -19,9 +22,6 @@
           </template>
           <span>Update user handle</span>
         </v-tooltip>
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-toolbar-title class="title pl-0">
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -30,14 +30,16 @@
               icon
               v-bind="attrs"
               v-on="on"
-              @click="updateHandle()"
               small
             >
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
           </template>
-          <div>App Version: {{ appInterface.appVersion }}</div>
-          <div>App Id: {{ appInterface.appId }}</div>
+          <div v-if="!appInterface">Loading App Version Info...</div>
+          <div v-if="appInterface">
+            App Version: {{ appInterface.appVersion }}
+          </div>
+          <div v-if="appInterface">App Id: {{ appInterface.appId }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>

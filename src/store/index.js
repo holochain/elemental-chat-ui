@@ -56,12 +56,6 @@ const yyyy = String(today.getUTCFullYear());
 })();
 
 const initializeApp = (commit, dispatch) => {
-  commit("setAppInterface", {
-    port: WEB_CLIENT_PORT,
-    appId: INSTALLED_APP_ID,
-    cellId: "mock cell id info...",
-    appVersion: APP_VERSION
-  });
   AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
     holochainClient
       .appInfo({ installed_app_id: INSTALLED_APP_ID })
@@ -162,6 +156,9 @@ export default new Vuex.Store({
     setAgentHandle({ commit, state }, payload) {
       commit("setAgentHandle", payload);
       state.hcDb.agent.put(payload, "agentHandle");
+    },
+    resetState({ commit }) {
+      commit("resetState");
     }
   },
   modules: {

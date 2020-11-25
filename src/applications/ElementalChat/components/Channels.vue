@@ -11,12 +11,12 @@
           outlined
           autofocus
           @keydown.enter="
-            createChannel(actionChannel);
+            checkCreateChannel(actionChannel);
             $emit('channel-added');
           "
           append-icon="mdi-plus-box-outline"
           @click:append="
-            createChannel(actionChannel);
+            checkCreateChannel(actionChannel);
             $emit('channel-added');
           "
         />
@@ -60,16 +60,19 @@ export default {
     ...mapActions("elementalChat", [
       "setChannel",
       "createChannel",
-      "listMessages"
+      "listMessages",
+      "rehydrateChannels"
     ]),
-    showEmptyMessage() {
-      console.log("showAdd : ", this.showAdd);
-      console.log("this.channels.length : ", this.channels.length);
-      return this.showAdd && !this.channels.length;
+    checkCreateChannel(input) {
+      if (input.info.name === "") return;
+      else this.createChannel(input);
     }
   },
   computed: {
-    ...mapState(["today"])
+    ...mapState(["today"]),
+    showEmptyMessage() {
+      return this.showAdd || !this.channels.length;
+    }
   },
   watch: {
     showAdd() {
@@ -79,6 +82,9 @@ export default {
         messages: []
       };
     }
+  },
+  created() {
+    this.rehydrateChannels();
   }
 };
 </script>
