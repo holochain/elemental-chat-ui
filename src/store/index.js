@@ -3,6 +3,7 @@ import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
+import { arrayBufferToBase64 } from "./utils";
 
 Vue.use(Vuex);
 
@@ -59,9 +60,13 @@ const initializeApp = (commit, dispatch) => {
       .then(appInfo => {
         console.log("appInfo : ", appInfo);
         const cellId = appInfo.cell_data[0][0];
-        console.log("cellId : ", cellId);
+       console.log(
+          "cellId : ",
+          arrayBufferToBase64(cellId[0]),
+          arrayBufferToBase64(cellId[1])
+        );
         const agentId = cellId[1];
-        console.log("agent key : ", agentId);
+        console.log("agent key : ", arrayBufferToBase64(agentKey));
         commit("setAgentKey", agentId);
         commit("setAppInterface", {
           port: WEB_CLIENT_PORT,
