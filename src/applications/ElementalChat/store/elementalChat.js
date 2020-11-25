@@ -12,8 +12,15 @@ function logItToConsole(what, time) { // eslint-disable-line
 }
 
 const connectionReady = async webClient => {
-  await waitUntil(() => webClient !== null, 15000, 100);
-  return webClient;
+  return waitUntil(() => webClient !== null, 15000, 100)
+    .then(result => {
+      console.log("RESULT : ", result);
+      return webClient;
+    })
+    .catch(error => {
+      console.log("Error ", error);
+      throw new Error(error);
+    });
 };
 
 const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
@@ -21,7 +28,7 @@ const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
   try {
     await connectionReady(rootState.holochainClient, payload);
   } catch (error) {
-    // dispatch("resetElementalChat");
+    dispatch("resetElementalChat");
     dispatch("resetState", null, { root: true });
     return dispatch("diplayErrorMessage", {
       message: "Unable to connect to the Holochain Conductor",
@@ -161,7 +168,6 @@ export default {
         channel => channel.channel.uuid === signalChannel.uuid
       );
       if (!appChannel) throw new Error("No channel exists for this message...");
-
       rootState.hcDb.elementalChat
         .get(appChannel.channel.uuid)
         .then(channel => {
@@ -203,7 +209,7 @@ export default {
         message: {
           ...payload.message,
           content: `${rootState.agentHandle.toUpperCase()}:
-        ${payload.message.content}`
+      ${payload.message.content}`
         }
       };
       callZome(dispatch, rootState, "chat", "create_message", holochainPayload)
@@ -259,20 +265,20 @@ export default {
     },
     resetElementalChat({ rootState, commit }) {
       console.log("Clearing Elemental Chat from HCDB...");
-      rootState.hcDb.elementalChat.delete();
+      rootState.hcDb.delete();
       commit("resetState");
     },
-    rehydrateChannels({ dispatch, commit, rootState }) {
+    async rehydrateChannels({ dispatch, commit, rootState }) {
+      dispatch("listChannels", { category: "General" });
       let channels = [];
-      rootState.hcDb.elementalChat.each(channelEntry => {
-        if (typeof channelEntry === Array) {
+      await rootState.hcDb.elementalChat.each(channelEntry => {
+        if (channelEntry.length === 0) return;
+        if (channelEntry.length > 0) {
           channelEntry.map(channel => channels.push(channel));
         } else {
-          console.log(">>> channel : ", channelEntry);
           channels.push(channelEntry);
         }
       });
-      console.log("???????????? UPDATED CHANNELS : ", channels);
       const uniqueChannels = channels.reduce((acc, current) => {
         console.log(" >>", current);
         const x = acc.find(
@@ -282,9 +288,7 @@ export default {
         else return acc;
       }, []);
 
-      console.log(">>>>> all unique channels : ", uniqueChannels);
       commit("setChannelState", uniqueChannels);
-      dispatch("listChannels", { category: "General" });
     }
   },
   mutations: {

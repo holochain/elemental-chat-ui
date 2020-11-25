@@ -70,6 +70,7 @@ export default {
   },
   computed: {
     ...mapState(["today"]),
+    ...mapState("elementalChat", ["channel"]),
     showEmptyMessage() {
       return this.showAdd || !this.channels.length;
     }
@@ -81,6 +82,9 @@ export default {
         channel: { category: "General", uuid: uuidv4() },
         messages: []
       };
+    },
+    channel(val) {
+      console.log("channel value : ", val);
     }
   },
   created() {
