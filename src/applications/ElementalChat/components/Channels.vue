@@ -20,7 +20,7 @@
             $emit('channel-added');
           "
         />
-        <v-list dense>
+        <v-list v-if="channels.length" dense>
           <v-list-item
             v-for="(channel, i) in channels"
             :key="i"
@@ -33,10 +33,15 @@
               <v-icon>mdi-chat-processing-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title v-text="channel.info.name" />
+              <v-list-item-title v-if="channel" v-text="channel.info.name" />
             </v-list-item-content>
           </v-list-item>
         </v-list>
+        <v-card v-else dense>
+          <v-card-text v-if="!showAdd" @click="showAdd = true"
+            >Add a Channel
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
   </v-card>

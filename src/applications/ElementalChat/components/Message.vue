@@ -21,6 +21,7 @@
   />
 </template>
 <script>
+import { mapState, mapActions } from "vuex";
 import { v4 as uuidv4 } from "uuid";
 export default {
   name: "Message",
@@ -33,13 +34,28 @@ export default {
       content: ""
     };
   },
+  computed: {
+    ...mapState("elementalChat", ["channels"])
+  },
   methods: {
+    ...mapActions("elementalChat", ["diplayErrorMessage"]),
     createMessage() {
       const message = {
         uuid: uuidv4(),
         content: this.content
       };
-      this.$emit("message-created", message);
+      if (!this.channels.length) {
+        this.diplayErrorMessage({
+          message: "You must first create a channel before sending a message.",
+          shouldShow: true
+        });
+        // refresh error msg setting after 5sec
+        setTimeout(() => {
+          this.diplayErrorMessage({ message: "", shouldShow: false });
+        }, 5000);
+      } else {
+        this.$emit("message-created", message);
+      }
       this.content = "";
     }
   },

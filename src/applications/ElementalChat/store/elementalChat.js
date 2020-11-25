@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import waitUntil from "async-wait-until";
 
 function pollMessages(dispatch, channel, date) {
   dispatch("listMessages", {
@@ -11,6 +11,25 @@ function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
 }
 
+const connectionReady = async webClient => {
+  await waitUntil(() => webClient !== null, 30000, 100);
+  console.log("holochainClient : ", webClient);
+  return webClient;
+};
+
+const callZome = async (rootState, zome_name, fn_name, payload) => {
+  // ensure we're connected before finishing init (...starting zome calls)
+  await connectionReady(rootState.holochainClient, payload);
+  return rootState.holochainClient.callZome({
+    cap: null,
+    cell_id: rootState.appInterface.cellId,
+    zome_name,
+    fn_name,
+    provenance: rootState.agentKey,
+    payload
+  });
+};
+
 let intervalId = 0;
 
 export default {
@@ -21,6 +40,10 @@ export default {
       info: { name: "" },
       channel: { category: "General", uuid: "" },
       messages: []
+    },
+    error: {
+      shouldShow: false,
+      message: ""
     }
   },
   actions: {
@@ -76,16 +99,8 @@ export default {
         name: payload.info.name,
         channel: payload.channel
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "create_channel",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
-        .then(committedChannel => {
+      callZome(rootState, "chat", "create_channel", holochainPayload).then(
+        committedChannel => {
           logItToConsole("createChannel zome done", Date.now());
           committedChannel.last_seen = { First: null };
           commit("createChannel", { ...committedChannel, messages: [] });
@@ -98,7 +113,8 @@ export default {
             .then(logItToConsole("createChannel dexie done", Date.now()))
             .catch(error => logItToConsole(error));
           dispatch("setChannel", { ...committedChannel, messages: [] });
-        });
+        }
+      );
     },
     listChannels({ commit, rootState, state, dispatch }, payload) {
       logItToConsole("listChannels start", Date.now());
@@ -108,27 +124,18 @@ export default {
         commit("setChannels", channels);
       });
       logItToConsole("listChannels zome start", Date.now());
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "list_channels",
-          provenance: rootState.agentKey,
-          payload: payload
-        })
-        .then(result => {
-          logItToConsole("listChannels zome done", Date.now());
-          commit("setChannels", result.channels);
-          logItToConsole("put listChannels dexie start", Date.now());
-          rootState.hcDb.elementalChat
-            .put(result.channels, payload.category)
-            .then(logItToConsole("put listChannels dexie done", Date.now()))
-            .catch(error => logItToConsole(error));
-          if (state.channel.info.name === "" && result.channels.length > 0) {
-            dispatch("setChannel", { ...result.channels[0], messages: [] });
-          }
-        });
+      callZome(rootState, "chat", "list_channels", payload).then(result => {
+        logItToConsole("listChannels zome done", Date.now());
+        commit("setChannels", result.channels);
+        logItToConsole("put listChannels dexie start", Date.now());
+        rootState.hcDb.elementalChat
+          .put(result.channels, payload.category)
+          .then(logItToConsole("put listChannels dexie done", Date.now()))
+          .catch(error => logItToConsole(error));
+        if (state.channel.info.name === "" && result.channels.length > 0) {
+          dispatch("setChannel", { ...result.channels[0], messages: [] });
+        }
+      });
     },
     addSignalMessageToChannel: async ({ rootState, state }, payload) => {
       const { channel: signalChannel, ...signalMessage } = payload;
@@ -180,15 +187,7 @@ export default {
         ${payload.message.content}`
         }
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "create_message",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
+      callZome(rootState, "chat", "create_message", holochainPayload)
         .then(message => {
           logItToConsole("addMessageToChannel zome done", Date.now());
           const internalMessages = [...state.channel.messages];
@@ -214,15 +213,7 @@ export default {
         channel: payload.channel.channel,
         date: payload.date
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "list_messages",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
+      callZome(rootState, "chat", "list_messages", holochainPayload)
         .then(result => {
           logItToConsole("listMessages zome done", Date.now());
           payload.channel.last_seen = { First: null };
@@ -244,28 +235,8 @@ export default {
         })
         .catch(error => logItToConsole(error));
     },
-    // TODO: What is this test for? Do we still need this? Remove when possible.
-    breakIt: async ({ rootState }) => {
-      logItToConsole("Start test", new Date());
-      for (let i = 0; i < 10; i++) {
-        const internalChannel = {
-          name: `${rootState.agentHandle}-channel${i}`,
-          channel: { category: "General", uuid: uuidv4() }
-        };
-        rootState.holochainClient
-          .callZome({
-            cap: null,
-            cell_id: rootState.appInterface.cellId,
-            zome_name: "chat",
-            fn_name: "create_channel",
-            provenance: rootState.agentKey,
-            payload: internalChannel
-          })
-          .then(committedChannel => {
-            logItToConsole("Channel Created:", new Date());
-            logItToConsole(committedChannel);
-          });
-      }
+    diplayErrorMessage({ commit }, payload) {
+      commit("setError", payload);
     }
   },
   mutations: {
@@ -287,6 +258,9 @@ export default {
     },
     createChannel(state, payload) {
       state.channels.push(payload);
+    },
+    setError(state, payload) {
+      state.error = payload;
     }
   }
 };
