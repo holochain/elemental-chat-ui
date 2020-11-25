@@ -1,5 +1,3 @@
-import waitUntil from "async-wait-until";
-
 function pollMessages(dispatch, channel, date) {
   dispatch("listMessages", {
     channel: channel,
@@ -11,39 +9,26 @@ function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
 }
 
-const connectionReady = async webClient => {
-  return waitUntil(() => webClient !== null, 15000, 100)
-    .then(result => {
-      console.log("RESULT : ", result);
-      return webClient;
-    })
-    .catch(error => {
-      console.log("Error ", error);
-      throw new Error(error);
-    });
+const doReset = async dispatch => {
+  //dispatch("resetElementalChat");
+  return dispatch("resetState", null, { root: true });
 };
 
 const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
-  // ensure we're connected before starting zome calls
   try {
-    await connectionReady(rootState.holochainClient, payload);
-  } catch (error) {
-    dispatch("resetElementalChat");
-    dispatch("resetState", null, { root: true });
-    return dispatch("diplayErrorMessage", {
-      message: "Unable to connect to the Holochain Conductor",
-      shouldShow: true
+    const result = await rootState.holochainClient.callZome({
+      cap: null,
+      cell_id: rootState.appInterface.cellId,
+      zome_name,
+      fn_name,
+      provenance: rootState.agentKey,
+      payload
     });
+    return result;
+  } catch (error) {
+    console.log("callZome threw error: ", error);
+    return doReset(dispatch);
   }
-
-  return rootState.holochainClient.callZome({
-    cap: null,
-    cell_id: rootState.appInterface.cellId,
-    zome_name,
-    fn_name,
-    provenance: rootState.agentKey,
-    payload
-  });
 };
 
 let intervalId = 0;

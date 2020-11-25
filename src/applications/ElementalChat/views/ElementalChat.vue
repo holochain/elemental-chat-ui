@@ -123,13 +123,13 @@ export default {
     }
   },
   computed: {
-    ...mapState(["connectedToHolochain"]),
+    ...mapState(["conductorDisconnected"]),
     ...mapState(["appInterface"]),
     ...mapState("elementalChat", ["channels", "channel"])
   },
   watch: {
-    connectedToHolochain(val) {
-      if (val) this.listChannels({ category: "General" });
+    conductorDisconnected(val) {
+      if (!val) this.listChannels({ category: "General" });
     }
   }
 };

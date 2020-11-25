@@ -7,6 +7,8 @@ import { arrayBufferToBase64 } from "./utils";
 
 Vue.use(Vuex);
 
+const RECONNECT_SECONDS = 5;
+
 const APP_VERSION = process.env.VUE_APP_UI_VERSION;
 
 const INSTALLED_APP_ID =
@@ -55,49 +57,65 @@ const yyyy = String(today.getUTCFullYear());
   }
 })();
 
-const initializeApp = (commit, dispatch) => {
-  AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
-    holochainClient
-      .appInfo({ installed_app_id: INSTALLED_APP_ID })
-      .then(appInfo => {
-        console.log("appInfo : ", appInfo);
-        const cellId = appInfo.cell_data[0][0];
-        console.log(
-          "cellId : ",
-          arrayBufferToBase64(cellId[0]),
-          arrayBufferToBase64(cellId[1])
-        );
-        const agentId = cellId[1];
-        console.log("agent key : ", arrayBufferToBase64(agentId));
-        commit("setAgentKey", agentId);
-        commit("setAppInterface", {
-          port: WEB_CLIENT_PORT,
-          appId: INSTALLED_APP_ID,
-          cellId,
-          appVersion: APP_VERSION
+const initializeApp = commit => {
+  AppWebsocket.connect(WEB_CLIENT_URI)
+    .then(holochainClient => {
+      holochainClient
+        .appInfo({ installed_app_id: INSTALLED_APP_ID })
+        .then(appInfo => {
+          console.log("appInfo : ", appInfo);
+          const cellId = appInfo.cell_data[0][0];
+          console.log(
+            "cellId : ",
+            arrayBufferToBase64(cellId[0]),
+            arrayBufferToBase64(cellId[1])
+          );
+          const agentId = cellId[1];
+          console.log("agent key : ", arrayBufferToBase64(agentId));
+          commit("setAgentKey", agentId);
+          commit("setAppInterface", {
+            port: WEB_CLIENT_PORT,
+            appId: INSTALLED_APP_ID,
+            cellId,
+            appVersion: APP_VERSION
+          });
         });
-      });
-    holochainClient.onclose = function(e) {
-      // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
-      // we create new keys... therefore the identity shouold not be held inbetween sessions
-      commit("resetState");
-      console.log(
-        "Socket is closed. Reconnect will be attempted in 1 second.",
-        e.reason
-      );
-      setTimeout(function() {
-        dispatch("initialiseAgent");
-      }, 1000);
-    };
-    console.log("holochainClient connected", holochainClient);
-    commit("setHolochainClient", holochainClient);
-  });
+      holochainClient.onclose = function(e) {
+        // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
+        // we create new keys... therefore the identity shouold not be held inbetween sessions
+        commit("resetState");
+        console.log(
+          `Socket is closed. Reconnect will be attempted in ${RECONNECT_SECONDS} seconds.`,
+          e.reason
+        );
+        commit("setReconnecting", RECONNECT_SECONDS);
+      };
+      console.log("holochainClient connected", holochainClient);
+      commit("setHolochainClient", holochainClient);
+    })
+    .catch(error => {
+      console.log("Connection Error ", error);
+      commit("setReconnecting", RECONNECT_SECONDS);
+    });
 };
+
+function conductorConnected(state) {
+  return state.reconnectingIn === -1;
+}
+/*
+function conductorConnecting(state) {
+  return state.reconnectingIn ===  0;
+}*/
+
+function conductorInBackoff(state) {
+  return state.reconnectingIn > 0;
+}
 
 export default new Vuex.Store({
   state: {
     holochainClient: null,
-    connectedToHolochain: false,
+    conductorDisconnected: true,
+    reconnectingIn: 0,
     needsHandle: false,
     today: { year: yyyy, month: mm, day: dd },
     agentHandle: "",
@@ -117,27 +135,41 @@ export default new Vuex.Store({
     setAppInterface(state, payload) {
       state.appInterface = payload;
     },
+    setReconnecting(state, payload) {
+      state.reconnectingIn = payload;
+    },
     setHolochainClient(state, payload) {
       state.holochainClient = payload;
-      state.connectedToHolochain = true;
+      state.conductorDisconnected = false;
+      state.reconnectingIn = -1;
     },
     resetState(state) {
-      console.log("RESETTING STATE");
-      state.hcDb.agent.put("", "agentHandle");
-      state.agentHandle = "";
+      console.log("RESETTING CONNECTION STATE");
+      // state.hcDb.agent.put("", "agentHandle");
+      // state.needsHandle = true;
+      // state.agentHandle = "";
       state.holochainClient = null;
-      state.connectedToHolochain = false;
-      state.needsHandle = true;
+      state.conductorDisconnected = true;
+      state.reconnectingIn = RECONNECT_SECONDS;
       state.appInterface = null;
     }
   },
   actions: {
-    initialiseStore({ state, dispatch }) {
+    initialiseStore({ commit, state, dispatch }) {
       state.hcDb.version(1).stores({
         agent: "",
         elementalChat: ""
       });
       dispatch("initialiseAgent");
+      setInterval(function() {
+        if (!conductorConnected(state)) {
+          if (conductorInBackoff(state)) {
+            commit("setReconnecting", state.reconnectingIn - 1);
+          } else {
+            dispatch("initialiseAgent");
+          }
+        }
+      }, 1000);
     },
     initialiseAgent({ commit, dispatch, state }) {
       state.hcDb.agent.get("agentHandle").then(agentHandle => {

@@ -46,6 +46,20 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <v-dialog v-model="conductorDisconnected" persistent max-width="460">
+        <v-card>
+          <v-card-title class="headline">
+            Connecting to conductor...
+          </v-card-title>
+          <v-card-text>
+            {{
+              reconnectingIn === -1
+                ? "Connecting..."
+                : `Reconnecting in ${reconnectingIn} seconds...`
+            }}</v-card-text
+          >
+        </v-card>
+      </v-dialog>
       <v-responsive height="100%">
         <transition name="fade">
           <router-view id="router" />
@@ -80,9 +94,17 @@ export default {
   },
   computed: {
     ...mapState("elementalChat", ["error"]),
-    ...mapState(["agentHandle", "needsHandle"]),
+    ...mapState([
+      "agentHandle",
+      "needsHandle",
+      "conductorDisconnected",
+      "reconnectingIn"
+    ]),
+
     shouldDisplayNickPrompt() {
-      return this.needsHandle && !this.error.message;
+      return (
+        this.needsHandle && !this.error.message && !this.conductorDisconnected
+      );
     }
   },
   created() {
