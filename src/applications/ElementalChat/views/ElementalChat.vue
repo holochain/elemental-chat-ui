@@ -21,9 +21,25 @@
         </v-tooltip>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-toolbar-title class="subtitle-2" v-if="appInterface"
-        >App Id - {{ appInterface.appId }}</v-toolbar-title
-      >
+      <v-toolbar-title class="title pl-0">
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              id="update-handle"
+              color="action"
+              icon
+              v-bind="attrs"
+              v-on="on"
+              @click="updateHandle()"
+              small
+            >
+              <v-icon>mdi-information-outline</v-icon>
+            </v-btn>
+          </template>
+          <div>App Version: {{ appInterface.appVersion }}</div>
+          <div>App Id: {{ appInterface.appId }}</div>
+        </v-tooltip>
+      </v-toolbar-title>
     </v-app-bar>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">

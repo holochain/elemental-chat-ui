@@ -7,6 +7,8 @@ import { arrayBufferToBase64 } from "./utils";
 
 Vue.use(Vuex);
 
+const APP_VERSION = process.env.VUE_APP_UI_VERSION;
+
 const INSTALLED_APP_ID =
   // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
   process.env.VUE_APP_WEB_CLIENT_PORT === "8888"
@@ -54,6 +56,12 @@ const yyyy = String(today.getUTCFullYear());
 })();
 
 const initializeApp = (commit, dispatch) => {
+  commit("setAppInterface", {
+    port: WEB_CLIENT_PORT,
+    appId: INSTALLED_APP_ID,
+    cellId: "mock cell id info...",
+    appVersion: APP_VERSION
+  });
   AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
     holochainClient
       .appInfo({ installed_app_id: INSTALLED_APP_ID })
@@ -71,7 +79,8 @@ const initializeApp = (commit, dispatch) => {
         commit("setAppInterface", {
           port: WEB_CLIENT_PORT,
           appId: INSTALLED_APP_ID,
-          cellId
+          cellId,
+          appVersion: APP_VERSION
         });
       });
     holochainClient.onclose = function(e) {

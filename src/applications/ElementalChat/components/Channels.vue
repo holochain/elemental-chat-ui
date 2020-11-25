@@ -4,7 +4,7 @@
       <v-col cols="12">
         <v-text-field
           id="channel-name"
-          v-if="showAdd"
+          v-if="showEmptyMessage"
           v-model="actionChannel.info.name"
           label="Channel Name"
           dense
@@ -37,11 +37,6 @@
             </v-list-item-content>
           </v-list-item>
         </v-list>
-        <v-card v-else dense>
-          <v-card-text v-if="!showAdd" @click="showAdd = true"
-            >Add a Channel
-          </v-card-text>
-        </v-card>
       </v-col>
     </v-row>
   </v-card>
@@ -66,7 +61,12 @@ export default {
       "setChannel",
       "createChannel",
       "listMessages"
-    ])
+    ]),
+    showEmptyMessage() {
+      console.log("showAdd : ", this.showAdd);
+      console.log("this.channels.length : ", this.channels.length);
+      return this.showAdd && !this.channels.length;
+    }
   },
   computed: {
     ...mapState(["today"])
