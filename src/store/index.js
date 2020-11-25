@@ -3,7 +3,6 @@ import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AppWebsocket } from "@holochain/conductor-api";
 import dexiePlugin from "./dexiePlugin";
-import waitUntil from "async-wait-until";
 
 Vue.use(Vuex);
 
@@ -53,12 +52,6 @@ const yyyy = String(today.getUTCFullYear());
   }
 })();
 
-const connectionReady = async webClient => {
-  await waitUntil(() => webClient !== null, 30000, 100);
-  console.log("holochainClient : ", webClient);
-  return webClient;
-};
-
 const initializeApp = (commit, dispatch) => {
   AppWebsocket.connect(WEB_CLIENT_URI).then(holochainClient => {
     holochainClient
@@ -88,7 +81,7 @@ const initializeApp = (commit, dispatch) => {
         dispatch("initialiseAgent");
       }, 1000);
     };
-    console.log("holochainClient connected");
+    console.log("holochainClient connected", holochainClient);
     commit("setHolochainClient", holochainClient);
   });
 };
@@ -151,8 +144,6 @@ export default new Vuex.Store({
         }
       });
       initializeApp(commit, dispatch, state);
-      // ensure we're connected before finishing init (...starting zome calls)
-      connectionReady(state.holochainClient);
     },
     setAgentHandle({ commit, state }, payload) {
       commit("setAgentHandle", payload);

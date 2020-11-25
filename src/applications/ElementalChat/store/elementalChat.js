@@ -1,3 +1,5 @@
+import waitUntil from "async-wait-until";
+
 function pollMessages(dispatch, channel, date) {
   dispatch("listMessages", {
     channel: channel,
@@ -8,6 +10,25 @@ function pollMessages(dispatch, channel, date) {
 function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
 }
+
+const connectionReady = async webClient => {
+  await waitUntil(() => webClient !== null, 30000, 100);
+  console.log("holochainClient : ", webClient);
+  return webClient;
+};
+
+const callZome = async (rootState, zome_name, fn_name, payload) => {
+  // ensure we're connected before finishing init (...starting zome calls)
+  await connectionReady(rootState.holochainClient, payload);
+  return rootState.holochainClient.callZome({
+    cap: null,
+    cell_id: rootState.appInterface.cellId,
+    zome_name,
+    fn_name,
+    provenance: rootState.agentKey,
+    payload
+  });
+};
 
 let intervalId = 0;
 
@@ -74,16 +95,17 @@ export default {
         name: payload.info.name,
         channel: payload.channel
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "create_channel",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
-        .then(committedChannel => {
+      // rootState.holochainClient
+      //   .callZome({
+      //     cap: null,
+      //     cell_id: rootState.appInterface.cellId,
+      //     zome_name: "chat",
+      //     fn_name: "create_channel",
+      //     provenance: rootState.agentKey,
+      //     payload: holochainPayload
+      //   })
+      callZome(rootState, "chat", "create_channel", holochainPayload).then(
+        committedChannel => {
           logItToConsole("createChannel zome done", Date.now());
           committedChannel.last_seen = { First: null };
           commit("createChannel", { ...committedChannel, messages: [] });
@@ -96,7 +118,8 @@ export default {
             .then(logItToConsole("createChannel dexie done", Date.now()))
             .catch(error => logItToConsole(error));
           dispatch("setChannel", { ...committedChannel, messages: [] });
-        });
+        }
+      );
     },
     listChannels({ commit, rootState, state, dispatch }, payload) {
       logItToConsole("listChannels start", Date.now());
