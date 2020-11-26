@@ -15,6 +15,9 @@ const doReset = async dispatch => {
 };
 
 const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
+  if (rootState.conductorDisconnected) {
+    return;
+  }
   try {
     const result = await rootState.holochainClient.callZome({
       cap: null,

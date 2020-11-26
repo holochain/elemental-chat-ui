@@ -49,15 +49,21 @@
       <v-dialog v-model="conductorDisconnected" persistent max-width="460">
         <v-card>
           <v-card-title class="headline">
-            Connecting to conductor...
+            Disconnected from conductor
           </v-card-title>
           <v-card-text>
             {{
-              reconnectingIn === -1
+              reconnectingIn === 0
                 ? "Connecting..."
-                : `Reconnecting in ${reconnectingIn} seconds...`
+                : `Retrying in ${reconnectingIn} seconds...`
             }}</v-card-text
           >
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="retryNow">
+              Retry Now
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-dialog>
       <v-responsive height="100%">
@@ -82,7 +88,7 @@ export default {
   },
   methods: {
     ...mapActions("elementalChat", ["diplayErrorMessage"]),
-    ...mapActions(["setAgentHandle"]),
+    ...mapActions(["setAgentHandle", "skipBackoff"]),
     agentHandleEntered() {
       if (this.internalAgentHandle === "") return;
       this.setAgentHandle(this.internalAgentHandle);
@@ -90,6 +96,9 @@ export default {
     },
     clearErrorMessage() {
       this.diplayErrorMessage({ message: "", shouldShow: false });
+    },
+    retryNow() {
+      this.skipBackoff();
     }
   },
   computed: {

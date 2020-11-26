@@ -7,7 +7,7 @@ import { arrayBufferToBase64 } from "./utils";
 
 Vue.use(Vuex);
 
-const RECONNECT_SECONDS = 5;
+const RECONNECT_SECONDS = 15;
 
 const APP_VERSION = process.env.VUE_APP_UI_VERSION;
 
@@ -79,6 +79,7 @@ const initializeApp = commit => {
             cellId,
             appVersion: APP_VERSION
           });
+          commit("setHolochainClient", holochainClient);
         });
       holochainClient.onclose = function(e) {
         // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
@@ -90,8 +91,6 @@ const initializeApp = commit => {
         );
         commit("setReconnecting", RECONNECT_SECONDS);
       };
-      console.log("holochainClient connected", holochainClient);
-      commit("setHolochainClient", holochainClient);
     })
     .catch(error => {
       console.log("Connection Error ", error);
@@ -139,6 +138,7 @@ export default new Vuex.Store({
       state.reconnectingIn = payload;
     },
     setHolochainClient(state, payload) {
+      console.log("holochainClient connected", payload);
       state.holochainClient = payload;
       state.conductorDisconnected = false;
       state.reconnectingIn = -1;
@@ -188,6 +188,9 @@ export default new Vuex.Store({
     setAgentHandle({ commit, state }, payload) {
       commit("setAgentHandle", payload);
       state.hcDb.agent.put(payload, "agentHandle");
+    },
+    skipBackoff({ commit }) {
+      commit("setReconnecting", 1);
     },
     resetState({ commit }) {
       commit("resetState");
