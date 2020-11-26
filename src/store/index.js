@@ -190,7 +190,7 @@ export default new Vuex.Store({
       state.hcDb.agent.put(payload, "agentHandle");
     },
     skipBackoff({ commit }) {
-      commit("setReconnecting", 1);
+      commit("setReconnecting", 0);
     },
     resetState({ commit }) {
       commit("resetState");
