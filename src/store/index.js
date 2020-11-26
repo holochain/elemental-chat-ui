@@ -118,7 +118,8 @@ export default new Vuex.Store({
     needsHandle: false,
     today: { year: yyyy, month: mm, day: dd },
     agentHandle: "",
-    appInterface: null
+    appInterface: null,
+    firstConnect: true
   },
   mutations: {
     setAgentKey(state, payload) {
@@ -135,6 +136,7 @@ export default new Vuex.Store({
       state.appInterface = payload;
     },
     setReconnecting(state, payload) {
+      state.firstConnect = false;
       state.reconnectingIn = payload;
     },
     setHolochainClient(state, payload) {
@@ -142,6 +144,7 @@ export default new Vuex.Store({
       state.holochainClient = payload;
       state.conductorDisconnected = false;
       state.reconnectingIn = -1;
+      state.firstConnect = false;
     },
     resetState(state) {
       console.log("RESETTING CONNECTION STATE");

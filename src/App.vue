@@ -46,7 +46,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="conductorDisconnected" persistent max-width="460">
+      <v-dialog v-model="shouldDisplayDisconnected" persistent max-width="460">
         <v-card>
           <v-card-title class="headline">
             Disconnected from conductor
@@ -107,13 +107,16 @@ export default {
       "agentHandle",
       "needsHandle",
       "conductorDisconnected",
+      "firstConnect",
       "reconnectingIn"
     ]),
-
     shouldDisplayNickPrompt() {
       return (
         this.needsHandle && !this.error.message && !this.conductorDisconnected
       );
+    },
+    shouldDisplayDisconnected() {
+      return this.conductorDisconnected && !this.firstConnect;
     }
   },
   created() {
