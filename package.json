@@ -13,7 +13,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@holochain/conductor-api": "holochain/holochain-conductor-api#socket-open-fixes",
+    "@holochain/conductor-api": "^0.0.1-dev.13",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",
     "dexie": "^3.0.2",
