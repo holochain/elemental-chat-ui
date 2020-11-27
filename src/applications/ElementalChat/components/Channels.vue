@@ -1,6 +1,6 @@
 <template>
   <v-card height="100%" outlined dark>
-    <v-row class="mx-0 fill-height" justify="center" align="start">
+    <v-row class="mx-0  channels-container" justify="center" align="start">
       <v-col cols="12">
         <v-text-field
           id="channel-name"
@@ -92,3 +92,9 @@ export default {
   }
 };
 </script>
+<style>
+.channels-container {
+  overflow-y: auto;
+  height: calc(100vh - 75px);
+}
+</style>
