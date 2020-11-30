@@ -1,7 +1,7 @@
-function pollMessages(dispatch, channel, date) {
+function pollMessages(dispatch, channel) {
   dispatch("listMessages", {
     channel: channel,
-    date: date
+    chunk: 0
   });
 }
 
@@ -63,10 +63,10 @@ export default {
           logItToConsole("setChannel dexie done", Date.now());
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
-          pollMessages(dispatch, payload, rootState.today);
+          pollMessages(dispatch, payload);
           clearInterval(intervalId);
           intervalId = setInterval(function() {
-            pollMessages(dispatch, payload, rootState.today);
+            pollMessages(dispatch, payload);
           }, 50000);
         })
         .catch(error => logItToConsole(error));
@@ -198,7 +198,8 @@ export default {
           ...payload.message,
           content: `${rootState.agentHandle.toUpperCase()}:
       ${payload.message.content}`
-        }
+        },
+        chunk: 0
       };
       callZome(dispatch, rootState, "chat", "create_message", holochainPayload)
         .then(message => {
@@ -222,9 +223,10 @@ export default {
     },
     listMessages({ commit, rootState, dispatch }, payload) {
       logItToConsole("listMessages start", Date.now());
+      console.log("listMessages payload", payload);
       const holochainPayload = {
         channel: payload.channel.channel,
-        date: payload.date
+        chunk: payload.chunk
       };
       callZome(dispatch, rootState, "chat", "list_messages", holochainPayload)
         .then(result => {

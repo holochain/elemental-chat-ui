@@ -10,7 +10,7 @@ const hcDb = new Dexie("holochain");
 const storeSubscriber = store;
 storeSubscriber.state.hcDb = hcDb;
 Vue.config.productionTip = false;
-new Vue({
+window.App = new Vue({
   router,
   store: storeSubscriber,
   vuetify,
