@@ -77,7 +77,7 @@ const manageSignals = (signal, dispatch) => {
   }
 };
 
-const initializeApp = (commit, dispatch) => {
+const initializeApp = (commit, dispatch, state) => {
   AppWebsocket.connect(WEB_CLIENT_URI, signal =>
     manageSignals(signal, dispatch)
   )
@@ -87,11 +87,25 @@ const initializeApp = (commit, dispatch) => {
         .then(appInfo => {
           console.log("appInfo : ", appInfo);
           const cellId = appInfo.cell_data[0][0];
-          console.log(
-            "cellId : ",
-            arrayBufferToBase64(cellId[0]),
-            arrayBufferToBase64(cellId[1])
-          );
+          const dnaHash = arrayBufferToBase64(cellId[0]);
+          console.log("cellId : ", dnaHash, arrayBufferToBase64(cellId[1]));
+
+          state.hcDb.agent.get("dnaHash").then(storedDnaHash => {
+            console.log("dna from index DB : ", storedDnaHash);
+            if (
+              storedDnaHash === null ||
+              storedDnaHash === undefined ||
+              storedDnaHash === ""
+            ) {
+              state.hcDb.agent.put(dnaHash, "dnaHash");
+            } else {
+              if (dnaHash != storedDnaHash) {
+                commit("contentReset");
+              }
+              state.hcDb.agent.put(dnaHash, "dnaHash");
+            }
+          });
+
           const agentId = cellId[1];
           console.log("agent key : ", arrayBufferToBase64(agentId));
           commit("setAgentKey", agentId);
@@ -167,11 +181,15 @@ export default new Vuex.Store({
       state.reconnectingIn = -1;
       state.firstConnect = false;
     },
+    contentReset(state) {
+      console.log("CONTENT RESET (DNA CHANGED)");
+      state.hcDb.agent.put("", "agentHandle");
+      state.hcDb.elementalChat.clear();
+      state.needsHandle = true;
+      state.agentHandle = "";
+    },
     resetState(state) {
       console.log("RESETTING CONNECTION STATE");
-      // state.hcDb.agent.put("", "agentHandle");
-      // state.needsHandle = true;
-      // state.agentHandle = "";
       state.holochainClient = null;
       state.conductorDisconnected = true;
       state.reconnectingIn = RECONNECT_SECONDS;
