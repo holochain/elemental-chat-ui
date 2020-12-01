@@ -149,14 +149,20 @@ export default {
         }
       );
     },
-    addSignalMessageToChannel: async ({ rootState, state }, payload) => {
-      const { channel: signalChannel, messageData: signalMessage } = payload;
+    addSignalMessageToChannel: async (
+      { commit, rootState, state },
+      payload
+    ) => {
+      const {
+        channelData: signalChannel,
+        messageData: signalMessage
+      } = payload;
       console.log(signalMessage);
       console.log(signalChannel);
       logItToConsole("new message signal received", Date.now());
       // verify channel (within which the message belongs) exists
       const appChannel = state.channels.find(
-        channel => channel.channel.uuid === signalChannel.uuid
+        channel => channel.channel.uuid === signalChannel.channel.uuid
       );
       console.log("here");
       if (!appChannel) throw new Error("No channel exists for this message...");
@@ -176,15 +182,16 @@ export default {
 
           console.log("received signal message : ", signalMessage);
           // if new message push to channel message list and update the channel
-          const internalMessages = channel.messages.push(signalMessage);
+          const internalMessages = channel.messages.push(signalMessage.message);
           const internalChannel = {
             ...signalChannel,
-            last_seen: { Message: signalMessage.entryHash },
+            last_seen: { Message: signalMessage.message.entryHash },
             messages: internalMessages
           };
 
           console.log("adding signal message to the channel", internalChannel);
           logItToConsole("addSignalMessageToChannel dexie start", Date.now());
+          commit("setChannel", internalChannel);
           rootState.hcDb.elementalChat
             .put(internalChannel, appChannel.channel.uuid)
             .then(
@@ -214,7 +221,7 @@ export default {
           logItToConsole("addMessageToChannel zome done", Date.now());
           const signalMessageData = {
             messageData: message,
-            channel: payload.channel.channel
+            channelData: payload.channel
           };
           console.log(signalMessageData);
           console.log(payload.channel);
@@ -296,15 +303,15 @@ export default {
         }
       });
       const uniqueChannels = channels.reduce((acc, current) => {
-        console.log(" >>", current);
+        // console.log(" >>", current);
         const x = acc.find(
           channel => channel.channel.uuid === current.channel.uuid
         );
         if (!x) return acc.concat([current]);
         else return acc;
       }, []);
-
-      commit("setChannelState", uniqueChannels);
+      console.log("setting unique channels : ", uniqueChannels);
+      commit(">> setChannelState", uniqueChannels);
     }
   },
   mutations: {
