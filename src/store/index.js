@@ -57,8 +57,35 @@ const yyyy = String(today.getUTCFullYear());
   }
 })();
 
-const initializeApp = commit => {
-  AppWebsocket.connect(WEB_CLIENT_URI)
+const manageSignals = (signal, dispatch) => {
+  const signalData = signal.data.payload;
+  const { signal_name: signalName, signal_payload: signalPayload } = signalData;
+  switch (signalName) {
+    case "message":
+      console.log(
+        "INCOMING SIGNAL > NEW MESSAGE",
+        signalPayload.SignalMessageData
+      );
+      // trigger action in elemental_chat to add message to message list
+      dispatch(
+        "elementalChat/addSignalMessageToChannel",
+        signalPayload.SignalMessageData
+      );
+      break;
+    case "channel":
+      console.log("INCOMING SIGNAL > NEW CHANNEL", signalPayload.ChannelData);
+      // trigger action in elemental_chat module to add channel to channel list
+      dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
+      break;
+    default:
+      throw new Error("Received an unsupported signal by name : ", name);
+  }
+};
+
+const initializeApp = (commit, dispatch) => {
+  AppWebsocket.connect(WEB_CLIENT_URI, signal =>
+    manageSignals(signal, dispatch)
+  )
     .then(holochainClient => {
       holochainClient
         .appInfo({ installed_app_id: INSTALLED_APP_ID })
