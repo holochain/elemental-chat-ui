@@ -57,6 +57,7 @@ export default {
     },
     setChannel: async ({ commit, rootState, dispatch }, payload) => {
       logItToConsole("setChannel start", Date.now());
+      console.log(payload.channel);
       rootState.hcDb.elementalChat
         .get(payload.channel.uuid)
         .then(channel => {
@@ -149,16 +150,23 @@ export default {
       );
     },
     addSignalMessageToChannel: async ({ rootState, state }, payload) => {
-      const { channel: signalChannel, ...signalMessage } = payload;
+      const { channel: signalChannel, messageData: signalMessage } = payload;
+      console.log(signalMessage);
+      console.log(signalChannel);
       logItToConsole("new message signal received", Date.now());
       // verify channel (within which the message belongs) exists
       const appChannel = state.channels.find(
         channel => channel.channel.uuid === signalChannel.uuid
       );
+      console.log("here");
       if (!appChannel) throw new Error("No channel exists for this message...");
+      console.log("App CHANNEL : ", appChannel);
+
       rootState.hcDb.elementalChat
         .get(appChannel.channel.uuid)
         .then(channel => {
+          console.log("here");
+          console.log();
           // verify message for channel does not already exist
           const messageExists = !!channel.messages.find(
             message => message.message.uuid === signalMessage.message.uuid
@@ -185,6 +193,7 @@ export default {
             .catch(error => logItToConsole(error));
         })
         .catch(error => logItToConsole(error));
+      console.log("here");
     },
     addMessageToChannel: async (
       { commit, rootState, state, dispatch },
@@ -203,6 +212,12 @@ export default {
       callZome(dispatch, rootState, "chat", "create_message", holochainPayload)
         .then(message => {
           logItToConsole("addMessageToChannel zome done", Date.now());
+          const signalMessageData = {
+            messageData: message,
+            channel: payload.channel.channel
+          };
+          console.log(signalMessageData);
+          console.log(payload.channel);
           const internalMessages = [...state.channel.messages];
           internalMessages.push(message);
           const internalChannel = {
@@ -216,6 +231,19 @@ export default {
           rootState.hcDb.elementalChat
             .put(internalChannel, payload.channel.channel.uuid)
             .then(logItToConsole("addMessageToChannel dexie done", Date.now()))
+            .catch(error => logItToConsole(error));
+          // TODO: Don't need to wait for the result of this but I don't know how
+          // to send without waiting for the response.
+          rootState.holochainClient
+            .callZome({
+              cap: null,
+              cell_id: rootState.appInterface.cellId,
+              zome_name: "chat",
+              fn_name: "signal_users_on_channel",
+              provenance: rootState.agentKey,
+              payload: signalMessageData
+            })
+            .then(logItToConsole("Signal users done", Date.now()))
             .catch(error => logItToConsole(error));
         })
         .catch(error => logItToConsole(error));
