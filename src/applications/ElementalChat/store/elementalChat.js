@@ -150,48 +150,45 @@ export default {
       );
     },
     addSignalMessageToChannel: async (
-      { commit, rootState, state },
+      { rootState, state }, // commit
       payload
     ) => {
-      const {
-        channelData: signalChannel,
-        messageData: signalMessage
-      } = payload;
+      const { channel: signalChannel, messageData: signalMessage } = payload;
       console.log(signalMessage);
       console.log(signalChannel);
       logItToConsole("new message signal received", Date.now());
       // verify channel (within which the message belongs) exists
       const appChannel = state.channels.find(
-        channel => channel.channel.uuid === signalChannel.channel.uuid
+        channel => channel.channel.uuid === signalChannel.uuid
       );
-      console.log("here");
-      if (!appChannel) throw new Error("No channel exists for this message...");
-      console.log("App CHANNEL : ", appChannel);
-
+      if (!appChannel) return;
       rootState.hcDb.elementalChat
         .get(appChannel.channel.uuid)
-        .then(channel => {
-          console.log("here");
-          console.log();
+        .then(channelData => {
           // verify message for channel does not already exist
-          const messageExists = !!channel.messages.find(
+          const messageExists = !!channelData.messages.find(
             message => message.message.uuid === signalMessage.message.uuid
           );
           console.log("messageExists", messageExists);
           if (messageExists) return;
 
-          console.log("received signal message : ", signalMessage);
           // if new message push to channel message list and update the channel
-          const internalMessages = channel.messages.push(signalMessage.message);
+          channelData.messages.push(signalMessage);
           const internalChannel = {
-            ...signalChannel,
-            last_seen: { Message: signalMessage.message.entryHash },
-            messages: internalMessages
+            channel: signalChannel,
+            last_seen: { Message: signalMessage.entryHash },
+            messages: channelData.messages,
+            info: channelData.info
           };
 
-          console.log("adding signal message to the channel", internalChannel);
+          console.log(
+            ">> Adding signal message to the channel: ",
+            internalChannel
+          );
           logItToConsole("addSignalMessageToChannel dexie start", Date.now());
-          commit("setChannel", internalChannel);
+          // TODO: Determine if we want to set channel - could cause frustrating behavior
+          // (ie: sets this as the current channel everytime a new signal message arrives):
+          // commit("setChannel", internalChannel);
           rootState.hcDb.elementalChat
             .put(internalChannel, appChannel.channel.uuid)
             .then(
@@ -200,7 +197,6 @@ export default {
             .catch(error => logItToConsole(error));
         })
         .catch(error => logItToConsole(error));
-      console.log("here");
     },
     addMessageToChannel: async (
       { commit, rootState, state, dispatch },
@@ -219,12 +215,13 @@ export default {
       callZome(dispatch, rootState, "chat", "create_message", holochainPayload)
         .then(message => {
           logItToConsole("addMessageToChannel zome done", Date.now());
+          console.log("payload.channel : ", payload.channel);
           const signalMessageData = {
             messageData: message,
-            channelData: payload.channel
+            channel: payload.channel.channel
           };
           console.log(signalMessageData);
-          console.log(payload.channel);
+          console.log(payload.channel.channel);
           const internalMessages = [...state.channel.messages];
           internalMessages.push(message);
           const internalChannel = {
@@ -310,8 +307,8 @@ export default {
         if (!x) return acc.concat([current]);
         else return acc;
       }, []);
-      console.log("setting unique channels : ", uniqueChannels);
-      commit(">> setChannelState", uniqueChannels);
+      console.log(">> rehydrating with indexDb channels : ", uniqueChannels);
+      commit("setChannelState", uniqueChannels);
     }
   },
   mutations: {
