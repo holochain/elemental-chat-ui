@@ -148,35 +148,41 @@ export default {
         }
       );
     },
-    addSignalMessageToChannel: async ({ rootState, state }, payload) => {
+    addSignalMessageToChannel: async (
+      { commit, rootState, state },
+      payload
+    ) => {
       const { channel: signalChannel, ...signalMessage } = payload;
       logItToConsole("new message signal received", Date.now());
       // verify channel (within which the message belongs) exists
       const appChannel = state.channels.find(
-        channel => channel.channel.uuid === signalChannel.uuid
+        channel => channel.channel.uuid === signalChannel.channel.uuid
       );
-      if (!appChannel) throw new Error("No channel exists for this message...");
+      if (!appChannel) return;
       rootState.hcDb.elementalChat
         .get(appChannel.channel.uuid)
         .then(channel => {
           // verify message for channel does not already exist
           const messageExists = !!channel.messages.find(
-            message => message.message.uuid === signalMessage.message.uuid
+            message =>
+              message.message.uuid === signalMessage.message.message.uuid
           );
           console.log("messageExists", messageExists);
           if (messageExists) return;
 
           console.log("received signal message : ", signalMessage);
           // if new message push to channel message list and update the channel
-          const internalMessages = channel.messages.push(signalMessage);
+          const internalMessages = [...state.channel.messages];
+          internalMessages.push(signalMessage.message);
           const internalChannel = {
             ...signalChannel,
-            last_seen: { Message: signalMessage.entryHash },
+            last_seen: { Message: signalMessage.message.entryHash },
             messages: internalMessages
           };
 
           console.log("adding signal message to the channel", internalChannel);
           logItToConsole("addSignalMessageToChannel dexie start", Date.now());
+          commit("setChannel", internalChannel);
           rootState.hcDb.elementalChat
             .put(internalChannel, appChannel.channel.uuid)
             .then(
@@ -204,6 +210,10 @@ export default {
       callZome(dispatch, rootState, "chat", "create_message", holochainPayload)
         .then(message => {
           logItToConsole("addMessageToChannel zome done", Date.now());
+          const signalMessageData = {
+            messageData: message,
+            channelData: payload.channel
+          };
           const internalMessages = [...state.channel.messages];
           internalMessages.push(message);
           const internalChannel = {
@@ -218,6 +228,14 @@ export default {
             .put(internalChannel, payload.channel.channel.uuid)
             .then(logItToConsole("addMessageToChannel dexie done", Date.now()))
             .catch(error => logItToConsole(error));
+          rootState.holochainClient.callZome({
+            cap: null,
+            cell_id: rootState.appInterface.cellId,
+            zome_name: "chat",
+            fn_name: "signal_users_on_channel",
+            provenance: rootState.agentKey,
+            payload: signalMessageData
+          });
         })
         .catch(error => logItToConsole(error));
     },
