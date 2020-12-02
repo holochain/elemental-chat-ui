@@ -69,7 +69,6 @@ export default {
     }
   },
   computed: {
-    ...mapState(["today"]),
     ...mapState("elementalChat", ["channel"]),
     showEmptyMessage() {
       return this.showAdd || !this.channels.length;

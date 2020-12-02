@@ -34,11 +34,6 @@ console.log("process.env.VUE_APP_CONTEXT : ", process.env.VUE_APP_CONTEXT);
 console.log("INSTALLED_APP_ID : ", INSTALLED_APP_ID);
 console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 
-const today = new Date();
-const dd = String(today.getUTCDate());
-const mm = String(today.getUTCMonth() + 1); //January is 0!
-const yyyy = String(today.getUTCFullYear());
-
 (function() {
   if ("File" in self) {
     File.prototype.arrayBuffer = File.prototype.arrayBuffer || myArrayBuffer;
@@ -116,7 +111,6 @@ export default new Vuex.Store({
     conductorDisconnected: true,
     reconnectingIn: 0,
     needsHandle: false,
-    today: { year: yyyy, month: mm, day: dd },
     agentHandle: "",
     appInterface: null,
     firstConnect: true
