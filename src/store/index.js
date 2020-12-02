@@ -101,6 +101,7 @@ const initializeApp = (commit, dispatch, state) => {
             } else {
               if (dnaHash != storedDnaHash) {
                 commit("contentReset");
+                dispatch("elementalChat/resetState");
               }
               state.hcDb.agent.put(dnaHash, "dnaHash");
             }

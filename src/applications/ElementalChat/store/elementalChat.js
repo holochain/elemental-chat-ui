@@ -298,6 +298,9 @@ export default {
       }, []);
 
       commit("setChannelState", uniqueChannels);
+    },
+    resetState({ commit }) {
+      commit("resetState");
     }
   },
   mutations: {
