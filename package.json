@@ -1,6 +1,6 @@
 {
   "name": "elemental-chat-ui",
-  "version": "0.0.1-alpha4",
+  "version": "0.0.1-alpha5",
   "private": true,
   "scripts": {
     "serve:dev-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:develop",
