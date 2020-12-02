@@ -120,7 +120,7 @@ const initializeApp = (commit, dispatch, state) => {
       holochainClient.onclose = function(e) {
         // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
         // we create new keys... therefore the identity shouold not be held inbetween sessions
-        commit("resetState");
+        commit("resetConnectionState");
         console.log(
           `Socket is closed. Reconnect will be attempted in ${RECONNECT_SECONDS} seconds.`,
           e.reason
@@ -188,7 +188,7 @@ export default new Vuex.Store({
       state.needsHandle = true;
       state.agentHandle = "";
     },
-    resetState(state) {
+    resetConnectionState(state) {
       console.log("RESETTING CONNECTION STATE");
       state.holochainClient = null;
       state.conductorDisconnected = true;
@@ -234,8 +234,8 @@ export default new Vuex.Store({
     skipBackoff({ commit }) {
       commit("setReconnecting", 0);
     },
-    resetState({ commit }) {
-      commit("resetState");
+    resetConnectionState({ commit }) {
+      commit("resetConnectionState");
     }
   },
   modules: {

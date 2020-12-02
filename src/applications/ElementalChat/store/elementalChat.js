@@ -9,9 +9,8 @@ function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
 }
 
-const doReset = async dispatch => {
-  //dispatch("resetElementalChat");
-  return dispatch("resetState", null, { root: true });
+const doResetConnection = async dispatch => {
+  return dispatch("resetConnectionState", null, { root: true });
 };
 
 const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
@@ -30,7 +29,7 @@ const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
     return result;
   } catch (error) {
     console.log("callZome threw error: ", error);
-    return doReset(dispatch);
+    return doResetConnection(dispatch);
   }
 };
 
@@ -277,11 +276,6 @@ export default {
     },
     diplayErrorMessage({ commit }, payload) {
       commit("setError", payload);
-    },
-    resetElementalChat({ rootState, commit }) {
-      console.log("Clearing Elemental Chat from HCDB...");
-      rootState.hcDb.delete();
-      commit("resetState");
     },
     async rehydrateChannels({ dispatch, commit, rootState }) {
       dispatch("listChannels", { category: "General" });
