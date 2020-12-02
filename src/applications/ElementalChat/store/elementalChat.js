@@ -226,18 +226,25 @@ export default {
           logItToConsole("addMessageToChannel dexie start", Date.now());
           rootState.hcDb.elementalChat
             .put(internalChannel, payload.channel.channel.uuid)
-            .then(logItToConsole("addMessageToChannel dexie done", Date.now()))
+            .then(() => {
+              logItToConsole("addMessageToChannel dexie done", Date.now());
+              dispatch("signalMessageSent", signalMessageData);
+            })
             .catch(error => logItToConsole(error));
-          rootState.holochainClient.callZome({
-            cap: null,
-            cell_id: rootState.appInterface.cellId,
-            zome_name: "chat",
-            fn_name: "signal_users_on_channel",
-            provenance: rootState.agentKey,
-            payload: signalMessageData
-          });
         })
         .catch(error => logItToConsole(error));
+    },
+    signalMessageSent: async ({ rootState }, payload) => {
+      logItToConsole("signalMessageSent start", Date.now());
+      rootState.holochainClient.callZome({
+        cap: null,
+        cell_id: rootState.appInterface.cellId,
+        zome_name: "chat",
+        fn_name: "signal_users_on_channel",
+        provenance: rootState.agentKey,
+        payload
+      });
+      logItToConsole("signalMessageSent done", Date.now());
     },
     listMessages({ commit, rootState, dispatch }, payload) {
       logItToConsole("listMessages start", Date.now());
