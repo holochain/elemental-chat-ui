@@ -2,9 +2,46 @@
   <div>
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0"
-        >Elemental Chat - {{ channel.info.name }}</v-toolbar-title
-      >
+        >Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
+      </v-toolbar-title>
       <v-spacer></v-spacer>
+      <v-toolbar-title class="title pl-0">
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              id="update-handle"
+              color="action"
+              icon
+              v-bind="attrs"
+              v-on="on"
+              @click="updateHandle()"
+              small
+            >
+              <v-icon>mdi-account-cog</v-icon>
+            </v-btn>
+          </template>
+          <span>Update user handle</span>
+        </v-tooltip>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              id="update-handle"
+              color="action"
+              icon
+              v-bind="attrs"
+              v-on="on"
+              small
+            >
+              <v-icon>mdi-information-outline</v-icon>
+            </v-btn>
+          </template>
+          <div v-if="!appInterface">Loading App Version Info...</div>
+          <div v-if="appInterface">
+            App Version: {{ appInterface.appVersion }}
+          </div>
+          <div v-if="appInterface">App Id: {{ appInterface.appId }}</div>
+        </v-tooltip>
+      </v-toolbar-title>
     </v-app-bar>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">
@@ -77,7 +114,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["listChannels", "breakIt"]),
+    ...mapActions("elementalChat", ["listChannels", "updateHandle"]),
     openChannel() {
       this.refreshKey += 1;
     },
@@ -86,12 +123,13 @@ export default {
     }
   },
   computed: {
-    ...mapState(["connectedToHolochain"]),
+    ...mapState(["conductorDisconnected"]),
+    ...mapState(["appInterface"]),
     ...mapState("elementalChat", ["channels", "channel"])
   },
   watch: {
-    connectedToHolochain(val) {
-      if (val) this.listChannels({ category: "General" });
+    conductorDisconnected(val) {
+      if (!val) this.listChannels({ category: "General" });
     }
   }
 };

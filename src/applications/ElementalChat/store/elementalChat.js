@@ -1,63 +1,41 @@
-import { v4 as uuidv4 } from "uuid";
-
-// function createMessage(
-//   holochainClient,
-//   agentKey,
-//   channel,
-//   last_seen,
-//   agentHandle,
-//   cellId,
-//   index
-// ) {
-//   logItToConsole(channel);
-//   const content = `${index} - ${agentHandle} message`;
-//   const holochainPayload = {
-//     last_seen: last_seen,
-//     channel: channel,
-//     message: {
-//       uuid: uuidv4(),
-//       content: content
-//     }
-//   };
-//   holochainClient
-//     .callZome({
-//       cap: null,
-//       cell_id: cellId,
-//       zome_name: "chat",
-//       fn_name: "create_message",
-//       provenance: agentKey,
-//       payload: holochainPayload
-//     })
-//     .then(commitedMessage => {
-//       index++;
-//       channel.last_seen = commitedMessage.entryHash;
-//       logItToConsole(commitedMessage);
-//       if (index < 10) {
-//         createMessage(
-//           holochainClient,
-//           agentKey,
-//           channel,
-//           last_seen,
-//           agentHandle,
-//           cellId,
-//           index
-//         );
-//       } else {
-//         logItToConsole(new Date());
-//       }
-//     });
-// }
-
 function pollMessages(dispatch, channel, date) {
   dispatch("listMessages", {
     channel: channel,
     date: date
   });
 }
+
 function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
 }
+
+const doReset = async dispatch => {
+  //dispatch("resetElementalChat");
+  return dispatch("resetState", null, { root: true });
+};
+
+const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
+  if (rootState.conductorDisconnected) {
+    return;
+  }
+  try {
+    const result = await rootState.holochainClient.callZome({
+      cap: null,
+      cell_id: rootState.appInterface.cellId,
+      zome_name,
+      fn_name,
+      provenance: rootState.agentKey,
+      payload
+    });
+    return result;
+  } catch (error) {
+    console.log("callZome threw error: ", error);
+    return doReset(dispatch);
+  }
+};
+
 let intervalId = 0;
+
 export default {
   namespaced: true,
   state: {
@@ -66,9 +44,17 @@ export default {
       info: { name: "" },
       channel: { category: "General", uuid: "" },
       messages: []
+    },
+    error: {
+      shouldShow: false,
+      message: ""
     }
   },
   actions: {
+    updateHandle: async ({ rootState }) => {
+      logItToConsole("updateHandle start", Date.now());
+      rootState.needsHandle = true;
+    },
     setChannel: async ({ commit, rootState, dispatch }, payload) => {
       logItToConsole("setChannel start", Date.now());
       rootState.hcDb.elementalChat
@@ -85,34 +71,58 @@ export default {
         })
         .catch(error => logItToConsole(error));
     },
+    addSignalChannel: async (
+      { commit, state, rootState, dispatch },
+      payload
+    ) => {
+      const committedChannel = payload;
+      // don't add channel if already exists
+      const channelExists = !!state.channels.find(
+        channel => channel.channel.uuid === committedChannel.channel.uuid
+      );
+      if (channelExists) return;
+
+      // currently this follows the same logic as if we had created our own channel...
+      // todo: distinguish between committed and received channels
+      logItToConsole("new channel signal received", Date.now());
+      console.log("received channel : ", committedChannel);
+      committedChannel.last_seen = { First: null };
+      commit("createChannel", { ...committedChannel, messages: [] });
+      rootState.hcDb.elementalChat
+        .put(
+          { ...committedChannel, messages: [] },
+          committedChannel.channel.uuid
+        )
+        .then(logItToConsole("createChannel dexie done", Date.now()))
+        .catch(error => logItToConsole(error));
+      dispatch("setChannel", { ...committedChannel, messages: [] });
+    },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       logItToConsole("createChannel start", Date.now());
       const holochainPayload = {
         name: payload.info.name,
         channel: payload.channel
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "create_channel",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
-        .then(committedChannel => {
-          logItToConsole("createChannel zome done", Date.now());
-          committedChannel.last_seen = { First: null };
-          commit("createChannel", { ...committedChannel, messages: [] });
-          rootState.hcDb.elementalChat
-            .put(
-              { ...committedChannel, messages: [] },
-              committedChannel.channel.uuid
-            )
-            .then(logItToConsole("createChannel dexie done", Date.now()))
-            .catch(error => logItToConsole(error));
-          dispatch("setChannel", { ...committedChannel, messages: [] });
-        });
+      callZome(
+        dispatch,
+        rootState,
+        "chat",
+        "create_channel",
+        holochainPayload
+      ).then(committedChannel => {
+        logItToConsole("createChannel zome done", Date.now());
+        committedChannel.last_seen = { First: null };
+        commit("createChannel", { ...committedChannel, messages: [] });
+        console.log("created channel : ", committedChannel);
+        rootState.hcDb.elementalChat
+          .put(
+            { ...committedChannel, messages: [] },
+            committedChannel.channel.uuid
+          )
+          .then(logItToConsole("createChannel dexie done", Date.now()))
+          .catch(error => logItToConsole(error));
+        dispatch("setChannel", { ...committedChannel, messages: [] });
+      });
     },
     listChannels({ commit, rootState, state, dispatch }, payload) {
       logItToConsole("listChannels start", Date.now());
@@ -122,16 +132,8 @@ export default {
         commit("setChannels", channels);
       });
       logItToConsole("listChannels zome start", Date.now());
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "list_channels",
-          provenance: rootState.agentKey,
-          payload: payload
-        })
-        .then(result => {
+      callZome(dispatch, rootState, "chat", "list_channels", payload).then(
+        result => {
           logItToConsole("listChannels zome done", Date.now());
           commit("setChannels", result.channels);
           logItToConsole("put listChannels dexie start", Date.now());
@@ -139,31 +141,66 @@ export default {
             .put(result.channels, payload.category)
             .then(logItToConsole("put listChannels dexie done", Date.now()))
             .catch(error => logItToConsole(error));
+          console.log(">>> SETTING channels in indexDb : ", result.channels);
           if (state.channel.info.name === "" && result.channels.length > 0) {
             dispatch("setChannel", { ...result.channels[0], messages: [] });
           }
-        });
+        }
+      );
     },
-    addMessageToChannel: async ({ commit, rootState, state }, payload) => {
+    addSignalMessageToChannel: async ({ rootState, state }, payload) => {
+      const { channel: signalChannel, ...signalMessage } = payload;
+      logItToConsole("new message signal received", Date.now());
+      // verify channel (within which the message belongs) exists
+      const appChannel = state.channels.find(
+        channel => channel.channel.uuid === signalChannel.uuid
+      );
+      if (!appChannel) throw new Error("No channel exists for this message...");
+      rootState.hcDb.elementalChat
+        .get(appChannel.channel.uuid)
+        .then(channel => {
+          // verify message for channel does not already exist
+          const messageExists = !!channel.messages.find(
+            message => message.message.uuid === signalMessage.message.uuid
+          );
+          console.log("messageExists", messageExists);
+          if (messageExists) return;
+
+          console.log("received signal message : ", signalMessage);
+          // if new message push to channel message list and update the channel
+          const internalMessages = channel.messages.push(signalMessage);
+          const internalChannel = {
+            ...signalChannel,
+            last_seen: { Message: signalMessage.entryHash },
+            messages: internalMessages
+          };
+
+          console.log("adding signal message to the channel", internalChannel);
+          logItToConsole("addSignalMessageToChannel dexie start", Date.now());
+          rootState.hcDb.elementalChat
+            .put(internalChannel, appChannel.channel.uuid)
+            .then(
+              logItToConsole("addSignalMessageToChannel dexie done", Date.now())
+            )
+            .catch(error => logItToConsole(error));
+        })
+        .catch(error => logItToConsole(error));
+    },
+    addMessageToChannel: async (
+      { commit, rootState, state, dispatch },
+      payload
+    ) => {
       logItToConsole("addMessageToChannel start", Date.now());
       const holochainPayload = {
         last_seen: payload.channel.last_seen,
         channel: payload.channel.channel,
         message: {
           ...payload.message,
-          content: `${rootState.agentHandle}
-        ${payload.message.content}`
+          content: `${rootState.agentHandle.toUpperCase()}:
+      ${payload.message.content}`
         }
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "create_message",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
+      callZome(dispatch, rootState, "chat", "create_message", holochainPayload)
         .then(message => {
           logItToConsole("addMessageToChannel zome done", Date.now());
           const internalMessages = [...state.channel.messages];
@@ -174,6 +211,7 @@ export default {
             messages: internalMessages
           };
           commit("setChannel", internalChannel);
+          console.log("created message for channel", internalChannel);
           logItToConsole("addMessageToChannel dexie start", Date.now());
           rootState.hcDb.elementalChat
             .put(internalChannel, payload.channel.channel.uuid)
@@ -182,21 +220,13 @@ export default {
         })
         .catch(error => logItToConsole(error));
     },
-    listMessages({ commit, rootState }, payload) {
+    listMessages({ commit, rootState, dispatch }, payload) {
       logItToConsole("listMessages start", Date.now());
       const holochainPayload = {
         channel: payload.channel.channel,
         date: payload.date
       };
-      rootState.holochainClient
-        .callZome({
-          cap: null,
-          cell_id: rootState.appInterface.cellId,
-          zome_name: "chat",
-          fn_name: "list_messages",
-          provenance: rootState.agentKey,
-          payload: holochainPayload
-        })
+      callZome(dispatch, rootState, "chat", "list_messages", holochainPayload)
         .then(result => {
           logItToConsole("listMessages zome done", Date.now());
           payload.channel.last_seen = { First: null };
@@ -218,36 +248,35 @@ export default {
         })
         .catch(error => logItToConsole(error));
     },
-    breakIt: async ({ rootState }) => {
-      logItToConsole("Start test", new Date());
-      for (let i = 0; i < 10; i++) {
-        const internalChannel = {
-          name: `${rootState.agentHandle}-channel${i}`,
-          channel: { category: "General", uuid: uuidv4() }
-        };
-        rootState.holochainClient
-          .callZome({
-            cap: null,
-            cell_id: rootState.appInterface.cellId,
-            zome_name: "chat",
-            fn_name: "create_channel",
-            provenance: rootState.agentKey,
-            payload: internalChannel
-          })
-          .then(committedChannel => {
-            logItToConsole("Channel Created:", new Date());
-            logItToConsole(committedChannel);
-            // createMessage(
-            //   rootState.holochainClient,
-            //   rootState.agentKey,
-            //   committedChannel.channel,
-            //   { First: null },
-            //   rootState.agentHandle,
-            //   rootState.appInterface.cellId,
-            //   0
-            // );
-          });
-      }
+    diplayErrorMessage({ commit }, payload) {
+      commit("setError", payload);
+    },
+    resetElementalChat({ rootState, commit }) {
+      console.log("Clearing Elemental Chat from HCDB...");
+      rootState.hcDb.delete();
+      commit("resetState");
+    },
+    async rehydrateChannels({ dispatch, commit, rootState }) {
+      dispatch("listChannels", { category: "General" });
+      let channels = [];
+      await rootState.hcDb.elementalChat.each(channelEntry => {
+        if (channelEntry.length === 0) return;
+        if (channelEntry.length > 0) {
+          channelEntry.map(channel => channels.push(channel));
+        } else {
+          channels.push(channelEntry);
+        }
+      });
+      const uniqueChannels = channels.reduce((acc, current) => {
+        console.log(" >>", current);
+        const x = acc.find(
+          channel => channel.channel.uuid === current.channel.uuid
+        );
+        if (!x) return acc.concat([current]);
+        else return acc;
+      }, []);
+
+      commit("setChannelState", uniqueChannels);
     }
   },
   mutations: {
@@ -269,6 +298,20 @@ export default {
     },
     createChannel(state, payload) {
       state.channels.push(payload);
+    },
+    setError(state, payload) {
+      state.error = payload;
+    },
+    resetState(state) {
+      (state.channels = []),
+        (state.channel = {
+          info: { name: "" },
+          channel: { category: "General", uuid: "" },
+          messages: []
+        });
+    },
+    setChannelState(state, payload) {
+      state.channels = payload;
     }
   }
 };
