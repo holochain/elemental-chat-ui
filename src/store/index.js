@@ -52,19 +52,61 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   }
 })();
 
-const initializeApp = commit => {
-  AppWebsocket.connect(WEB_CLIENT_URI)
+const manageSignals = (signal, dispatch) => {
+  console.log("incoming signal");
+  const signalData = signal.data.payload;
+  const { signal_name: signalName, signal_payload: signalPayload } = signalData;
+  switch (signalName) {
+    case "message":
+      console.log("INCOMING SIGNAL > NEW MESSAGE");
+      console.log("payload" + JSON.stringify(signalPayload));
+      // trigger action in elemental_chat to add message to message list
+      dispatch("elementalChat/addSignalMessageToChannel", {
+        channel: signalPayload.SignalMessageData.channelData,
+        message: signalPayload.SignalMessageData.messageData
+      });
+      break;
+    case "channel":
+      console.log("INCOMING SIGNAL > NEW CHANNEL");
+      // TODO: Implement channel signals
+      // trigger action in elemental_chat module to add channel to channel list
+      // dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
+      break;
+    default:
+      throw new Error("Received an unsupported signal by name : ", name);
+  }
+};
+
+const initializeApp = (commit, dispatch, state) => {
+  AppWebsocket.connect(WEB_CLIENT_URI, signal =>
+    manageSignals(signal, dispatch)
+  )
     .then(holochainClient => {
       holochainClient
         .appInfo({ installed_app_id: INSTALLED_APP_ID })
         .then(appInfo => {
           console.log("appInfo : ", appInfo);
           const cellId = appInfo.cell_data[0][0];
-          console.log(
-            "cellId : ",
-            arrayBufferToBase64(cellId[0]),
-            arrayBufferToBase64(cellId[1])
-          );
+          const dnaHash = arrayBufferToBase64(cellId[0]);
+          console.log("cellId : ", dnaHash, arrayBufferToBase64(cellId[1]));
+
+          state.hcDb.agent.get("dnaHash").then(storedDnaHash => {
+            console.log("dna from index DB : ", storedDnaHash);
+            if (
+              storedDnaHash === null ||
+              storedDnaHash === undefined ||
+              storedDnaHash === ""
+            ) {
+              state.hcDb.agent.put(dnaHash, "dnaHash");
+            } else {
+              if (dnaHash != storedDnaHash) {
+                commit("contentReset");
+                dispatch("elementalChat/resetState");
+              }
+              state.hcDb.agent.put(dnaHash, "dnaHash");
+            }
+          });
+
           const agentId = cellId[1];
           console.log("agent key : ", arrayBufferToBase64(agentId));
           commit("setAgentKey", agentId);
@@ -79,7 +121,7 @@ const initializeApp = commit => {
       holochainClient.onclose = function(e) {
         // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
         // we create new keys... therefore the identity shouold not be held inbetween sessions
-        commit("resetState");
+        commit("resetConnectionState");
         console.log(
           `Socket is closed. Reconnect will be attempted in ${RECONNECT_SECONDS} seconds.`,
           e.reason
@@ -140,11 +182,15 @@ export default new Vuex.Store({
       state.reconnectingIn = -1;
       state.firstConnect = false;
     },
-    resetState(state) {
+    contentReset(state) {
+      console.log("CONTENT RESET (DNA CHANGED)");
+      state.hcDb.agent.put("", "agentHandle");
+      state.hcDb.elementalChat.clear();
+      state.needsHandle = true;
+      state.agentHandle = "";
+    },
+    resetConnectionState(state) {
       console.log("RESETTING CONNECTION STATE");
-      // state.hcDb.agent.put("", "agentHandle");
-      // state.needsHandle = true;
-      // state.agentHandle = "";
       state.holochainClient = null;
       state.conductorDisconnected = true;
       state.reconnectingIn = RECONNECT_SECONDS;
@@ -189,8 +235,8 @@ export default new Vuex.Store({
     skipBackoff({ commit }) {
       commit("setReconnecting", 0);
     },
-    resetState({ commit }) {
-      commit("resetState");
+    resetConnectionState({ commit }) {
+      commit("resetConnectionState");
     }
   },
   modules: {
