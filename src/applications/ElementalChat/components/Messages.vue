@@ -64,8 +64,12 @@ export default {
     }
   },
   watch: {
-    channel() {
-      this.scrollToEnd();
+    channel: {
+      handler(val) {
+        console.log(val);
+        this.scrollToEnd();
+      },
+      deep: true
     }
   },
   mounted() {
