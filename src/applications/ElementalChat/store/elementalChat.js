@@ -149,7 +149,7 @@ export default {
       logItToConsole("listChannels start", Date.now());
       rootState.hcDb.elementalChat.get(payload.category).then(channels => {
         logItToConsole("get listChannels dexie done", Date.now());
-        if (channels === undefined) channels = [];
+        if (channels === undefined) return;
         commit("setChannels", channels);
       });
       logItToConsole("listChannels zome start", Date.now());
@@ -299,8 +299,7 @@ export default {
         if (!x) return acc.concat([current]);
         else return acc;
       }, []);
-
-      commit("setChannelState", uniqueChannels);
+      if (uniqueChannels.length > 0) commit("setChannelState", uniqueChannels);
     },
     resetState({ commit }) {
       commit("resetState");
