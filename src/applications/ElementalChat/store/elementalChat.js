@@ -1,7 +1,7 @@
 function pollMessages(dispatch, channel) {
   dispatch("listMessages", {
     channel: channel,
-    chunk: 0
+    chunk: { start: 0, end: 0 }
   });
 }
 
@@ -41,10 +41,14 @@ function _addMessageToChannel(rootState, commit, state, channel, message) {
     last_seen: { Message: message.entryHash },
     messages: internalMessages
   };
+
+  internalMessages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
+
   console.log("got message", message);
   console.log("adding message to the channel", internalChannel);
   logItToConsole("addMessageToChannel dexie start", Date.now());
   commit("setChannel", internalChannel);
+
   rootState.hcDb.elementalChat
     .put(internalChannel, channel.uuid)
     .then(logItToConsole("addMessageToChannel dexie done", Date.now()))
