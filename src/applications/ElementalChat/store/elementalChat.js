@@ -94,7 +94,6 @@ export default {
       rootState.hcDb.elementalChat
         .get(payload.channel.uuid)
         .then(channel => {
-          channel.unseen = false;
           logItToConsole("setChannel dexie done", Date.now());
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
@@ -322,6 +321,12 @@ export default {
   mutations: {
     setChannel(state, payload) {
       state.channel = { ...payload };
+      state.channels.map(channel => {
+        if (channel.channel.uuid === payload.channel.uuid) {
+          console.log("clearing unseen for ", channel);
+          channel.unseen = false;
+        }
+      });
     },
     setChannels(state, payload) {
       state.channels = payload;

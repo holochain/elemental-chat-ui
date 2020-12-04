@@ -31,7 +31,7 @@
           >
             <v-list-item-icon>
               <v-icon>mdi-chat-processing-outline</v-icon>
-              <v-unseen v-if="channel.unseen">+</v-unseen>
+              <span v-if="channel.unseen">+</span>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title v-if="channel" v-text="channel.info.name" />
