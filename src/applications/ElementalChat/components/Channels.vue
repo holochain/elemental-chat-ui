@@ -31,6 +31,7 @@
           >
             <v-list-item-icon>
               <v-icon>mdi-chat-processing-outline</v-icon>
+              <v-unseen v-if="channel.unseen">+</v-unseen>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title v-if="channel" v-text="channel.info.name" />
@@ -66,6 +67,9 @@ export default {
     checkCreateChannel(input) {
       if (input.info.name === "") return;
       else this.createChannel(input);
+    },
+    unseenMessages() {
+      return this.channel.unseen;
     }
   },
   computed: {

@@ -57,6 +57,8 @@ function _addMessageToChannel(rootState, commit, state, channel, message) {
   // also have to update the state.channel object
   if (state.channel.channel.uuid == channel.channel.uuid) {
     commit("setChannel", internalChannel);
+  } else {
+    commit("setUnseen", channel.channel.uuid);
   }
 
   rootState.hcDb.elementalChat
@@ -74,7 +76,8 @@ export default {
     channel: {
       info: { name: "" },
       channel: { category: "General", uuid: "" },
-      messages: []
+      messages: [],
+      unseen: false
     },
     error: {
       shouldShow: false,
@@ -91,6 +94,7 @@ export default {
       rootState.hcDb.elementalChat
         .get(payload.channel.uuid)
         .then(channel => {
+          channel.unseen = false;
           logItToConsole("setChannel dexie done", Date.now());
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
@@ -309,7 +313,7 @@ export default {
         if (!x) return acc.concat([current]);
         else return acc;
       }, []);
-      if (uniqueChannels.length > 0) commit("setChannelState", uniqueChannels);
+      if (uniqueChannels.length > 0) commit("setChannels", uniqueChannels);
     },
     resetState({ commit }) {
       commit("resetState");
@@ -338,6 +342,15 @@ export default {
     setError(state, payload) {
       state.error = payload;
     },
+    setUnseen(state, payload) {
+      // find channel by uuid and update unseen when found
+      state.channels.map(channel => {
+        if (channel.channel.uuid === payload) {
+          console.log("setting unseen for ", channel);
+          channel.unseen = true;
+        }
+      });
+    },
     resetState(state) {
       (state.channels = []),
         (state.channel = {
@@ -345,9 +358,6 @@ export default {
           channel: { category: "General", uuid: "" },
           messages: []
         });
-    },
-    setChannelState(state, payload) {
-      state.channels = payload;
     }
   }
 };
