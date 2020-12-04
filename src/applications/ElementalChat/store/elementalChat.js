@@ -45,12 +45,16 @@ function _addMessageToChannel(rootState, commit, state, channel, message) {
   internalMessages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
 
   console.log("got message", message);
-  console.log("adding message to the channel", internalChannel);
+  console.log(
+    "adding message to the channel",
+    internalChannel.channel.uuid,
+    internalChannel
+  );
   logItToConsole("addMessageToChannel dexie start", Date.now());
   commit("setChannel", internalChannel);
 
   rootState.hcDb.elementalChat
-    .put(internalChannel, channel.uuid)
+    .put(internalChannel, internalChannel.channel.uuid)
     .then(logItToConsole("addMessageToChannel dexie done", Date.now()))
     .catch(error => logItToConsole(error));
 }
