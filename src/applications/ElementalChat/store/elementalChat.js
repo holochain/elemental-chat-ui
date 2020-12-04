@@ -51,10 +51,15 @@ function _addMessageToChannel(rootState, commit, state, channel, message) {
     internalChannel
   );
   logItToConsole("addMessageToChannel dexie start", Date.now());
-  commit("setChannel", internalChannel);
+
+  // if this update was to the currently selected channel, then we
+  // also have to update the state.channel object
+  if (state.channel.channel.uuid == channel.channel.uuid) {
+    commit("setChannel", internalChannel);
+  }
 
   rootState.hcDb.elementalChat
-    .put(internalChannel, internalChannel.channel.uuid)
+    .put(internalChannel, channel.channel.uuid)
     .then(logItToConsole("addMessageToChannel dexie done", Date.now()))
     .catch(error => logItToConsole(error));
 }
