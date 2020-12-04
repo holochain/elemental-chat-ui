@@ -35,11 +35,9 @@
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
           </template>
-          <div v-if="!appInterface">Loading App Version Info...</div>
-          <div v-if="appInterface">
-            App Version: {{ appInterface.appVersion }}
-          </div>
-          <div v-if="appInterface">App Id: {{ appInterface.appId }}</div>
+          <div v-if="!appInterface">Loading Version Info...</div>
+          <div v-if="appInterface">UI: {{ appInterface.appVersion }}</div>
+          <div v-if="appInterface">DNA: {{ appInterface.appId }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
