@@ -29,7 +29,8 @@ const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
     return result;
   } catch (error) {
     console.log("callZome threw error: ", error);
-    return doResetConnection(dispatch);
+    if (error.includes("Error: Socket is not open"))
+      return doResetConnection(dispatch);
   }
 };
 

@@ -155,7 +155,7 @@ export default new Vuex.Store({
     needsHandle: false,
     agentHandle: "",
     appInterface: null,
-    firstConnect: true
+    firstConnect: false
   },
   mutations: {
     setAgentKey(state, payload) {
