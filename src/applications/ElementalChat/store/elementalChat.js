@@ -1,7 +1,8 @@
 function pollMessages(dispatch, channel) {
   dispatch("listMessages", {
     channel: channel,
-    chunk: { start: 0, end: 0 }
+    chunk: { start: 0, end: 0 },
+    active_chatter: false
   });
 }
 
@@ -266,7 +267,8 @@ export default {
       console.log("listMessages payload", payload);
       const holochainPayload = {
         channel: payload.channel.channel,
-        chunk: payload.chunk
+        chunk: payload.chunk,
+        active_chatter: payload.active_chatter
       };
       callZome(dispatch, rootState, "chat", "list_messages", holochainPayload)
         .then(result => {
