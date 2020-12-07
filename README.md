@@ -9,29 +9,22 @@ License: [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blu
 
 Vue based user interface for [elemental-chat dna](/holochain/elemental-chat)
 
-## Project setup
-```
-yarn install
-```
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+## For dev testing:
 
-### Compiles and minifies for production
+1. Prerequisites:
+   - [holochain](/holochain/holochain)
+   - [holochain-run-dna](/holochain-open-dev/holochain-run-dna)
+   - [elemental-chat dna](/holochain/elemental-chat)
+1. Assuming you have all of the above installed as per their readme's and the dna has been installed and built, you can fire everything up with:
+   1. In one terminal window install and run the dna with with `holochain-run-dna` like this:
 ```
-yarn build
+holochain-run-dna -i elemental-chat:alpha3 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/proxy.holochain.org/p/5778/-- ../elemental-chat/elemental-chat.dna.gz
 ```
-
-### Run unit tests
-```
-yarn test:unit
-```
-
-### Run end-to-end tests
-```
-yarn test:e2e
+  1. In another terminal window serve the UI with:
+``` shell
+npm install
+npm run serve:develop
 ```
 
 ## Contribute
