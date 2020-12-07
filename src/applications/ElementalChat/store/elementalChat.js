@@ -1,8 +1,8 @@
-function pollMessages(dispatch, channel) {
+function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
     channel: channel,
     chunk: { start: 0, end: 0 },
-    active_chatter: false
+    active_chatter
   });
 }
 
@@ -98,10 +98,10 @@ export default {
           logItToConsole("setChannel dexie done", Date.now());
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
-          pollMessages(dispatch, payload);
+          pollMessages(dispatch, true, payload);
           clearInterval(intervalId);
           intervalId = setInterval(function() {
-            pollMessages(dispatch, payload);
+            pollMessages(dispatch, true, payload);
           }, 50000);
         })
         .catch(error => logItToConsole(error));
@@ -168,18 +168,28 @@ export default {
       });
       logItToConsole("listChannels zome start", Date.now());
       callZome(dispatch, rootState, "chat", "list_channels", payload).then(
-        result => {
+        async result => {
           logItToConsole("listChannels zome done", Date.now());
           commit("setChannels", result.channels);
           logItToConsole("put listChannels dexie start", Date.now());
+          let hcDBState = await rootState.hcDb.elementalChat.get("General");
+          let newChannels = [];
+          newChannels = result.channels.filter(channel => {
+            return !hcDBState.find(c => c.channel.uuid == channel.channel.uuid);
+          });
           rootState.hcDb.elementalChat
             .put(result.channels, payload.category)
             .then(logItToConsole("put listChannels dexie done", Date.now()))
             .catch(error => logItToConsole(error));
           console.log(">>> SETTING channels in indexDb : ", result.channels);
-          if (state.channel.info.name === "" && result.channels.length > 0) {
+
+          if (state.channel.info.name === "" && result.channels.length > 0)
             dispatch("setChannel", { ...result.channels[0], messages: [] });
-          }
+
+          // Get messages for the newChannels without active_chatter
+          newChannels.forEach(channel =>
+            pollMessages(dispatch, false, channel)
+          );
         }
       );
     },
@@ -262,7 +272,7 @@ export default {
       });
       logItToConsole("signalMessageSent done", Date.now());
     },
-    listMessages({ commit, rootState, dispatch }, payload) {
+    listMessages({ commit, state, rootState, dispatch }, payload) {
       logItToConsole("listMessages start", Date.now());
       console.log("listMessages payload", payload);
       const holochainPayload = {
@@ -285,6 +295,9 @@ export default {
           };
           commit("setChannelMessages", internalChannel);
           logItToConsole("put listMessages dexie start", Date.now());
+          if (state.channel.channel.uuid !== payload.channel.channel.uuid) {
+            commit("setUnseen", payload.channel.channel.uuid);
+          }
           rootState.hcDb.elementalChat
             .put(internalChannel, payload.channel.channel.uuid)
             .then(logItToConsole("put listMessages dexie done", Date.now()))
