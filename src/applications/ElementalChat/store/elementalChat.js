@@ -180,8 +180,11 @@ export default {
           newChannels = result.channels.filter(channel => {
             return !hcDBState.find(c => c.channel.uuid == channel.channel.uuid);
           });
+          let sortedChannels = result.channels.sort((a, b) =>
+            a.info.name > b.info.name ? 1 : -1
+          );
           rootState.hcDb.elementalChat
-            .put(result.channels, payload.category)
+            .put(sortedChannels, payload.category)
             .then(logItToConsole("put listChannels dexie done", Date.now()))
             .catch(error => logItToConsole(error));
           console.log(">>> SETTING channels in indexDb : ", result.channels);
