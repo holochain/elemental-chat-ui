@@ -41,6 +41,13 @@ const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
 };
 
 function _addMessageToChannel(rootState, commit, state, channel, message) {
+  // verify message for channel does not already exist
+  const messageExists = !!channel.messages.find(
+    message => message.message.uuid === message.uuid
+  );
+  console.log("messageExists", messageExists);
+  if (messageExists) return;
+
   const internalMessages = [...state.channel.messages];
   internalMessages.push(message);
   const internalChannel = {
@@ -216,21 +223,13 @@ export default {
       rootState.hcDb.elementalChat
         .get(appChannel.channel.uuid)
         .then(channel => {
-          // verify message for channel does not already exist
-          const messageExists = !!channel.messages.find(
-            message =>
-              message.message.uuid === signalMessage.message.message.uuid
-          );
-          console.log("messageExists", messageExists);
-          if (messageExists) return;
-
           // if new message push to channel message list and update the channel
           console.log("received signal message : ", signalMessage);
           _addMessageToChannel(
             rootState,
             commit,
             state,
-            appChannel,
+            channel,
             signalMessage.message
           );
         })
