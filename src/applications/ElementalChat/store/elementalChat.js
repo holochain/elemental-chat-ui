@@ -10,6 +10,11 @@ function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
 }
 
+function sortChannels(val) {
+  val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1));
+  return val;
+}
+
 const doResetConnection = async dispatch => {
   return dispatch("resetConnectionState", null, { root: true });
 };
@@ -180,9 +185,7 @@ export default {
           newChannels = result.channels.filter(channel => {
             return !hcDBState.find(c => c.channel.uuid == channel.channel.uuid);
           });
-          let sortedChannels = result.channels.sort((a, b) =>
-            a.info.name > b.info.name ? 1 : -1
-          );
+          let sortedChannels = sortChannels(result.channels);
           rootState.hcDb.elementalChat
             .put(sortedChannels, payload.category)
             .then(logItToConsole("put listChannels dexie done", Date.now()))
@@ -367,7 +370,7 @@ export default {
       });
     },
     setChannels(state, payload) {
-      state.channels = payload;
+      state.channels = sortChannels(payload);
     },
     setChannelMessages(state, payload) {
       state.channels = state.channels.map(channel =>
@@ -380,7 +383,9 @@ export default {
       }
     },
     createChannel(state, payload) {
-      state.channels.push(payload);
+      let channels = state.channels;
+      channels.push(payload);
+      state.channels = sortChannels(channels);
     },
     setError(state, payload) {
       state.error = payload;
