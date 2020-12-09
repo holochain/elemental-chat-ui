@@ -303,7 +303,8 @@ export default {
           }
           const internalChannel = {
             ...payload.channel,
-            messages: result.messages
+            messages: result.messages,
+            unseen: payload.channel.channel.unseen || false
           };
           commit("setChannelMessages", internalChannel);
           logItToConsole("put listMessages dexie start", Date.now());
