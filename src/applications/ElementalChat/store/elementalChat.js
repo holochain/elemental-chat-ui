@@ -310,19 +310,18 @@ export default {
           logItToConsole("put listMessages dexie start", Date.now());
           if (state.channel.channel.uuid !== payload.channel.channel.uuid) {
             if (result.messages.length > 0)
-              commit("setUnseen", payload.channel.channel.uuid);
-            if (channel === undefined || channel.messages === undefined) {
-              commit("setUnseen", payload.channel.channel.uuid);
-            } else {
-              let newMessages = result.messages.filter(message => {
-                return !channel.messages.find(
-                  c => c.message.uuid == message.message.uuid
-                );
-              });
-              if (newMessages.length > 0) {
+              if (channel === undefined || channel.messages === undefined) {
                 commit("setUnseen", payload.channel.channel.uuid);
+              } else {
+                let newMessages = result.messages.filter(message => {
+                  return !channel.messages.find(
+                    c => c.message.uuid == message.message.uuid
+                  );
+                });
+                if (newMessages.length > 0) {
+                  commit("setUnseen", payload.channel.channel.uuid);
+                }
               }
-            }
           }
           rootState.hcDb.elementalChat
             .put(internalChannel, payload.channel.channel.uuid)
