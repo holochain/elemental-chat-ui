@@ -118,7 +118,7 @@ export default {
       clearInterval(intervalId);
       intervalId = setInterval(function() {
         dispatch("listChannels", { category: "General" });
-      }, 50000);
+      }, 10000);
     },
     addSignalChannel: async (
       { commit, state, rootState, dispatch },
@@ -303,8 +303,7 @@ export default {
           }
           const internalChannel = {
             ...payload.channel,
-            messages: result.messages,
-            unseen: payload.channel.channel.unseen || false
+            messages: result.messages
           };
           commit("setChannelMessages", internalChannel);
           logItToConsole("put listMessages dexie start", Date.now());
@@ -369,6 +368,16 @@ export default {
       });
     },
     setChannels(state, payload) {
+      payload.map(channel => {
+        let found = state.channels.find(
+          c => c.channel.uuid === channel.channel.uuid
+        );
+        if (found) {
+          channel.unseen = found.unseen;
+        }
+        return channel;
+      });
+
       state.channels = sortChannels(payload);
     },
     setChannelMessages(state, payload) {
