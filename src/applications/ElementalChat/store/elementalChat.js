@@ -1,12 +1,18 @@
-function pollMessages(dispatch, channel) {
+function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
     channel: channel,
-    chunk: { start: 0, end: 0 }
+    chunk: { start: 0, end: 0 },
+    active_chatter
   });
 }
 
 function logItToConsole(what, time) { // eslint-disable-line
   console.log(time, what);
+}
+
+function sortChannels(val) {
+  val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1));
+  return val;
 }
 
 const doResetConnection = async dispatch => {
@@ -35,6 +41,13 @@ const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
 };
 
 function _addMessageToChannel(rootState, commit, state, channel, message) {
+  // verify message for channel does not already exist
+  const messageExists = !!channel.messages.find(
+    message => message.message.uuid === message.uuid
+  );
+  console.log("messageExists", messageExists);
+  if (messageExists) return;
+
   const internalMessages = [...state.channel.messages];
   internalMessages.push(message);
   const internalChannel = {
@@ -97,13 +110,15 @@ export default {
           logItToConsole("setChannel dexie done", Date.now());
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
-          pollMessages(dispatch, payload);
-          clearInterval(intervalId);
-          intervalId = setInterval(function() {
-            pollMessages(dispatch, payload);
-          }, 50000);
+          pollMessages(dispatch, true, payload);
         })
         .catch(error => logItToConsole(error));
+    },
+    setChannelPolling: async ({ dispatch }) => {
+      clearInterval(intervalId);
+      intervalId = setInterval(function() {
+        dispatch("listChannels", { category: "General" });
+      }, 50000);
     },
     addSignalChannel: async (
       { commit, state, rootState, dispatch },
@@ -167,18 +182,30 @@ export default {
       });
       logItToConsole("listChannels zome start", Date.now());
       callZome(dispatch, rootState, "chat", "list_channels", payload).then(
-        result => {
+        async result => {
           logItToConsole("listChannels zome done", Date.now());
           commit("setChannels", result.channels);
           logItToConsole("put listChannels dexie start", Date.now());
+          let hcDBState =
+            (await rootState.hcDb.elementalChat.get("General")) || [];
+          let newChannels = [];
+          newChannels = result.channels.filter(channel => {
+            return !hcDBState.find(c => c.channel.uuid == channel.channel.uuid);
+          });
+          let sortedChannels = sortChannels(result.channels);
           rootState.hcDb.elementalChat
-            .put(result.channels, payload.category)
+            .put(sortedChannels, payload.category)
             .then(logItToConsole("put listChannels dexie done", Date.now()))
             .catch(error => logItToConsole(error));
           console.log(">>> SETTING channels in indexDb : ", result.channels);
-          if (state.channel.info.name === "" && result.channels.length > 0) {
+
+          if (state.channel.info.name === "" && result.channels.length > 0)
             dispatch("setChannel", { ...result.channels[0], messages: [] });
-          }
+
+          // Get messages for the newChannels without active_chatter
+          newChannels.forEach(channel =>
+            pollMessages(dispatch, false, channel)
+          );
         }
       );
     },
@@ -196,21 +223,13 @@ export default {
       rootState.hcDb.elementalChat
         .get(appChannel.channel.uuid)
         .then(channel => {
-          // verify message for channel does not already exist
-          const messageExists = !!channel.messages.find(
-            message =>
-              message.message.uuid === signalMessage.message.message.uuid
-          );
-          console.log("messageExists", messageExists);
-          if (messageExists) return;
-
           // if new message push to channel message list and update the channel
           console.log("received signal message : ", signalMessage);
           _addMessageToChannel(
             rootState,
             commit,
             state,
-            appChannel,
+            channel,
             signalMessage.message
           );
         })
@@ -261,13 +280,18 @@ export default {
       });
       logItToConsole("signalMessageSent done", Date.now());
     },
-    listMessages({ commit, rootState, dispatch }, payload) {
+    async listMessages({ commit, state, rootState, dispatch }, payload) {
       logItToConsole("listMessages start", Date.now());
       console.log("listMessages payload", payload);
       const holochainPayload = {
         channel: payload.channel.channel,
-        chunk: payload.chunk
+        chunk: payload.chunk,
+        active_chatter: payload.active_chatter
       };
+      const channel = await rootState.hcDb.elementalChat.get(
+        payload.channel.channel.uuid
+      );
+
       callZome(dispatch, rootState, "chat", "list_messages", holochainPayload)
         .then(result => {
           logItToConsole("listMessages zome done", Date.now());
@@ -283,6 +307,21 @@ export default {
           };
           commit("setChannelMessages", internalChannel);
           logItToConsole("put listMessages dexie start", Date.now());
+          if (state.channel.channel.uuid !== payload.channel.channel.uuid) {
+            if (result.messages.length > 0)
+              if (channel === undefined || channel.messages === undefined) {
+                commit("setUnseen", payload.channel.channel.uuid);
+              } else {
+                let newMessages = result.messages.filter(message => {
+                  return !channel.messages.find(
+                    c => c.message.uuid == message.message.uuid
+                  );
+                });
+                if (newMessages.length > 0) {
+                  commit("setUnseen", payload.channel.channel.uuid);
+                }
+              }
+          }
           rootState.hcDb.elementalChat
             .put(internalChannel, payload.channel.channel.uuid)
             .then(logItToConsole("put listMessages dexie done", Date.now()))
@@ -329,7 +368,17 @@ export default {
       });
     },
     setChannels(state, payload) {
-      state.channels = payload;
+      payload.map(channel => {
+        let found = state.channels.find(
+          c => c.channel.uuid === channel.channel.uuid
+        );
+        if (found) {
+          channel.unseen = found.unseen;
+        }
+        return channel;
+      });
+
+      state.channels = sortChannels(payload);
     },
     setChannelMessages(state, payload) {
       state.channels = state.channels.map(channel =>
@@ -342,7 +391,9 @@ export default {
       }
     },
     createChannel(state, payload) {
-      state.channels.push(payload);
+      let channels = state.channels;
+      channels.push(payload);
+      state.channels = sortChannels(channels);
     },
     setError(state, payload) {
       state.error = payload;

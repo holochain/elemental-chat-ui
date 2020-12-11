@@ -87,7 +87,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["diplayErrorMessage"]),
+    ...mapActions("elementalChat", ["diplayErrorMessage", "setChannelPolling"]),
     ...mapActions(["setAgentHandle", "skipBackoff"]),
     agentHandleEntered() {
       if (this.internalAgentHandle === "") return;
@@ -122,6 +122,9 @@ export default {
   created() {
     this.$store.dispatch("initialiseStore");
     this.$vuetify.theme.dark = true;
+  },
+  mounted() {
+    this.setChannelPolling();
   }
 };
 </script>
