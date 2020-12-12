@@ -176,7 +176,6 @@ export default {
     listChannels({ commit, rootState, state, dispatch }, payload) {
       logItToConsole("listChannels start", Date.now());
       rootState.hcDb.elementalChat.get(payload.category).then(channels => {
-        logItToConsole("get listChannels dexie done", Date.now());
         if (channels === undefined) return;
         commit("setChannels", channels);
       });
@@ -197,7 +196,7 @@ export default {
             .put(sortedChannels, payload.category)
             .then(logItToConsole("put listChannels dexie done", Date.now()))
             .catch(error => logItToConsole(error));
-          console.log(">>> SETTING channels in indexDb : ", result.channels);
+          console.log("SETTING channels in indexDb : ", result.channels);
 
           if (state.channel.info.name === "" && result.channels.length > 0)
             dispatch("setChannel", { ...result.channels[0], messages: [] });
@@ -344,7 +343,6 @@ export default {
         }
       });
       const uniqueChannels = channels.reduce((acc, current) => {
-        console.log(" >>", current);
         const x = acc.find(
           channel => channel.channel.uuid === current.channel.uuid
         );
