@@ -117,6 +117,7 @@ const initializeApp = (commit, dispatch, state) => {
             appVersion: APP_VERSION
           });
           commit("setHolochainClient", holochainClient);
+          dispatch("elementalChat/refreshChatter");
         });
       holochainClient.onclose = function(e) {
         // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
