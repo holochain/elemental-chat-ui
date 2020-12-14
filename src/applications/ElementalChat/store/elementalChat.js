@@ -152,26 +152,22 @@ export default {
         name: payload.info.name,
         channel: payload.channel
       };
-      callZome(
-        dispatch,
-        rootState,
-        "chat",
-        "create_channel",
-        holochainPayload
-      ).then(committedChannel => {
-        logItToConsole("createChannel zome done", Date.now());
-        committedChannel.last_seen = { First: null };
-        commit("createChannel", { ...committedChannel, messages: [] });
-        console.log("created channel : ", committedChannel);
-        rootState.hcDb.elementalChat
-          .put(
-            { ...committedChannel, messages: [] },
-            committedChannel.channel.uuid
-          )
-          .then(logItToConsole("createChannel dexie done", Date.now()))
-          .catch(error => logItToConsole(error));
-        dispatch("setChannel", { ...committedChannel, messages: [] });
-      });
+      callZome(dispatch, rootState, "chat", "create_channel", holochainPayload)
+        .then(committedChannel => {
+          logItToConsole("createChannel zome done", Date.now());
+          committedChannel.last_seen = { First: null };
+          commit("createChannel", { ...committedChannel, messages: [] });
+          console.log("created channel : ", committedChannel);
+          rootState.hcDb.elementalChat
+            .put(
+              { ...committedChannel, messages: [] },
+              committedChannel.channel.uuid
+            )
+            .then(logItToConsole("createChannel dexie done", Date.now()))
+            .catch(error => logItToConsole(error));
+          dispatch("setChannel", { ...committedChannel, messages: [] });
+        })
+        .catch(error => logItToConsole("createChannel zome error", error));
     },
     listChannels({ commit, rootState, state, dispatch }, payload) {
       logItToConsole("listChannels start", Date.now());
@@ -181,8 +177,8 @@ export default {
         commit("setChannels", channels);
       });
       logItToConsole("listChannels zome start", Date.now());
-      callZome(dispatch, rootState, "chat", "list_channels", payload).then(
-        async result => {
+      callZome(dispatch, rootState, "chat", "list_channels", payload)
+        .then(async result => {
           logItToConsole("listChannels zome done", Date.now());
           commit("setChannels", result.channels);
           logItToConsole("put listChannels dexie start", Date.now());
@@ -206,8 +202,8 @@ export default {
           newChannels.forEach(channel =>
             pollMessages(dispatch, false, channel)
           );
-        }
-      );
+        })
+        .catch(error => logItToConsole("listChannels zome error", error));
     },
     addSignalMessageToChannel: async (
       { commit, rootState, state },
@@ -266,19 +262,25 @@ export default {
           };
           dispatch("signalMessageSent", signalMessageData);
         })
-        .catch(error => logItToConsole(error));
+        .catch(error =>
+          logItToConsole("addMessageToChannel zome error:", error)
+        );
     },
     signalMessageSent: async ({ rootState }, payload) => {
       logItToConsole("signalMessageSent start", Date.now());
-      rootState.holochainClient.callZome({
-        cap: null,
-        cell_id: rootState.appInterface.cellId,
-        zome_name: "chat",
-        fn_name: "signal_users_on_channel",
-        provenance: rootState.agentKey,
-        payload
-      });
-      logItToConsole("signalMessageSent done", Date.now());
+      rootState.holochainClient
+        .callZome({
+          cap: null,
+          cell_id: rootState.appInterface.cellId,
+          zome_name: "chat",
+          fn_name: "signal_chatters",
+          provenance: rootState.agentKey,
+          payload
+        })
+        .then(result => {
+          logItToConsole(`signalMessageSent zome done`, result, Date.now());
+        })
+        .catch(error => logItToConsole("signalMessageSent zome error:", error));
     },
     async listMessages({ commit, state, rootState, dispatch }, payload) {
       logItToConsole("listMessages start", Date.now());
@@ -327,7 +329,7 @@ export default {
             .then(logItToConsole("put listMessages dexie done", Date.now()))
             .catch(error => logItToConsole(error));
         })
-        .catch(error => logItToConsole(error));
+        .catch(error => logItToConsole("listMessages zome done", error));
     },
     diplayErrorMessage({ commit }, payload) {
       commit("setError", payload);
@@ -362,7 +364,7 @@ export default {
         .then(() => {
           logItToConsole("refreshChatter zome done", Date.now());
         })
-        .catch(error => logItToConsole(error));
+        .catch(error => logItToConsole("refreshChatter zome error", error));
     }
   },
   mutations: {
