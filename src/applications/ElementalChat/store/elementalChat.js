@@ -355,6 +355,14 @@ export default {
     },
     resetState({ commit }) {
       commit("resetState");
+    },
+    refreshChatter({ dispatch, rootState }) {
+      logItToConsole("refreshChatter start", Date.now());
+      callZome(dispatch, rootState, "chat", "refresh_chatter", null)
+        .then(() => {
+          logItToConsole("refreshChatter zome done", Date.now());
+        })
+        .catch(error => logItToConsole(error));
     }
   },
   mutations: {
