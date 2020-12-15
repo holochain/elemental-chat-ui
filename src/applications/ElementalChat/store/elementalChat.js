@@ -391,7 +391,7 @@ export default {
     },
     refreshChatter({ dispatch, rootState }) {
       logItToConsole("refreshChatter start", Date.now());
-      callZome(dispatch, rootState, "chat", "refresh_chatter", null, 60000)
+      callZome(dispatch, rootState, "chat", "refresh_chatter", null, 30000)
         .then(() => {
           logItToConsole("refreshChatter zome done", Date.now());
         })
