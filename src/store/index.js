@@ -17,7 +17,7 @@ const INSTALLED_APP_ID =
     ? "elemental-chat-1"
     : process.env.VUE_APP_WEB_CLIENT_PORT === "9999"
     ? "elemental-chat-2"
-    : "elemental-chat:alpha7"; // default to elemental-chat:<dna version number> (appId format for holo self-hosted)
+    : "elemental-chat:alpha8"; // default to elemental-chat:<dna version number> (appId format for holo self-hosted)
 
 const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
 
@@ -117,6 +117,7 @@ const initializeApp = (commit, dispatch, state) => {
             appVersion: APP_VERSION
           });
           commit("setHolochainClient", holochainClient);
+          dispatch("elementalChat/refreshChatter");
         });
       holochainClient.onclose = function(e) {
         // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
@@ -204,6 +205,12 @@ export default new Vuex.Store({
         elementalChat: ""
       });
       dispatch("initialiseAgent");
+      // refresh chatter state every 2 hours
+      setInterval(function() {
+        if (conductorConnected(state)) {
+          dispatch("elementalChat/refreshChatter");
+        }
+      }, 1000 * 60 * 60 * 2);
       setInterval(function() {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
