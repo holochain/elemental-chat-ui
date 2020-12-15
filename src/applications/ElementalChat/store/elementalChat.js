@@ -43,9 +43,8 @@ const callZome = async (dispatch, rootState, zome_name, fn_name, payload) => {
 function _addMessageToChannel(rootState, commit, state, channel, message) {
   // verify message for channel does not already exist
   const messageExists = !!channel.messages.find(
-    message => message.message.uuid === message.uuid
+    m => message.message.uuid === m.message.uuid
   );
-  console.log("messageExists", messageExists);
   if (messageExists) return;
 
   const internalMessages = [...state.channel.messages];
