@@ -117,7 +117,7 @@ export default {
       clearInterval(intervalId);
       intervalId = setInterval(function() {
         dispatch("listChannels", { category: "General" });
-      }, 50000);
+      }, 300000); // Polling every 5mins
     },
     addSignalChannel: async (
       { commit, state, rootState, dispatch },
