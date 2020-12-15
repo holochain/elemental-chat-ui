@@ -53,7 +53,7 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 })();
 
 const manageSignals = (signal, dispatch) => {
-  console.log("incoming signal");
+  console.log("Incoming signal");
   const signalData = signal.data.payload;
   const { signal_name: signalName, signal_payload: signalPayload } = signalData;
   switch (signalName) {
