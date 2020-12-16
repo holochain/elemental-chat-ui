@@ -8,7 +8,7 @@ function pollMessages(dispatch, active_chatter, channel) {
 
 function log(action, data) { // eslint-disable-line
   console.log(Date.now(), action);
-  if (data !== undefined) console.log(`Data:`, data);
+  if (data !== undefined) console.log(data);
 }
 
 function sortChannels(val) {
