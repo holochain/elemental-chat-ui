@@ -57,16 +57,16 @@ const manageSignals = (signal, dispatch) => {
   const signalData = signal.data.payload;
   const { signal_name: signalName, signal_payload: signalPayload } = signalData;
   switch (signalName) {
-    case "message":
+    case "Message":
       console.log("INCOMING SIGNAL > NEW MESSAGE");
       console.log("payload" + JSON.stringify(signalPayload));
       // trigger action in elemental_chat to add message to message list
       dispatch("elementalChat/addSignalMessageToChannel", {
-        channel: signalPayload.SignalMessageData.channelData,
-        message: signalPayload.SignalMessageData.messageData
+        channel: signalPayload.channelData,
+        message: signalPayload.messageData
       });
       break;
-    case "channel":
+    case "Channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");
       // TODO: Implement channel signals
       // trigger action in elemental_chat module to add channel to channel list
