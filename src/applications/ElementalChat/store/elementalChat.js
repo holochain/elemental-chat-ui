@@ -334,6 +334,9 @@ export default {
               Message: result.messages[result.messages.length - 1].entryHash
             };
           }
+
+          result.messages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
+
           const internalChannel = {
             ...payload.channel,
             messages: result.messages
