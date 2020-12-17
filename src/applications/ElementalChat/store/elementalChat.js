@@ -1,3 +1,6 @@
+// This should be from the same source as the one in src/store/index.js
+const HOLO_HOSTED = true;
+
 function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
     channel: channel,
@@ -19,7 +22,17 @@ const doResetConnection = async dispatch => {
   return dispatch("resetConnectionState", null, { root: true });
 };
 
-const callZome = async (
+const callZomeHolo = async (_, rootState, zome_name, fn_name, payload) => {
+  const result = rootState.holochainClient.zomeCall(
+    "TODO:DNA_ALIAS",
+    zome_name,
+    fn_name,
+    payload
+  );
+  return result;
+};
+
+const callZomeLocal = async (
   dispatch,
   rootState,
   zome_name,
@@ -49,6 +62,8 @@ const callZome = async (
       return doResetConnection(dispatch);
   }
 };
+
+const callZome = HOLO_HOSTED ? callZomeHolo : callZomeLocal;
 
 function _addMessageToChannel(rootState, commit, state, channel, message) {
   // verify message for channel does not already exist
@@ -290,6 +305,7 @@ export default {
     },
     signalMessageSent: async ({ rootState }, payload) => {
       logItToConsole("signalMessageSent start", Date.now());
+      // TODO: use the already defined callZome function
       rootState.holochainClient
         .callZome(
           {

@@ -2,6 +2,11 @@ import Vue from "vue";
 import Vuex from "vuex";
 import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AppWebsocket } from "@holochain/conductor-api";
+import { Connection as WebSdkConnection } from "@holo-host/web-sdk";
+
+const HOLO_HOSTED = true;
+const CHAPERONE_SERVER_URL = "http://localhost:42233/";
+
 import dexiePlugin from "./dexiePlugin";
 import { arrayBufferToBase64 } from "./utils";
 
@@ -77,7 +82,20 @@ const manageSignals = (signal, dispatch) => {
   }
 };
 
-const initializeApp = (commit, dispatch, state) => {
+const initializeAppHolo = async (commit, _, state) => {
+  const webSdkConnection = new WebSdkConnection(CHAPERONE_SERVER_URL);
+  console.log("****** about to call webSdkConnection.ready()");
+  await webSdkConnection.ready();
+  console.log("****** finished calling webSdkConnection.ready()");
+
+  if (!state.isHoloSignedIn) {
+    const signInResult = await webSdkConnection.signIn();
+    commit("setIsHoloSignedIn", signInResult);
+  }
+  commit("setHoloClient", webSdkConnection);
+};
+
+const initializeAppLocal = (commit, dispatch, state) => {
   AppWebsocket.connect(WEB_CLIENT_URI, signal =>
     manageSignals(signal, dispatch)
   )
@@ -136,6 +154,8 @@ const initializeApp = (commit, dispatch, state) => {
     });
 };
 
+const initializeApp = HOLO_HOSTED ? initializeAppHolo : initializeAppLocal;
+
 function conductorConnected(state) {
   return state.reconnectingIn === -1;
 }
@@ -151,6 +171,8 @@ function conductorInBackoff(state) {
 export default new Vuex.Store({
   state: {
     holochainClient: null,
+    holoClient: null,
+    isHoloSignedIn: false,
     conductorDisconnected: true,
     reconnectingIn: 0,
     needsHandle: false,
@@ -182,6 +204,14 @@ export default new Vuex.Store({
       state.conductorDisconnected = false;
       state.reconnectingIn = -1;
       state.firstConnect = false;
+    },
+    setHoloClient(state, payload) {
+      console.log("holoClient connected", payload);
+      state.holoClient = payload;
+      state.conductorDisconnected = false;
+    },
+    setIsHoloSignedIn(state, payload) {
+      state.isHoloSignedIn = payload;
     },
     contentReset(state) {
       console.log("CONTENT RESET (DNA CHANGED)");
