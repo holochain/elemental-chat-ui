@@ -17,7 +17,7 @@ const INSTALLED_APP_ID =
     ? "elemental-chat-1"
     : process.env.VUE_APP_WEB_CLIENT_PORT === "9999"
     ? "elemental-chat-2"
-    : "elemental-chat:alpha9"; // default to elemental-chat:<dna version number> (appId format for holo self-hosted)
+    : "elemental-chat:alpha11"; // default to elemental-chat:<dna version number> (appId format for holo self-hosted)
 
 const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
 
@@ -53,20 +53,20 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 })();
 
 const manageSignals = (signal, dispatch) => {
-  console.log("incoming signal");
+  console.log("Incoming signal");
   const signalData = signal.data.payload;
   const { signal_name: signalName, signal_payload: signalPayload } = signalData;
   switch (signalName) {
-    case "message":
+    case "Message":
       console.log("INCOMING SIGNAL > NEW MESSAGE");
       console.log("payload" + JSON.stringify(signalPayload));
       // trigger action in elemental_chat to add message to message list
       dispatch("elementalChat/addSignalMessageToChannel", {
-        channel: signalPayload.SignalMessageData.channelData,
-        message: signalPayload.SignalMessageData.messageData
+        channel: signalPayload.channelData,
+        message: signalPayload.messageData
       });
       break;
-    case "channel":
+    case "Channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");
       // TODO: Implement channel signals
       // trigger action in elemental_chat module to add channel to channel list
