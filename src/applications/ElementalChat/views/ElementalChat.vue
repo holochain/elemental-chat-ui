@@ -30,6 +30,22 @@
               icon
               v-bind="attrs"
               v-on="on"
+              @click="getStats()"
+              small
+            >
+              <v-icon>mdi-chart-line</v-icon>
+            </v-btn>
+          </template>
+          <span>Stats</span>
+        </v-tooltip>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              id="update-handle"
+              color="action"
+              icon
+              v-bind="attrs"
+              v-on="on"
               small
             >
               <v-icon>mdi-information-outline</v-icon>
@@ -94,6 +110,45 @@
         </v-col>
       </v-row>
     </v-card>
+    <v-dialog v-model="shouldDisplayStats" persistent max-width="660">
+      <v-card>
+        <v-card-title class="headline">
+          Stats
+        </v-card-title>
+        <v-card-text>
+          <v-row align="center">
+            <v-col class="display-1" cols="6">
+              Total agents:
+            </v-col>
+            <v-col class="display-1" cols="6">
+              {{ stats.agents == undefined ? "--" : stats.agents }} 👤
+            </v-col>
+          </v-row>
+          <v-row align="center">
+            <v-col class="display-1" cols="6">
+              Active agents:
+            </v-col>
+            <v-col class="display-1" cols="6">
+              {{ stats.active == undefined ? "--" : stats.active }} 👤
+            </v-col>
+          </v-row>
+          <v-row align="center">
+            <v-col class="display-1" cols="6">
+              Channels:
+            </v-col>
+            <v-col class="display-1" cols="6">
+              {{ stats.channels == undefined ? "--" : stats.channels }} 🗨️
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="resetStats">
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -112,7 +167,12 @@ export default {
     };
   },
   methods: {
-    ...mapActions("elementalChat", ["listChannels", "updateHandle"]),
+    ...mapActions("elementalChat", [
+      "listChannels",
+      "updateHandle",
+      "getStats",
+      "resetStats"
+    ]),
     openChannel() {
       this.refreshKey += 1;
     },
@@ -123,7 +183,10 @@ export default {
   computed: {
     ...mapState(["conductorDisconnected"]),
     ...mapState(["appInterface"]),
-    ...mapState("elementalChat", ["channels", "channel"])
+    ...mapState("elementalChat", ["channels", "channel", "stats", "showStats"]),
+    shouldDisplayStats() {
+      return this.showStats;
+    }
   },
   watch: {
     conductorDisconnected(val) {

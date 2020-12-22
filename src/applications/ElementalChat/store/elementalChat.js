@@ -20,7 +20,7 @@ const doResetConnection = async dispatch => {
   return dispatch("resetConnectionState", null, { root: true });
 };
 
-const callZome = async (
+export const callZome = async (
   dispatch,
   rootState,
   zome_name,
@@ -101,6 +101,8 @@ export default {
       messages: [],
       unseen: false
     },
+    stats: {},
+    showStats: false,
     error: {
       shouldShow: false,
       message: ""
@@ -110,6 +112,27 @@ export default {
     updateHandle: async ({ rootState }) => {
       log("Updating Handle");
       rootState.needsHandle = true;
+    },
+    getStats: async ({ rootState, dispatch, commit }) => {
+      log("Getting Stats...");
+
+      callZome(
+        dispatch,
+        rootState,
+        "chat",
+        "stats",
+        { category: "General" },
+        60000
+      )
+        .then(stats => {
+          log("stats zomeCall done");
+          console.log(">>>>>>>>>>>>>", stats);
+          commit("setStats", stats);
+        })
+        .catch(error => log("stats zomeCall error", error));
+    },
+    resetStats({ commit }) {
+      commit("resetStats");
     },
     setChannel: async ({ commit, rootState, dispatch }, payload) => {
       log("setChannel start");
@@ -458,6 +481,16 @@ export default {
           channel: { category: "General", uuid: "" },
           messages: []
         });
+    },
+    setStats(state, payload) {
+      state.showStats = true;
+      state.stats.agents = payload.agents;
+      state.stats.active = payload.active;
+      state.stats.channels = payload.channels;
+      state.stats.messages = payload.messages;
+    },
+    resetStats(state) {
+      state.showStats = false;
     }
   }
 };
