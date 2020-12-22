@@ -36,7 +36,7 @@
               <v-icon>mdi-chart-line</v-icon>
             </v-btn>
           </template>
-          <span>Stats</span>
+          <span>View Stats</span>
         </v-tooltip>
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
@@ -138,6 +138,14 @@
             </v-col>
             <v-col class="display-1" cols="6">
               {{ stats.channels == undefined ? "--" : stats.channels }} 🗨️
+            </v-col>
+          </v-row>
+          <v-row align="center">
+            <v-col class="display-1" cols="6">
+              Messages:
+            </v-col>
+            <v-col class="display-1" cols="6">
+              {{ stats.messages == undefined ? "--" : stats.messages }} 🗨️
             </v-col>
           </v-row>
         </v-card-text>
