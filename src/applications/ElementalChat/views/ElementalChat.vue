@@ -115,7 +115,8 @@
         <v-card-title class="headline">
           Stats
         </v-card-title>
-        <v-card-text>
+        <v-card-text v-if="statsAreLoading">Loading stats...</v-card-text>
+        <v-card-text v-if="!statsAreLoading">
           <v-row align="center">
             <v-col class="display-1" cols="6">
               Total agents:
@@ -191,9 +192,18 @@ export default {
   computed: {
     ...mapState(["conductorDisconnected"]),
     ...mapState(["appInterface"]),
-    ...mapState("elementalChat", ["channels", "channel", "stats", "showStats"]),
+    ...mapState("elementalChat", [
+      "channels",
+      "channel",
+      "stats",
+      "showStats",
+      "statsLoading"
+    ]),
     shouldDisplayStats() {
       return this.showStats;
+    },
+    statsAreLoading() {
+      return this.statsLoading;
     }
   },
   watch: {

@@ -104,6 +104,7 @@ export default {
     },
     stats: {},
     showStats: false,
+    statsLoading: false,
     error: {
       shouldShow: false,
       message: ""
@@ -116,7 +117,7 @@ export default {
     },
     getStats: async ({ rootState, dispatch, commit }) => {
       log("Getting Stats...");
-
+      commit("loadStats");
       callZome(
         dispatch,
         rootState,
@@ -130,7 +131,10 @@ export default {
           console.log(">>>>>>>>>>>>>", stats);
           commit("setStats", stats);
         })
-        .catch(error => log("stats zomeCall error", error));
+        .catch(error => {
+          log("stats zomeCall error", error);
+          commit("resetStats");
+        });
     },
     resetStats({ commit }) {
       commit("resetStats");
@@ -490,15 +494,21 @@ export default {
           messages: []
         });
     },
+    loadStats(state) {
+      state.showStats = true;
+      state.statsLoading = true;
+    },
     setStats(state, payload) {
       state.showStats = true;
+      state.statsLoading = false;
       state.stats.agents = payload.agents;
       state.stats.active = payload.active;
       state.stats.channels = payload.channels;
       state.stats.messages = payload.messages;
     },
     resetStats(state) {
-      state.showStats = false;
+      state.showStats = undefined;
+      state.statsLoading = undefined;
     }
   }
 };
