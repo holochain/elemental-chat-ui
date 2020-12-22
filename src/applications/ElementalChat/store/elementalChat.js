@@ -29,6 +29,7 @@ export const callZome = async (
   timeout
 ) => {
   if (rootState.conductorDisconnected) {
+    log("callZome called when disconnected from conductor");
     return;
   }
   try {
@@ -219,28 +220,35 @@ export default {
       callZome(dispatch, rootState, "chat", "list_channels", payload, 30000)
         .then(async result => {
           log("listChannels zome done");
-          commit("setChannels", result.channels);
-          log("put listChannels dexie start");
-          let hcDBState =
-            (await rootState.hcDb.elementalChat.get("General")) || [];
-          let newChannels = [];
-          newChannels = result.channels.filter(channel => {
-            return !hcDBState.find(c => c.channel.uuid == channel.channel.uuid);
-          });
-          let sortedChannels = sortChannels(result.channels);
-          rootState.hcDb.elementalChat
-            .put(sortedChannels, payload.category)
-            .then(log("put listChannels dexie done"))
-            .catch(error => log(error));
-          log("SETTING channels in indexDb : ", result.channels);
 
-          if (state.channel.info.name === "" && result.channels.length > 0)
-            dispatch("setChannel", { ...result.channels[0], messages: [] });
+          if (!result) {
+            log("listChannels zome returned undefined");
+          } else {
+            commit("setChannels", result.channels);
+            log("put listChannels dexie start");
+            let hcDBState =
+              (await rootState.hcDb.elementalChat.get("General")) || [];
+            let newChannels = [];
+            newChannels = result.channels.filter(channel => {
+              return !hcDBState.find(
+                c => c.channel.uuid == channel.channel.uuid
+              );
+            });
+            let sortedChannels = sortChannels(result.channels);
+            rootState.hcDb.elementalChat
+              .put(sortedChannels, payload.category)
+              .then(log("put listChannels dexie done"))
+              .catch(error => log(error));
+            log("SETTING channels in indexDb : ", result.channels);
 
-          // Get messages for the newChannels without active_chatter
-          newChannels.forEach(channel =>
-            pollMessages(dispatch, false, channel)
-          );
+            if (state.channel.info.name === "" && result.channels.length > 0)
+              dispatch("setChannel", { ...result.channels[0], messages: [] });
+
+            // Get messages for the newChannels without active_chatter
+            newChannels.forEach(channel =>
+              pollMessages(dispatch, false, channel)
+            );
+          }
         })
         .catch(error => log("listChannels zome error", error));
     },
