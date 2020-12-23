@@ -14,6 +14,8 @@ function logItToConsole(what, time) { // eslint-disable-line
 }
 
 function sortChannels(val) {
+  console.log("sort channels", val);
+
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1));
   return val;
 }
@@ -23,8 +25,13 @@ const doResetConnection = async dispatch => {
 };
 
 const callZomeHolo = async (_, rootState, zome_name, fn_name, payload) => {
-  const result = rootState.holochainClient.zomeCall(
-    "TODO:DNA_ALIAS",
+  console.log("callZomeHolo");
+  console.log("zome_name", zome_name);
+  console.log("fn_name", fn_name);
+  console.log("payload", payload);
+
+  const result = rootState.holoClient.zomeCall(
+    "chat_dna_alias",
     zome_name,
     fn_name,
     payload

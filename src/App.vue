@@ -116,6 +116,7 @@ export default {
       );
     },
     shouldDisplayDisconnected() {
+      console.log("UI this.conductorDisconnected", this.conductorDisconnected);
       return this.conductorDisconnected && !this.firstConnect;
     }
   },

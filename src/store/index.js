@@ -5,7 +5,7 @@ import { AppWebsocket } from "@holochain/conductor-api";
 import { Connection as WebSdkConnection } from "@holo-host/web-sdk";
 
 const HOLO_HOSTED = true;
-const CHAPERONE_SERVER_URL = "http://localhost:42233/";
+const CHAPERONE_SERVER_URL = "http://localhost:24273/";
 
 import dexiePlugin from "./dexiePlugin";
 import { arrayBufferToBase64 } from "./utils";
@@ -82,14 +82,20 @@ const manageSignals = (signal, dispatch) => {
   }
 };
 
+let isAwaitingReady = false;
 const initializeAppHolo = async (commit, _, state) => {
+  if (isAwaitingReady) return;
+  isAwaitingReady = true;
+
   const webSdkConnection = new WebSdkConnection(CHAPERONE_SERVER_URL);
   console.log("****** about to call webSdkConnection.ready()");
   await webSdkConnection.ready();
   console.log("****** finished calling webSdkConnection.ready()");
 
   if (!state.isHoloSignedIn) {
+    console.log("****** signing in");
     const signInResult = await webSdkConnection.signIn();
+    console.log("****** Finished signing in");
     commit("setIsHoloSignedIn", signInResult);
   }
   commit("setHoloClient", webSdkConnection);
@@ -209,6 +215,8 @@ export default new Vuex.Store({
       console.log("holoClient connected", payload);
       state.holoClient = payload;
       state.conductorDisconnected = false;
+      state.reconnectingIn = -1;
+      state.firstConnect = false;
     },
     setIsHoloSignedIn(state, payload) {
       state.isHoloSignedIn = payload;
@@ -223,6 +231,7 @@ export default new Vuex.Store({
     resetConnectionState(state) {
       console.log("RESETTING CONNECTION STATE");
       state.holochainClient = null;
+      state.holoClient = null;
       state.conductorDisconnected = true;
       state.reconnectingIn = RECONNECT_SECONDS;
       state.appInterface = null;
@@ -246,12 +255,14 @@ export default new Vuex.Store({
           if (conductorInBackoff(state)) {
             commit("setReconnecting", state.reconnectingIn - 1);
           } else {
+            console.log("*** interval calling initialiseAgent");
             dispatch("initialiseAgent");
           }
         }
       }, 1000);
     },
     initialiseAgent({ commit, dispatch, state }) {
+      console.log("*** initialiseAgent called");
       state.hcDb.agent.get("agentHandle").then(agentHandle => {
         if (
           agentHandle === null ||
