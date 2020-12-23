@@ -20,7 +20,7 @@ const doResetConnection = async dispatch => {
   return dispatch("resetConnectionState", null, { root: true });
 };
 
-const callZome = async (
+export const callZome = async (
   dispatch,
   rootState,
   zome_name,
@@ -29,6 +29,7 @@ const callZome = async (
   timeout
 ) => {
   if (rootState.conductorDisconnected) {
+    log("callZome called when disconnected from conductor");
     return;
   }
   try {
@@ -101,6 +102,9 @@ export default {
       messages: [],
       unseen: false
     },
+    stats: {},
+    showStats: false,
+    statsLoading: false,
     error: {
       shouldShow: false,
       message: ""
@@ -110,6 +114,30 @@ export default {
     updateHandle: async ({ rootState }) => {
       log("Updating Handle");
       rootState.needsHandle = true;
+    },
+    getStats: async ({ rootState, dispatch, commit }) => {
+      log("Getting Stats...");
+      commit("loadStats");
+      callZome(
+        dispatch,
+        rootState,
+        "chat",
+        "stats",
+        { category: "General" },
+        60000
+      )
+        .then(stats => {
+          log("stats zomeCall done");
+          console.log(">>>>>>>>>>>>>", stats);
+          commit("setStats", stats);
+        })
+        .catch(error => {
+          log("stats zomeCall error", error);
+          commit("resetStats");
+        });
+    },
+    resetStats({ commit }) {
+      commit("resetStats");
     },
     setChannel: async ({ commit, rootState, dispatch }, payload) => {
       log("setChannel start");
@@ -196,28 +224,35 @@ export default {
       callZome(dispatch, rootState, "chat", "list_channels", payload, 30000)
         .then(async result => {
           log("listChannels zome done");
-          commit("setChannels", result.channels);
-          log("put listChannels dexie start");
-          let hcDBState =
-            (await rootState.hcDb.elementalChat.get("General")) || [];
-          let newChannels = [];
-          newChannels = result.channels.filter(channel => {
-            return !hcDBState.find(c => c.channel.uuid == channel.channel.uuid);
-          });
-          let sortedChannels = sortChannels(result.channels);
-          rootState.hcDb.elementalChat
-            .put(sortedChannels, payload.category)
-            .then(log("put listChannels dexie done"))
-            .catch(error => log(error));
-          log("SETTING channels in indexDb : ", result.channels);
 
-          if (state.channel.info.name === "" && result.channels.length > 0)
-            dispatch("setChannel", { ...result.channels[0], messages: [] });
+          if (!result) {
+            log("listChannels zome returned undefined");
+          } else {
+            commit("setChannels", result.channels);
+            log("put listChannels dexie start");
+            let hcDBState =
+              (await rootState.hcDb.elementalChat.get("General")) || [];
+            let newChannels = [];
+            newChannels = result.channels.filter(channel => {
+              return !hcDBState.find(
+                c => c.channel.uuid == channel.channel.uuid
+              );
+            });
+            let sortedChannels = sortChannels(result.channels);
+            rootState.hcDb.elementalChat
+              .put(sortedChannels, payload.category)
+              .then(log("put listChannels dexie done"))
+              .catch(error => log(error));
+            log("SETTING channels in indexDb : ", result.channels);
 
-          // Get messages for the newChannels without active_chatter
-          newChannels.forEach(channel =>
-            pollMessages(dispatch, false, channel)
-          );
+            if (state.channel.info.name === "" && result.channels.length > 0)
+              dispatch("setChannel", { ...result.channels[0], messages: [] });
+
+            // Get messages for the newChannels without active_chatter
+            newChannels.forEach(channel =>
+              pollMessages(dispatch, false, channel)
+            );
+          }
         })
         .catch(error => log("listChannels zome error", error));
     },
@@ -458,6 +493,22 @@ export default {
           channel: { category: "General", uuid: "" },
           messages: []
         });
+    },
+    loadStats(state) {
+      state.showStats = true;
+      state.statsLoading = true;
+    },
+    setStats(state, payload) {
+      state.showStats = true;
+      state.statsLoading = false;
+      state.stats.agents = payload.agents;
+      state.stats.active = payload.active;
+      state.stats.channels = payload.channels;
+      state.stats.messages = payload.messages;
+    },
+    resetStats(state) {
+      state.showStats = undefined;
+      state.statsLoading = undefined;
     }
   }
 };
