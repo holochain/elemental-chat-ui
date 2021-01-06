@@ -1,6 +1,6 @@
 {
   "name": "elemental-chat-ui",
-  "version": "0.0.1-alpha18",
+  "version": "0.0.1-alpha19",
   "private": true,
   "scripts": {
     "serve:dev-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:develop",
@@ -13,7 +13,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@holochain/conductor-api": "git://github.com/holochain/holochain-conductor-api.git#2020-12-10/timeout",
+    "@holochain/conductor-api": "v0.0.1-dev.14",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",
     "dexie": "^3.0.2",
