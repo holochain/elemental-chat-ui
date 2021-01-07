@@ -4,7 +4,6 @@ import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AppWebsocket } from "@holochain/conductor-api";
 import { Connection as WebSdkConnection } from "@holo-host/web-sdk";
 
-const HOLO_HOSTED = true;
 const CHAPERONE_SERVER_URL = "http://localhost:24273/";
 
 import dexiePlugin from "./dexiePlugin";
@@ -182,7 +181,10 @@ const initializeAppLocal = (commit, dispatch, state) => {
     });
 };
 
-const initializeApp = HOLO_HOSTED ? initializeAppHolo : initializeAppLocal;
+const initializeApp =
+  process.env.VUE_APP_CONTEXT === "holo-host"
+    ? initializeAppHolo
+    : initializeAppLocal;
 
 function conductorConnected(state) {
   return state.reconnectingIn === -1;

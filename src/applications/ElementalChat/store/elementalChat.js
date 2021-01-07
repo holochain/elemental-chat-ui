@@ -1,6 +1,3 @@
-// This should be from the same source as the one in src/store/index.js
-const HOLO_HOSTED = true;
-
 function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
     channel: channel,
@@ -62,7 +59,8 @@ const callZomeLocal = async (
   }
 };
 
-const callZome = HOLO_HOSTED ? callZomeHolo : callZomeLocal;
+const callZome =
+  process.env.VUE_APP_CONTEXT === "holo-host" ? callZomeHolo : callZomeLocal;
 
 function _addMessageToChannel(rootState, commit, state, channel, message) {
   // verify message for channel does not already exist
