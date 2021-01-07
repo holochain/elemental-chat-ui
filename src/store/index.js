@@ -4,8 +4,6 @@ import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AppWebsocket } from "@holochain/conductor-api";
 import { Connection as WebSdkConnection } from "@holo-host/web-sdk";
 
-const CHAPERONE_SERVER_URL = "http://localhost:24273/";
-
 import dexiePlugin from "./dexiePlugin";
 import { arrayBufferToBase64 } from "./utils";
 
@@ -121,7 +119,9 @@ const initializeAppHolo = async (commit, dispatch, state) => {
   let holoClient;
 
   if (!state.holoClient) {
-    const webSdkConnection = new WebSdkConnection(CHAPERONE_SERVER_URL);
+    const webSdkConnection = new WebSdkConnection(
+      process.env.VUE_APP_CHAPERONE_SERVER_URL
+    );
     holoClient = createHoloClient(webSdkConnection);
     commit("setHoloClient", holoClient);
   } else {
