@@ -6,7 +6,7 @@
           Crispr Responsive Web Container
         </v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-tooltip bottom v-if="this.$vuetify.breakpoint.smAndDown">
+        <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               color="action"
@@ -66,7 +66,7 @@
           </template>
           <span>Call zome</span>
         </v-tooltip>
-        <v-tooltip bottom v-if="this.$vuetify.breakpoint.mdAndUp">
+        <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               color="action"
@@ -82,13 +82,9 @@
           <span>Go to the Public Messages App!</span>
         </v-tooltip>
       </v-app-bar>
-      <v-row :no-gutters="this.$vuetify.breakpoint.smAndDown">
+      <v-row>
         <v-col>
-          <v-card
-            max-width="380"
-            class="mx-auto"
-            :outlined="this.$vuetify.breakpoint.mdAndUp"
-          >
+          <v-card max-width="380" class="mx-auto">
             <v-list-item>
               <v-list-item-avatar size="50">
                 <v-img :src="require('@/assets/holochain-halo.png')"></v-img>

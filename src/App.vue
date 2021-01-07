@@ -121,10 +121,10 @@ export default {
     }
   },
   created() {
-    this.$store.dispatch("initialiseStore");
     this.$vuetify.theme.dark = true;
   },
   mounted() {
+    this.$store.dispatch("initialiseStore");
     this.setChannelPolling();
   }
 };

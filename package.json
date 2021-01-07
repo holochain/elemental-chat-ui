@@ -13,7 +13,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@holo-host/web-sdk": "^0.2.0",
+    "@holo-host/web-sdk": "^0.2.1",
     "@holochain/conductor-api": "git://github.com/holochain/holochain-conductor-api.git#2020-12-10/timeout",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",

@@ -5,6 +5,11 @@
         >Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
+
+      <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout">
+        Logout
+      </v-toolbar-title>
+
       <v-toolbar-title class="title pl-0">
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
@@ -113,6 +118,7 @@ export default {
   },
   methods: {
     ...mapActions("elementalChat", ["listChannels", "updateHandle"]),
+    ...mapActions(["holoLogout"]),
     openChannel() {
       this.refreshKey += 1;
     },
@@ -123,7 +129,8 @@ export default {
   computed: {
     ...mapState(["conductorDisconnected"]),
     ...mapState(["appInterface"]),
-    ...mapState("elementalChat", ["channels", "channel"])
+    ...mapState("elementalChat", ["channels", "channel"]),
+    ...mapState(["isHoloSignedIn"])
   },
   watch: {
     conductorDisconnected(val) {
@@ -132,3 +139,11 @@ export default {
   }
 };
 </script>
+<style scoped>
+.logout {
+  font-size: 14px;
+  margin-right: 10px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+</style>
