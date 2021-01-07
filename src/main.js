@@ -15,4 +15,4 @@ window.App = new Vue({
   store: storeSubscriber,
   vuetify,
   render: h => h(App)
-}).$mount("#elemental-chats-yar");
+}).$mount("#app");
