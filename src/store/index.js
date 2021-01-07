@@ -242,12 +242,14 @@ export default new Vuex.Store({
       state.isHoloSignedIn = payload;
     },
     contentReset(state) {
+      console.log("CONTENT RESET (DNA CHANGED)");
       state.hcDb.agent.put("", "agentHandle");
       state.hcDb.elementalChat.clear();
       state.needsHandle = true;
       state.agentHandle = "";
     },
     resetConnectionState(state) {
+      console.log("RESETTING CONNECTION STATE");
       state.holochainClient = null;
       state.holoClient = null;
       state.conductorDisconnected = true;
@@ -305,13 +307,11 @@ export default new Vuex.Store({
     async holoLogout({ rootState, commit, dispatch }) {
       if (rootState.holoClient) {
         await rootState.holoClient.signOut();
-        commit("setIsHoloSignedIn", false);
-        commit("contentReset");
-        dispatch("elementalChat/resetState");
-        dispatch("initialiseAgent");
-      } else {
-        console.log("failed to log out you know");
       }
+      commit("setIsHoloSignedIn", false);
+      commit("contentReset");
+      dispatch("elementalChat/resetState");
+      dispatch("initialiseAgent");
     }
   },
   modules: {

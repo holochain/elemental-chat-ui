@@ -116,15 +116,14 @@ export default {
       );
     },
     shouldDisplayDisconnected() {
-      console.log("UI this.conductorDisconnected", this.conductorDisconnected);
       return this.conductorDisconnected && !this.firstConnect;
     }
   },
   created() {
+    this.$store.dispatch("initialiseStore");
     this.$vuetify.theme.dark = true;
   },
   mounted() {
-    this.$store.dispatch("initialiseStore");
     this.setChannelPolling();
   }
 };

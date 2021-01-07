@@ -6,7 +6,7 @@
           Crispr Responsive Web Container
         </v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-tooltip bottom>
+        <v-tooltip bottom v-if="this.$vuetify.breakpoint.smAndDown">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               color="action"
@@ -66,7 +66,7 @@
           </template>
           <span>Call zome</span>
         </v-tooltip>
-        <v-tooltip bottom>
+        <v-tooltip bottom v-if="this.$vuetify.breakpoint.mdAndUp">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               color="action"
@@ -82,7 +82,7 @@
           <span>Go to the Public Messages App!</span>
         </v-tooltip>
       </v-app-bar>
-      <v-row>
+      <v-row :no-gutters="this.$vuetify.breakpoint.smAndDown">
         <v-col>
           <v-card max-width="380" class="mx-auto">
             <v-list-item>
