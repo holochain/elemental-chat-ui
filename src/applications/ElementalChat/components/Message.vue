@@ -9,7 +9,7 @@
     class="ml-0 mr-0"
     v-model="content"
     label="Send a message"
-    maxlength="1024"
+    maxlength="1000"
     dense
     dark
     outlined
