@@ -16,6 +16,7 @@
               v-model="internalAgentHandle"
               label="Enter your handle"
               hint="This will be added to your messages"
+              maxlength="20"
               dark
               outlined
               full-width
