@@ -1,3 +1,5 @@
+import { isHoloHosted } from "@/utils";
+
 function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
     channel: channel,
@@ -59,8 +61,7 @@ const callZomeLocal = async (
   }
 };
 
-const callZome =
-  process.env.VUE_APP_CONTEXT === "holo-host" ? callZomeHolo : callZomeLocal;
+const callZome = isHoloHosted() ? callZomeHolo : callZomeLocal;
 
 function _addMessageToChannel(rootState, commit, state, channel, message) {
   // verify message for channel does not already exist
