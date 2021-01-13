@@ -84,7 +84,11 @@
       </v-app-bar>
       <v-row :no-gutters="this.$vuetify.breakpoint.smAndDown">
         <v-col>
-          <v-card max-width="380" class="mx-auto">
+          <v-card
+            max-width="380"
+            class="mx-auto"
+            :outlined="this.$vuetify.breakpoint.mdAndUp"
+          >
             <v-list-item>
               <v-list-item-avatar size="50">
                 <v-img :src="require('@/assets/holochain-halo.png')"></v-img>
