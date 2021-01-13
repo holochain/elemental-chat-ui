@@ -40,7 +40,7 @@
       >
         <v-card>
           <v-card-title class="headline">
-            Connecting to Holo
+            Connecting to HoloPort
           </v-card-title>
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
         </v-card>
