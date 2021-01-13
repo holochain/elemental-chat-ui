@@ -145,7 +145,7 @@ export default {
     },
     holoConnectionMessage() {
       if (this.isChaperoneDisconnected) {
-        return "Can't find Holo. Please check your internet connection and refresh this page.";
+        return "Can't find HoloPort. Please check your internet connection and refresh this page.";
       } else {
         return "Connecting to HoloPort...";
       }
