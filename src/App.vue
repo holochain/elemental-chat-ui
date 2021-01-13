@@ -33,6 +33,18 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <v-dialog
+        v-model="shouldDisplayHoloConnecting"
+        persistent
+        max-width="320"
+      >
+        <v-card>
+          <v-card-title class="headline">
+            Connecting to HoloPort
+          </v-card-title>
+          <v-card-text>{{ holoConnectionMessage }}</v-card-text>
+        </v-card>
+      </v-dialog>
       <v-dialog v-model="error.shouldShow" persistent max-width="460">
         <v-card>
           <v-card-title class="headline">
@@ -78,6 +90,8 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
+import { isHoloHosted } from "@/utils";
+
 export default {
   name: "App",
   components: {},
@@ -109,15 +123,32 @@ export default {
       "needsHandle",
       "conductorDisconnected",
       "firstConnect",
-      "reconnectingIn"
+      "reconnectingIn",
+      "isHoloSignedIn",
+      "isChaperoneDisconnected"
     ]),
     shouldDisplayNickPrompt() {
       return (
-        this.needsHandle && !this.error.message && !this.conductorDisconnected
+        this.needsHandle &&
+        !this.error.message &&
+        !this.conductorDisconnected &&
+        !this.shouldDisplayHoloConnecting
       );
     },
     shouldDisplayDisconnected() {
       return this.conductorDisconnected && !this.firstConnect;
+    },
+    shouldDisplayHoloConnecting() {
+      return (
+        isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected)
+      );
+    },
+    holoConnectionMessage() {
+      if (this.isChaperoneDisconnected) {
+        return "Can't find HoloPort. Please check your internet connection and refresh this page.";
+      } else {
+        return "Connecting to HoloPort...";
+      }
     }
   },
   created() {

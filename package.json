@@ -6,14 +6,15 @@
     "serve:dev-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:develop",
     "serve:dev-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:develop",
     "serve:develop": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
-    "serve": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' vue-cli-service serve",
-    "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' vue-cli-service build",
+    "serve": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24273/' vue-cli-service serve",
+    "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@holochain/conductor-api": "v0.0.1-dev.14",
+    "@holo-host/web-sdk": "^0.2.2",
+    "@holochain/conductor-api": "0.0.1-dev.14",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",
     "dexie": "^3.0.2",

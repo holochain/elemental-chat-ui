@@ -1,3 +1,5 @@
+import { isHoloHosted } from "@/utils";
+
 function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
     channel: channel,
@@ -20,7 +22,16 @@ const doResetConnection = async dispatch => {
   return dispatch("resetConnectionState", null, { root: true });
 };
 
-export const callZome = async (
+const callZomeHolo = (_, rootState, zome_name, fn_name, payload) => {
+  return rootState.holoClient.zomeCall(
+    "chat_dna_alias",
+    zome_name,
+    fn_name,
+    payload
+  );
+};
+
+const callZomeLocal = async (
   dispatch,
   rootState,
   zome_name,
@@ -51,6 +62,8 @@ export const callZome = async (
       return doResetConnection(dispatch);
   }
 };
+
+const callZome = isHoloHosted() ? callZomeHolo : callZomeLocal;
 
 function _addMessageToChannel(rootState, commit, state, channel, message) {
   // verify message for channel does not already exist

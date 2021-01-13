@@ -1,9 +1,23 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 import { AppWebsocket } from "@holochain/conductor-api";
+import { Connection as WebSdkConnection } from "@holo-host/web-sdk";
+import { isHoloHosted } from "@/utils";
+import elementalChat from "@/applications/ElementalChat/store/elementalChat";
+
 import dexiePlugin from "./dexiePlugin";
 import { arrayBufferToBase64 } from "./utils";
+
+// We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
+function createHoloClient(webSdkConnection) {
+  return {
+    signIn: (...args) => webSdkConnection.signIn(...args),
+    signOut: (...args) => webSdkConnection.signOut(...args),
+    appInfo: (...args) => webSdkConnection.appInfo(...args),
+    ready: (...args) => webSdkConnection.ready(...args),
+    zomeCall: (...args) => webSdkConnection.zomeCall(...args)
+  };
+}
 
 Vue.use(Vuex);
 
@@ -21,10 +35,9 @@ const INSTALLED_APP_ID =
 
 const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888;
 
-const WEB_CLIENT_URI =
-  process.env.VUE_APP_CONTEXT === "holo-host"
-    ? `wss://${window.location.hostname}/api/v1/ws/`
-    : `ws://localhost:${WEB_CLIENT_PORT}`;
+const WEB_CLIENT_URI = isHoloHosted()
+  ? `wss://${window.location.hostname}/api/v1/ws/`
+  : `ws://localhost:${WEB_CLIENT_PORT}`;
 
 console.log(
   "process.env.NODE_ENV === 'development' : ",
@@ -77,7 +90,69 @@ const manageSignals = (signal, dispatch) => {
   }
 };
 
-const initializeApp = (commit, dispatch, state) => {
+const clearStateIfDnaChanged = (appInfo, commit, dispatch, state) => {
+  const cellId = appInfo.cell_data[0][0];
+  const dnaHash = arrayBufferToBase64(cellId[0]);
+  console.log("cellId : ", dnaHash, arrayBufferToBase64(cellId[1]));
+
+  state.hcDb.agent.get("dnaHash").then(storedDnaHash => {
+    if (
+      storedDnaHash === null ||
+      storedDnaHash === undefined ||
+      storedDnaHash === ""
+    ) {
+      state.hcDb.agent.put(dnaHash, "dnaHash");
+    } else {
+      if (dnaHash != storedDnaHash) {
+        commit("contentReset");
+        dispatch("elementalChat/resetState");
+      }
+      state.hcDb.agent.put(dnaHash, "dnaHash");
+    }
+  });
+};
+
+let isInitializingHolo = false;
+const initializeAppHolo = async (commit, dispatch, state) => {
+  if (isInitializingHolo) return;
+  isInitializingHolo = true;
+  let holoClient;
+
+  if (!state.holoClient) {
+    const webSdkConnection = new WebSdkConnection(
+      process.env.VUE_APP_CHAPERONE_SERVER_URL
+    );
+    holoClient = createHoloClient(webSdkConnection);
+    commit("setHoloClient", holoClient);
+  } else {
+    holoClient = state.holoClient;
+  }
+
+  try {
+    await holoClient.ready();
+  } catch (e) {
+    commit("setIsChaperoneDisconnected", true);
+    return;
+  }
+
+  if (!state.isHoloSignedIn) {
+    try {
+      await holoClient.signIn();
+      commit("setIsHoloSignedIn", true);
+    } catch (e) {
+      commit("setIsChaperoneDisconnected", true);
+      return;
+    }
+  }
+
+  const appInfo = await holoClient.appInfo();
+
+  clearStateIfDnaChanged(appInfo, commit, dispatch, state);
+
+  isInitializingHolo = false;
+};
+
+const initializeAppLocal = (commit, dispatch, state) => {
   AppWebsocket.connect(WEB_CLIENT_URI, signal =>
     manageSignals(signal, dispatch)
   )
@@ -85,28 +160,9 @@ const initializeApp = (commit, dispatch, state) => {
       holochainClient
         .appInfo({ installed_app_id: INSTALLED_APP_ID })
         .then(appInfo => {
-          console.log("appInfo : ", appInfo);
+          clearStateIfDnaChanged(appInfo, commit, dispatch, state);
+
           const cellId = appInfo.cell_data[0][0];
-          const dnaHash = arrayBufferToBase64(cellId[0]);
-          console.log("cellId : ", dnaHash, arrayBufferToBase64(cellId[1]));
-
-          state.hcDb.agent.get("dnaHash").then(storedDnaHash => {
-            console.log("dna from index DB : ", storedDnaHash);
-            if (
-              storedDnaHash === null ||
-              storedDnaHash === undefined ||
-              storedDnaHash === ""
-            ) {
-              state.hcDb.agent.put(dnaHash, "dnaHash");
-            } else {
-              if (dnaHash != storedDnaHash) {
-                commit("contentReset");
-                dispatch("elementalChat/resetState");
-              }
-              state.hcDb.agent.put(dnaHash, "dnaHash");
-            }
-          });
-
           const agentId = cellId[1];
           console.log("agent key : ", arrayBufferToBase64(agentId));
           commit("setAgentKey", agentId);
@@ -136,6 +192,8 @@ const initializeApp = (commit, dispatch, state) => {
     });
 };
 
+const initializeApp = isHoloHosted() ? initializeAppHolo : initializeAppLocal;
+
 function conductorConnected(state) {
   return state.reconnectingIn === -1;
 }
@@ -151,6 +209,9 @@ function conductorInBackoff(state) {
 export default new Vuex.Store({
   state: {
     holochainClient: null,
+    holoClient: null,
+    isHoloSignedIn: false,
+    isChaperoneDisconnected: false,
     conductorDisconnected: true,
     reconnectingIn: 0,
     needsHandle: false,
@@ -177,11 +238,22 @@ export default new Vuex.Store({
       state.reconnectingIn = payload;
     },
     setHolochainClient(state, payload) {
-      console.log("holochainClient connected", payload);
       state.holochainClient = payload;
       state.conductorDisconnected = false;
       state.reconnectingIn = -1;
       state.firstConnect = false;
+    },
+    setHoloClient(state, payload) {
+      state.holoClient = payload;
+      state.conductorDisconnected = false;
+      state.reconnectingIn = -1;
+      state.firstConnect = false;
+    },
+    setIsHoloSignedIn(state, payload) {
+      state.isHoloSignedIn = payload;
+    },
+    setIsChaperoneDisconnected(state, payload) {
+      state.isChaperoneDisconnected = payload;
     },
     contentReset(state) {
       console.log("CONTENT RESET (DNA CHANGED)");
@@ -193,6 +265,7 @@ export default new Vuex.Store({
     resetConnectionState(state) {
       console.log("RESETTING CONNECTION STATE");
       state.holochainClient = null;
+      state.holoClient = null;
       state.conductorDisconnected = true;
       state.reconnectingIn = RECONNECT_SECONDS;
       state.appInterface = null;
@@ -244,6 +317,15 @@ export default new Vuex.Store({
     },
     resetConnectionState({ commit }) {
       commit("resetConnectionState");
+    },
+    async holoLogout({ rootState, commit, dispatch }) {
+      if (rootState.holoClient) {
+        await rootState.holoClient.signOut();
+      }
+      commit("setIsHoloSignedIn", false);
+      commit("contentReset");
+      dispatch("elementalChat/resetState");
+      dispatch("initialiseAgent");
     }
   },
   modules: {
