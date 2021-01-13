@@ -136,11 +136,17 @@ const initializeAppHolo = async (commit, dispatch, state) => {
   }
 
   if (!state.isHoloSignedIn) {
-    const signInResult = await holoClient.signIn();
-    commit("setIsHoloSignedIn", signInResult);
+    try {
+      await holoClient.signIn();
+      commit("setIsHoloSignedIn", true);
+    } catch (e) {
+      commit("setIsChaperoneDisconnected", true);
+      return;
+    }
   }
 
   const appInfo = await holoClient.appInfo();
+
   clearStateIfDnaChanged(appInfo, commit, dispatch, state);
 
   isInitializingHolo = false;
