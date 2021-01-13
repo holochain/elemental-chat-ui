@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@holo-host/web-sdk": "^0.2.2",
-    "@holochain/conductor-api": "git://github.com/holochain/holochain-conductor-api.git#b6cb529ce0e446dd172e120b27b90d104aa7369b",
+    "@holochain/conductor-api": "0.0.1-dev.14",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",
     "dexie": "^3.0.2",
