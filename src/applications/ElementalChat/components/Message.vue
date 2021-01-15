@@ -1,6 +1,14 @@
 <template>
   <v-card v-if="internalMode === 'display'" dark outlined class="pa-1 mb-1">
     <v-card-text class="pl-0">
+      <v-tooltip left>
+        <template v-slot:activator="{ on, attrs }">
+          <v-icon v-bind="attrs" v-on="on" style="font-size:90%"
+            >mdi-calendar-clock
+          </v-icon>
+        </template>
+        <span>{{ createdAt }}</span>
+      </v-tooltip>
       {{ content }}
     </v-card-text>
   </v-card>
@@ -32,7 +40,8 @@ export default {
     return {
       internalMode: "",
       uuid: "",
-      content: ""
+      content: "",
+      createdAt: "xx"
     };
   },
   computed: {
@@ -64,6 +73,7 @@ export default {
     if (this.message) {
       this.internalMode = this.mode;
       this.content = this.message.message.content;
+      this.createdAt = `${new Date(this.message.createdAt[0] * 1000)}`;
       this.uuid = this.message.message.uuid;
     }
   }
