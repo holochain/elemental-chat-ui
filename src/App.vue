@@ -62,7 +62,7 @@
       <v-dialog v-model="shouldDisplayDisconnected" persistent max-width="460">
         <v-card>
           <v-card-title class="headline">
-            Disconnected from conductor
+            Establishing connection..
           </v-card-title>
           <v-card-text>
             {{

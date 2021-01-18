@@ -362,10 +362,8 @@ export default {
         chunk: payload.chunk,
         active_chatter: payload.active_chatter
       };
-      const channel = await rootState.hcDb.elementalChat.get(
-        payload.channel.channel.uuid
-      );
-
+      const uuid = payload.channel.channel.uuid;
+      const channel = await rootState.hcDb.elementalChat.get(uuid);
       callZome(
         dispatch,
         rootState,
@@ -383,31 +381,49 @@ export default {
             };
           }
 
-          result.messages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
+          let signalMessages = [];
+          let newMessages = [];
+
+          if (!(channel === undefined || channel.messages === undefined)) {
+            // messages in new that aren't in old
+            newMessages = result.messages.filter(message => {
+              return !channel.messages.find(
+                c => c.message.uuid == message.message.uuid
+              );
+            });
+
+            // messages in old that aren't in new are ones that arrived as signals
+            signalMessages = channel.messages.filter(message => {
+              return !result.messages.find(
+                c => c.message.uuid == message.message.uuid
+              );
+            });
+          }
+
+          const messages = [...result.messages, ...signalMessages];
+
+          messages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
 
           const internalChannel = {
             ...payload.channel,
-            messages: result.messages
+            messages
           };
+
           commit("setChannelMessages", internalChannel);
           log("put listMessages dexie start");
-          if (state.channel.channel.uuid !== payload.channel.channel.uuid) {
+
+          if (state.channel.channel.uuid !== uuid) {
             if (result.messages.length > 0)
               if (channel === undefined || channel.messages === undefined) {
-                commit("setUnseen", payload.channel.channel.uuid);
+                commit("setUnseen", uuid);
               } else {
-                let newMessages = result.messages.filter(message => {
-                  return !channel.messages.find(
-                    c => c.message.uuid == message.message.uuid
-                  );
-                });
                 if (newMessages.length > 0) {
-                  commit("setUnseen", payload.channel.channel.uuid);
+                  commit("setUnseen", uuid);
                 }
               }
           }
           rootState.hcDb.elementalChat
-            .put(internalChannel, payload.channel.channel.uuid)
+            .put(internalChannel, uuid)
             .then(log("put listMessages dexie done"))
             .catch(error => log(error));
         })
@@ -473,6 +489,7 @@ export default {
       state.channels = sortChannels(payload);
     },
     setChannelMessages(state, payload) {
+      console.log("setting payload", payload);
       state.channels = state.channels.map(channel =>
         channel.channel.uuid !== payload.channel.uuid
           ? channel
