@@ -26,7 +26,7 @@ const RECONNECT_SECONDS = 15;
 const APP_VERSION = process.env.VUE_APP_UI_VERSION;
 
 const DNA_VERSION = "alpha14";
-const DNA_UUID = "0001";
+const DNA_UUID = "0002";
 
 const INSTALLED_APP_ID =
   // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
