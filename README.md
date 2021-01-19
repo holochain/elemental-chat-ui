@@ -27,6 +27,19 @@ npm install
 npm run serve:develop
 ```
 
+## Build:
+
+For hosted context:
+``` shell
+npm run build
+```
+
+For self-hosted context:
+``` shell
+npm run build-self-hosted
+```
+
+
 ## Contribute
 Holochain is an open source project.  We welcome all sorts of participation and are actively working on increasing surface area to accept it.  Please see our [contributing guidelines](/CONTRIBUTING.md) for our general practices and protocols on participating in the community, as well as specific expectations around things like code formatting, testing practices, continuous integration, etc.
 
