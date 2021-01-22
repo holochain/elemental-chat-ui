@@ -7,6 +7,7 @@ import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 
 import dexiePlugin from "./dexiePlugin";
 import { arrayBufferToBase64 } from "./utils";
+import { sign } from "core-js/fn/number";
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient(webSdkConnection) {
@@ -65,6 +66,9 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   }
 })();
 
+let signalQueue = [];
+let signalInterval;
+
 const manageSignals = (signal, dispatch) => {
   console.log("Incoming signal");
   const signalData = signal.data.payload;
@@ -73,11 +77,24 @@ const manageSignals = (signal, dispatch) => {
     case "Message":
       console.log("INCOMING SIGNAL > NEW MESSAGE");
       console.log("payload" + JSON.stringify(signalPayload));
-      // trigger action in elemental_chat to add message to message list
-      dispatch("elementalChat/addSignalMessageToChannel", {
-        channel: signalPayload.channelData,
-        message: signalPayload.messageData
-      });
+
+      // setup async ui update to avoid signals getting lost.
+      if (!signalInterval) {
+        signalInterval = setInterval(() => {
+          const signalPayloads = signalQueue.slice();
+          signalQueue = [];
+
+          signalPayloads.forEach(signalPayload => {
+            // trigger action in elemental_chat to add message to message list
+            dispatch("elementalChat/addSignalMessageToChannel", {
+              channel: signalPayload.channelData,
+              message: signalPayload.messageData
+            });
+          });
+        }, 500);
+      }
+
+      signalQueue.push(signalPayload);
       break;
     case "Channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");
