@@ -7,7 +7,6 @@ import elementalChat from "@/applications/ElementalChat/store/elementalChat";
 
 import dexiePlugin from "./dexiePlugin";
 import { arrayBufferToBase64 } from "./utils";
-import { sign } from "core-js/fn/number";
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient(webSdkConnection) {
