@@ -69,6 +69,12 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   }
 })();
 
+let signalQueue = [];
+let signalInterval;
+
+const wait = (amount = 0) =>
+  new Promise(resolve => setTimeout(resolve, amount));
+
 const manageSignals = (signal, dispatch) => {
   console.log("Incoming signal");
   const signalData = signal.data.payload;
@@ -77,11 +83,27 @@ const manageSignals = (signal, dispatch) => {
     case "Message":
       console.log("INCOMING SIGNAL > NEW MESSAGE");
       console.log("payload" + JSON.stringify(signalPayload));
-      // trigger action in elemental_chat to add message to message list
-      dispatch("elementalChat/addSignalMessageToChannel", {
-        channel: signalPayload.channelData,
-        message: signalPayload.messageData
-      });
+
+      // setup async ui update to avoid signals getting lost.
+      if (!signalInterval) {
+        signalInterval = setInterval(async () => {
+          const signalPayloads = signalQueue.slice();
+          signalQueue = [];
+
+          // signalPayloads.forEach(async signalPayload => {
+          for (let i = 0; i < signalPayloads.length; i++) {
+            // trigger action in elemental_chat to add message to message list
+            const signalPayload = signalPayloads[i];
+            dispatch("elementalChat/addSignalMessageToChannel", {
+              channel: signalPayload.channelData,
+              message: signalPayload.messageData
+            });
+            await wait(100);
+          }
+        }, 500);
+      }
+
+      signalQueue.push(signalPayload);
       break;
     case "Channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");
@@ -162,7 +184,9 @@ const initializeAppLocal = (commit, dispatch, state) => {
   )
     .then(holochainClient => {
       holochainClient
-        .appInfo({ installed_app_id: INSTALLED_APP_ID })
+        .appInfo({
+          installed_app_id: INSTALLED_APP_ID
+        })
         .then(appInfo => {
           clearStateIfDnaChanged(appInfo, commit, dispatch, state);
 
