@@ -103,7 +103,8 @@ function _addMessageToChannel(rootState, commit, state, channel, message) {
     .catch(error => log(error));
 }
 
-let intervalId = 0;
+let listChannelsIntervalId = 0;
+let pollMessagesIntervalId = 0;
 
 export default {
   namespaced: true,
@@ -162,12 +163,16 @@ export default {
           if (channel === undefined) channel = payload;
           commit("setChannel", channel);
           pollMessages(dispatch, true, payload);
+          clearInterval(pollMessagesIntervalId);
+          pollMessagesIntervalId = setInterval(() => {
+            pollMessages(dispatch, true, payload);
+          }, 60000);
         })
         .catch(error => log(error));
     },
     setChannelPolling: async ({ dispatch }) => {
-      clearInterval(intervalId);
-      intervalId = setInterval(function() {
+      clearInterval(listChannelsIntervalId);
+      listChannelsIntervalId = setInterval(function() {
         dispatch("listChannels", { category: "General" });
       }, 300000); // Polling every 5mins
     },
