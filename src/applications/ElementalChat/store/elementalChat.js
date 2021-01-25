@@ -134,7 +134,7 @@ export default {
       callZome(dispatch, rootState, "chat", "agent_stats", null, 60000)
         .then(stats => {
           log("stats zomeCall done");
-          console.log("Agent stats", stats);
+          console.log("Peer stats", stats);
           commit("setStats", stats);
         })
         .catch(error => {
