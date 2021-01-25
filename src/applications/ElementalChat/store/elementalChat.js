@@ -132,17 +132,10 @@ export default {
     getStats: async ({ rootState, dispatch, commit }) => {
       log("Getting Stats...");
       commit("loadStats");
-      callZome(
-        dispatch,
-        rootState,
-        "chat",
-        "stats",
-        { category: "General" },
-        60000
-      )
+      callZome(dispatch, rootState, "chat", "agent_stats", null, 60000)
         .then(stats => {
           log("stats zomeCall done");
-          console.log(">>>>>>>>>>>>>", stats);
+          console.log("Peer stats", stats);
           commit("setStats", stats);
         })
         .catch(error => {
@@ -538,8 +531,12 @@ export default {
       state.statsLoading = false;
       state.stats.agents = payload.agents;
       state.stats.active = payload.active;
-      state.stats.channels = payload.channels;
-      state.stats.messages = payload.messages;
+      state.stats.channels = state.channels.length;
+      let msgCount = 0;
+      state.channels.forEach(c => {
+        if (c.messages !== undefined) msgCount += c.messages.length;
+      });
+      state.stats.messages = msgCount;
     },
     resetStats(state) {
       state.showStats = undefined;
