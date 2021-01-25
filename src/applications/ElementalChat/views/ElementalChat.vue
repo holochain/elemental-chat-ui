@@ -124,7 +124,7 @@
         <v-card-text v-if="!statsAreLoading">
           <v-row align="center">
             <v-col class="display-1" cols="6">
-              Total agents:
+              Total peers:
             </v-col>
             <v-col class="display-1" cols="6">
               {{ stats.agents == undefined ? "--" : stats.agents }} 👤
@@ -132,7 +132,7 @@
           </v-row>
           <v-row align="center">
             <v-col class="display-1" cols="6">
-              Active agents:
+              Active peers:
             </v-col>
             <v-col class="display-1" cols="6">
               {{ stats.active == undefined ? "--" : stats.active }} 👤
