@@ -25,7 +25,7 @@ const RECONNECT_SECONDS = 15;
 
 const APP_VERSION = process.env.VUE_APP_UI_VERSION;
 
-const DNA_VERSION = "alpha14";
+const DNA_VERSION = "alpha17";
 const DNA_UUID = "0002";
 
 const INSTALLED_APP_ID =
