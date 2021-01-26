@@ -145,9 +145,8 @@ export default {
               await rootState.hcDb.elementalChat
                 .get(c[i].channel.uuid)
                 .then(m => {
-                  if (m === undefined) messages += 0;
-                  if (m.messages === undefined) messages += 0;
-                  else messages += m.messages.length;
+                  if (m !== undefined && m.messages !== undefined)
+                    messages += m.messages.length;
                 });
             }
           });
