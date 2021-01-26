@@ -129,14 +129,31 @@ export default {
       log("Updating Handle");
       rootState.needsHandle = true;
     },
-    getStats: async ({ rootState, dispatch, commit }) => {
+    getStats: async ({ state, rootState, dispatch, commit }) => {
       log("Getting Stats...");
       commit("loadStats");
       callZome(dispatch, rootState, "chat", "agent_stats", null, 60000)
-        .then(stats => {
+        .then(async stats => {
           log("stats zomeCall done");
-          console.log("Peer stats", stats);
-          commit("setStats", stats);
+          log("Peer stats: ", stats);
+          let channels = 0;
+          let messages = 0;
+          await rootState.hcDb.elementalChat.get("General").then(async c => {
+            if (c === undefined) channels = 0;
+            else channels = c.length;
+            for (let i = 0; i < c.length; i++) {
+              await rootState.hcDb.elementalChat
+                .get(c[i].channel.uuid)
+                .then(m => {
+                  if (m !== undefined && m.messages !== undefined)
+                    messages += m.messages.length;
+                });
+            }
+          });
+          channels =
+            channels > state.channels ? channels : state.channels.length;
+          log("Total stats: ", { channels, messages, ...stats });
+          commit("setStats", { channels, messages, ...stats });
         })
         .catch(error => {
           log("stats zomeCall error", error);
@@ -531,12 +548,8 @@ export default {
       state.statsLoading = false;
       state.stats.agents = payload.agents;
       state.stats.active = payload.active;
-      state.stats.channels = state.channels.length;
-      let msgCount = 0;
-      state.channels.forEach(c => {
-        if (c.messages !== undefined) msgCount += c.messages.length;
-      });
-      state.stats.messages = msgCount;
+      state.stats.channels = payload.channels;
+      state.stats.messages = payload.messages;
     },
     resetStats(state) {
       state.showStats = undefined;
