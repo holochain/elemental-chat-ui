@@ -130,7 +130,7 @@ function getRecentChatters(me, channel) {
       chatters[agentStr] = msg.createdBy;
     }
   }
-  console.log("chatters for signals:", Object.values(chatters));
+  console.log("chatters to be signaled:", Object.values(chatters));
   return Object.values(chatters);
 }
 
