@@ -7,27 +7,31 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/holochain.svg?style=social&label=Follow)](https://twitter.com/holochain)
 License: [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blue.svg)](https://github.com/holochain/cryptographic-autonomy-license)
 
-Vue based user interface for [elemental-chat dna](/holochain/elemental-chat)
+Vue based user interface for [elemental-chat DNA](https://github.com/holochain/elemental-chat)
 
 ## For dev testing:
 
-1. Prerequisites:
-   - [holochain](/holochain/holochain)
-   - [holochain-run-dna](/holochain-open-dev/holochain-run-dna)
-   - [elemental-chat dna](/holochain/elemental-chat)
-1. Assuming you have all of the above installed as per their readme's and the dna has been installed and built, you can fire everything up with:
-   1. In one terminal window install and run the dna with with `holochain-run-dna` like this:
+1. Install these as per their READMEs:
+   - [`holochain`](https://github.com/holochain/holochain)
+   - [`hc`](https://github.com/holochain/holochain/tree/develop/crates/hc)
+   - [elemental-chat DNA](https://github.com/holochain/elemental-chat)
+2. Now you can fire everything up with:
 
-```
-holochain-run-dna -i elemental-chat:alpha14 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/proxy.holochain.org/p/5778/-- ../elemental-chat/elemental-chat.dna.gz
-```
+   1. In one terminal window install and run the dna with with `hc` like this:
 
-1. In another terminal window serve the UI with:
+   ```shell
+   hc generate -a elemental-chat-test ../elemental-chat/elemental-chat.dna.gz
+   hc run -l -p 8888
+   ```
 
-```shell
-npm install
-npm run serve:develop
-```
+   2. In another terminal window serve the UI with:
+
+   ```shell
+   npm install
+   VUE_APP_INSTALLED_APP_ID=elemental-chat-test npm run serve:develop
+   ```
+
+3. When you're done and you want to clean up all the holochain databases that `hc` created in `/tmp`, run `hc clean`
 
 ## Build:
 
