@@ -19,7 +19,7 @@ Vue based user interface for [elemental-chat dna](/holochain/elemental-chat)
 1. Assuming you have all of the above installed as per their readme's and the dna has been installed and built, you can fire everything up with:
    1. In one terminal window install and run the dna with with `holochain-run-dna` like this:
 ```
-holochain-run-dna -i elemental-chat:alpha14 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/proxy.holochain.org/p/5778/-- ../elemental-chat/elemental-chat.dna.gz
+holochain-run-dna -i elemental-chat:alpha19 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/proxy.holochain.org/p/5778/-- ../elemental-chat/elemental-chat.dna.gz
 ```
   1. In another terminal window serve the UI with:
 ``` shell

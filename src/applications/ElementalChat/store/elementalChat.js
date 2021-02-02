@@ -1,4 +1,5 @@
 import { isHoloHosted } from "@/utils";
+import { arrayBufferToBase64 } from "../../../store/utils";
 
 function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
@@ -101,6 +102,33 @@ function _addMessageToChannel(rootState, commit, state, channel, message) {
     .put(internalChannel, channel.channel.uuid)
     .then(log("addMessageToChannel dexie done"))
     .catch(error => log(error));
+}
+
+const MAX_CHATTERS_FOR_SIGNAL = 100;
+const MAX_MESSAGE_AGE_FOR_SIGNAL = 10000; // * 60 * 60 * 24 // 1 day
+const MIN_CHATTERS_FOR_SIGNAL = 10; // even if older than a day
+function getRecentChatters(me, channel) {
+  let chatters = {};
+  const now = Date.now();
+  const meStr = arrayBufferToBase64(me);
+  for (let i = channel.messages.length - 1; i > 0; i--) {
+    const msg = channel.messages[i];
+    if (chatters.length > MAX_CHATTERS_FOR_SIGNAL) {
+      break;
+    }
+    if (
+      now - new Date(msg.createdAt[0] * 1000) > MAX_MESSAGE_AGE_FOR_SIGNAL &&
+      chatters.length > MIN_CHATTERS_FOR_SIGNAL
+    ) {
+      break;
+    }
+    const agentStr = arrayBufferToBase64(msg.createdBy);
+    if (agentStr != meStr) {
+      chatters[agentStr] = msg.createdBy;
+    }
+  }
+  console.log("chatters", Object.values(chatters));
+  return Object.values(chatters);
 }
 
 let listChannelsIntervalId = 0;
@@ -346,7 +374,18 @@ export default {
             messageData: message,
             channelData: payload.channel
           };
-          dispatch("signalMessageSent", signalMessageData);
+          const chatters = getRecentChatters(
+            rootState.agentKey,
+            payload.channel
+          );
+          if (chatters.length == 0) {
+            dispatch("signalMessageSent", signalMessageData);
+          } else {
+            dispatch("signalSpecificMessageSent", {
+              signal_message_data: signalMessageData,
+              chatters
+            });
+          }
         })
         .catch(error => log("addMessageToChannel zome error:", error));
     },
@@ -368,6 +407,25 @@ export default {
           log(`signalMessageSent zome done`, result);
         })
         .catch(error => log("signalMessageSent zome error:", error));
+    },
+    signalSpecificMessageSent: async ({ rootState }, payload) => {
+      log("signalSpecificMessageSent start");
+      rootState.holochainClient
+        .callZome(
+          {
+            cap: null,
+            cell_id: rootState.appInterface.cellId,
+            zome_name: "chat",
+            fn_name: "signal_specific_chatters",
+            provenance: rootState.agentKey,
+            payload
+          },
+          60000
+        )
+        .then(result => {
+          log(`signalSpecificMessageSent zome done`, result);
+        })
+        .catch(error => log("signalSpecificMessageSent zome error:", error));
     },
     async listMessages({ commit, state, rootState, dispatch }, payload) {
       log("listMessages start");
