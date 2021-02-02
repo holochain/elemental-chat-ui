@@ -121,7 +121,7 @@ function getRecentChatters(me, channel) {
     // when to stop going backward in the history looking for people too send to
     if (
       now - new Date(msg.createdAt[0] * 1000) > MAX_MESSAGE_AGE_FOR_SIGNAL &&
-      count > MIN_CHATTERS_FOR_SIGNAL
+      count >= MIN_CHATTERS_FOR_SIGNAL
     ) {
       break;
     }
