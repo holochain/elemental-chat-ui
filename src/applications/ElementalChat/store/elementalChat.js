@@ -105,20 +105,23 @@ function _addMessageToChannel(rootState, commit, state, channel, message) {
 }
 
 const MAX_CHATTERS_FOR_SIGNAL = 100;
-const MAX_MESSAGE_AGE_FOR_SIGNAL = 10000; // * 60 * 60 * 24 // 1 day
-const MIN_CHATTERS_FOR_SIGNAL = 10; // even if older than a day
+const MAX_MESSAGE_AGE_FOR_SIGNAL = 1000 * 60 * 60 * 24; // 1 day
+const MIN_CHATTERS_FOR_SIGNAL = 10; // min number of chatters to send to even if older than a day
 function getRecentChatters(me, channel) {
   let chatters = {};
   const now = Date.now();
   const meStr = arrayBufferToBase64(me);
   for (let i = channel.messages.length - 1; i > 0; i--) {
     const msg = channel.messages[i];
-    if (chatters.length > MAX_CHATTERS_FOR_SIGNAL) {
+    const count = Object.keys(chatters).length;
+    // absolute count limit on who to send signals to
+    if (count > MAX_CHATTERS_FOR_SIGNAL) {
       break;
     }
+    // when to stop going backward in the history looking for people too send to
     if (
       now - new Date(msg.createdAt[0] * 1000) > MAX_MESSAGE_AGE_FOR_SIGNAL &&
-      chatters.length > MIN_CHATTERS_FOR_SIGNAL
+      count > MIN_CHATTERS_FOR_SIGNAL
     ) {
       break;
     }
@@ -127,7 +130,7 @@ function getRecentChatters(me, channel) {
       chatters[agentStr] = msg.createdBy;
     }
   }
-  console.log("chatters", Object.values(chatters));
+  console.log("chatters for signals:", Object.values(chatters));
   return Object.values(chatters);
 }
 
