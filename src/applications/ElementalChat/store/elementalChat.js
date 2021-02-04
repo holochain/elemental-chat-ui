@@ -446,7 +446,6 @@ export default {
         c => c.channel.uuid === channel.channel.uuid
       );
       if (!appChannel) return;
-      console.log("APPCHANNEL", appChannel);
 
       // verify message for channel does not already exist
       const messageExists = !!appChannel.messages.find(
