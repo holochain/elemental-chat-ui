@@ -284,31 +284,36 @@ export default {
         })
         .catch(error => log("listChannels zome error", error));
     },
-    addSignalMessageToChannel: async (
+    addSignalMessagesToChannel: async (
       { commit, rootState, state },
       payload
     ) => {
-      const { channel: signalChannel, ...signalMessage } = payload;
-      log("new message signal received");
-      // verify channel (within which the message belongs) exists
-      const appChannel = state.channels.find(
-        channel => channel.channel.uuid === signalChannel.channel.uuid
-      );
-      if (!appChannel) return;
-      rootState.hcDb.elementalChat
-        .get(appChannel.channel.uuid)
-        .then(channel => {
-          // if new message push to channel message list and update the channel
-          log("received signal message : ", signalMessage);
-          _addMessageToChannel(
-            rootState,
-            commit,
-            state,
-            channel,
-            signalMessage.message
-          );
-        })
-        .catch(error => log(error));
+      log("adding signals from queue length: ", payload.length);
+      for (let i = 0; i < payload.length; i++) {
+        const signal = payload[i];
+        const signalChannel = signal.channelData;
+        const signalMessage = signal.messageData;
+
+        // verify channel (within which the message belongs) exists
+        const appChannel = state.channels.find(
+          channel => channel.channel.uuid === signalChannel.channel.uuid
+        );
+        if (!appChannel) return;
+        rootState.hcDb.elementalChat
+          .get(appChannel.channel.uuid)
+          .then(channel => {
+            // if new message push to channel message list and update the channel
+            log("adding signal message: ", signalMessage);
+            _addMessageToChannel(
+              rootState,
+              commit,
+              state,
+              channel,
+              signalMessage
+            );
+          })
+          .catch(error => log(error));
+      }
     },
     addMessageToChannel: async (
       { commit, rootState, state, dispatch },
