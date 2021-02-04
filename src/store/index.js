@@ -70,8 +70,8 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   }
 })();
 
-let signalQueue = [];
-let signalInterval;
+//let signalQueue = [];
+//let signalInterval;
 
 /*const wait = (amount = 0) =>
   new Promise(resolve => setTimeout(resolve, amount));
@@ -85,7 +85,10 @@ const manageSignals = (signal, dispatch) => {
     case "Message":
       console.log("INCOMING SIGNAL > NEW MESSAGE");
       console.log("payload" + JSON.stringify(signalPayload));
-      signalQueue.push(signalPayload);
+
+      dispatch("elementalChat/addSignalMessagesToChannel", signalPayload);
+
+      /*    signalQueue.push(signalPayload);
 
       // setup async ui update to avoid signals getting lost.
       if (!signalInterval) {
@@ -93,14 +96,10 @@ const manageSignals = (signal, dispatch) => {
           if (signalQueue.length > 0) {
             const signalPayloads = signalQueue.slice();
             signalQueue = [];
-            dispatch(
-              "elementalChat/addSignalMessagesToChannel",
-              signalPayloads
-            );
           }
         }, 1000);
       }
-
+*/
       break;
     case "Channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");

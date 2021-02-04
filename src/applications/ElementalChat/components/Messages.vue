@@ -60,6 +60,7 @@ export default {
     ...mapState(["conductorDisconnected"]),
     ...mapState("elementalChat", ["channel"]),
     messages() {
+      console.log("recomputing messages", this.channel.messages);
       return this.channel.messages;
     }
   },

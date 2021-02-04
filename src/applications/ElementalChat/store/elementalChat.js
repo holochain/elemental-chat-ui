@@ -246,16 +246,14 @@ export default {
         })
         .catch(error => log("listChannels zome error", error));
     },
-    addSignalMessagesToChannel: async (
-      { commit, rootState, state },
-      payload
-    ) => {
-      log("adding signals from queue length: ", payload.length);
-      for (let i = 0; i < payload.length; i++) {
-        const signal = payload[i];
-        const signalChannel = signal.channelData;
-        const signalMessage = signal.messageData;
+    addSignalMessageToChannel: async ({ commit }, payload) => {
+      log("adding signal message: ", payload);
+      commit("addMessageToChannel", {
+        channel: payload.channelData,
+        message: payload.messageData
+      });
 
+      /*
         // verify channel (within which the message belongs) exists
         const appChannel = state.channels.find(
           channel => channel.channel.uuid === signalChannel.channel.uuid
@@ -267,9 +265,14 @@ export default {
             // if new message push to channel message list and update the channel
             log("adding signal message: ", signalMessage);
             commit("addMessageToChannel", { channel, message: signalMessage });
+            log("addMessageToChannel dexie start");
+            rootState.hcDb.elementalChat
+              .put(internalChannel, channel.channel.uuid)
+              .then(log("addMessageToChannel dexie done"))
+              .catch(error => log(error));
           })
           .catch(error => log(error));
-      }
+      }*/
     },
     addMessageToChannel: async (
       { commit, rootState, state, dispatch },
@@ -438,16 +441,22 @@ export default {
     addMessageToChannel(state, payload) {
       const { channel, message } = payload;
 
+      // verify channel (within which the message belongs) exists
+      const appChannel = state.channels.find(
+        c => c.channel.uuid === channel.channel.uuid
+      );
+      if (!appChannel) return;
+
       // verify message for channel does not already exist
-      const messageExists = !!channel.messages.find(
+      const messageExists = !!appChannel.messages.find(
         m => message.message.uuid === m.message.uuid
       );
       if (messageExists) return;
 
-      const internalMessages = [...channel.messages];
+      const internalMessages = [...appChannel.messages];
       internalMessages.push(message);
       const internalChannel = {
-        ...channel,
+        ...appChannel,
         last_seen: { Message: message.entryHash },
         messages: internalMessages
       };
@@ -462,17 +471,11 @@ export default {
 
       // if this update was to the currently selected channel, then we
       // also have to update the state.channel object
-      if (state.channel.channel.uuid == channel.channel.uuid) {
+      if (state.channel.channel.uuid == appChannel.channel.uuid) {
         _setChannel(state, internalChannel);
       } else {
         _setUnseen(state, channel.channel.uuid);
       }
-
-      log("addMessageToChannel dexie start");
-      /*rootState.hcDb.elementalChat
-        .put(internalChannel, channel.channel.uuid)
-        .then(log("addMessageToChannel dexie done"))
-        .catch(error => log(error));*/
     },
     setChannel(state, payload) {
       _setChannel(state, payload);
