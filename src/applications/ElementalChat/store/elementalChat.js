@@ -65,44 +65,6 @@ const callZomeLocal = async (
 
 const callZome = isHoloHosted() ? callZomeHolo : callZomeLocal;
 
-function _addMessageToChannel(rootState, commit, state, channel, message) {
-  // verify message for channel does not already exist
-  const messageExists = !!channel.messages.find(
-    m => message.message.uuid === m.message.uuid
-  );
-  if (messageExists) return;
-
-  const internalMessages = [...channel.messages];
-  internalMessages.push(message);
-  const internalChannel = {
-    ...channel,
-    last_seen: { Message: message.entryHash },
-    messages: internalMessages
-  };
-
-  internalMessages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
-
-  log("got message", message);
-  log(
-    `adding message to the channel ${internalChannel.channel.uuid}`,
-    internalChannel
-  );
-
-  // if this update was to the currently selected channel, then we
-  // also have to update the state.channel object
-  if (state.channel.channel.uuid == channel.channel.uuid) {
-    commit("setChannel", internalChannel);
-  } else {
-    commit("setUnseen", channel.channel.uuid);
-  }
-
-  log("addMessageToChannel dexie start");
-  rootState.hcDb.elementalChat
-    .put(internalChannel, channel.channel.uuid)
-    .then(log("addMessageToChannel dexie done"))
-    .catch(error => log(error));
-}
-
 let listChannelsIntervalId = 0;
 let pollMessagesIntervalId = 0;
 
@@ -304,13 +266,7 @@ export default {
           .then(channel => {
             // if new message push to channel message list and update the channel
             log("adding signal message: ", signalMessage);
-            _addMessageToChannel(
-              rootState,
-              commit,
-              state,
-              channel,
-              signalMessage
-            );
+            commit("addMessageToChannel", { channel, message: signalMessage });
           })
           .catch(error => log(error));
       }
@@ -340,13 +296,7 @@ export default {
       )
         .then(message => {
           log("addMessageToChannel zome done");
-          _addMessageToChannel(
-            rootState,
-            commit,
-            state,
-            state.channel,
-            message
-          );
+          commit("addMessageToChannel", { channel: state.channel, message });
           const signalMessageData = {
             messageData: message,
             channelData: payload.channel
@@ -485,15 +435,47 @@ export default {
     }
   },
   mutations: {
+    addMessageToChannel(state, payload) {
+      const { channel, message } = payload;
+
+      // verify message for channel does not already exist
+      const messageExists = !!channel.messages.find(
+        m => message.message.uuid === m.message.uuid
+      );
+      if (messageExists) return;
+
+      const internalMessages = [...channel.messages];
+      internalMessages.push(message);
+      const internalChannel = {
+        ...channel,
+        last_seen: { Message: message.entryHash },
+        messages: internalMessages
+      };
+
+      internalMessages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
+
+      log("got message", message);
+      log(
+        `adding message to the channel ${internalChannel.channel.uuid}`,
+        internalChannel
+      );
+
+      // if this update was to the currently selected channel, then we
+      // also have to update the state.channel object
+      if (state.channel.channel.uuid == channel.channel.uuid) {
+        _setChannel(state, internalChannel);
+      } else {
+        _setUnseen(state, channel.channel.uuid);
+      }
+
+      log("addMessageToChannel dexie start");
+      /*rootState.hcDb.elementalChat
+        .put(internalChannel, channel.channel.uuid)
+        .then(log("addMessageToChannel dexie done"))
+        .catch(error => log(error));*/
+    },
     setChannel(state, payload) {
-      log("setChannel payload", payload);
-      state.channel = { ...payload };
-      state.channels.map(channel => {
-        if (channel.channel.uuid === payload.channel.uuid) {
-          log("clearing unseen for ", channel);
-          channel.unseen = false;
-        }
-      });
+      _setChannel(state, payload);
     },
     setChannels(state, payload) {
       payload.map(channel => {
@@ -528,13 +510,7 @@ export default {
       state.error = payload;
     },
     setUnseen(state, payload) {
-      // find channel by uuid and update unseen when found
-      state.channels.map(channel => {
-        if (channel.channel.uuid === payload) {
-          log("setting unseen for ", channel);
-          channel.unseen = true;
-        }
-      });
+      _setUnseen(state, payload);
     },
     resetState(state) {
       (state.channels = []),
@@ -562,3 +538,24 @@ export default {
     }
   }
 };
+
+function _setUnseen(state, uuid) {
+  // find channel by uuid and update unseen when found
+  state.channels.map(channel => {
+    if (channel.channel.uuid === uuid) {
+      log("setting unseen for ", channel);
+      channel.unseen = true;
+    }
+  });
+}
+
+function _setChannel(state, payload) {
+  log("setChannel payload", payload);
+  state.channel = { ...payload };
+  state.channels.map(channel => {
+    if (channel.channel.uuid === payload.channel.uuid) {
+      log("clearing unseen for ", channel);
+      channel.unseen = false;
+    }
+  });
+}
