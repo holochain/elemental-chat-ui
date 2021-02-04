@@ -447,31 +447,37 @@ export default {
       );
       if (!appChannel) return;
       console.log("APPCHANNEL", appChannel);
+
       // verify message for channel does not already exist
       const messageExists = !!appChannel.messages.find(
         m => message.message.uuid === m.message.uuid
       );
       if (messageExists) return;
 
-      const internalMessages = [...appChannel.messages];
-      internalMessages.push(message);
-      const internalChannel = {
-        ...appChannel,
-        last_seen: { Message: message.entryHash },
-        messages: internalMessages
-      };
-
-      internalMessages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
+      appChannel.messages.push(message);
+      appChannel.messages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
 
       log("got message", message);
       log(
-        `adding message to the channel ${internalChannel.channel.uuid}`,
-        internalChannel
+        `adding message to the channel ${appChannel.channel.uuid}`,
+        appChannel
       );
+
+      state.channels = state.channels.map(c => {
+        if (c.channel.uuid === channel.channel.uuid) {
+          return appChannel;
+        } else {
+          return c;
+        }
+      });
 
       // if this update was to the currently selected channel, then we
       // also have to update the state.channel object
       if (state.channel.channel.uuid == appChannel.channel.uuid) {
+        const internalChannel = {
+          ...appChannel,
+          last_seen: { Message: message.entryHash }
+        };
         _setChannel(state, internalChannel);
       } else {
         _setUnseen(state, channel.channel.uuid);
