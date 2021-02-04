@@ -70,13 +70,6 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   }
 })();
 
-//let signalQueue = [];
-//let signalInterval;
-
-/*const wait = (amount = 0) =>
-  new Promise(resolve => setTimeout(resolve, amount));
-*/
-
 const manageSignals = (signal, dispatch) => {
   console.log("Incoming signal");
   const signalData = signal.data.payload;
@@ -88,18 +81,6 @@ const manageSignals = (signal, dispatch) => {
 
       dispatch("elementalChat/addSignalMessageToChannel", signalPayload);
 
-      /*    signalQueue.push(signalPayload);
-
-      // setup async ui update to avoid signals getting lost.
-      if (!signalInterval) {
-        signalInterval = setInterval(async () => {
-          if (signalQueue.length > 0) {
-            const signalPayloads = signalQueue.slice();
-            signalQueue = [];
-          }
-        }, 1000);
-      }
-*/
       break;
     case "Channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");

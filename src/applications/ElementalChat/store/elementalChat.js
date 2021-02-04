@@ -252,27 +252,6 @@ export default {
         channel: payload.channelData,
         message: payload.messageData
       });
-
-      /*
-        // verify channel (within which the message belongs) exists
-        const appChannel = state.channels.find(
-          channel => channel.channel.uuid === signalChannel.channel.uuid
-        );
-        if (!appChannel) return;
-        rootState.hcDb.elementalChat
-          .get(appChannel.channel.uuid)
-          .then(channel => {
-            // if new message push to channel message list and update the channel
-            log("adding signal message: ", signalMessage);
-            commit("addMessageToChannel", { channel, message: signalMessage });
-            log("addMessageToChannel dexie start");
-            rootState.hcDb.elementalChat
-              .put(internalChannel, channel.channel.uuid)
-              .then(log("addMessageToChannel dexie done"))
-              .catch(error => log(error));
-          })
-          .catch(error => log(error));
-      }*/
     },
     addMessageToChannel: async (
       { commit, rootState, state, dispatch },
