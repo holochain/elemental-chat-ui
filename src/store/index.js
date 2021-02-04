@@ -86,7 +86,7 @@ const manageSignals = (signal, dispatch) => {
       console.log("INCOMING SIGNAL > NEW MESSAGE");
       console.log("payload" + JSON.stringify(signalPayload));
 
-      dispatch("elementalChat/addSignalMessagesToChannel", signalPayload);
+      dispatch("elementalChat/addSignalMessageToChannel", signalPayload);
 
       /*    signalQueue.push(signalPayload);
 
