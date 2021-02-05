@@ -25,8 +25,8 @@ const RECONNECT_SECONDS = 15;
 
 const APP_VERSION = process.env.VUE_APP_UI_VERSION;
 
-const DNA_VERSION = "alpha17";
-const DNA_UUID = "0002";
+const DNA_VERSION = "alpha19";
+const DNA_UUID = "0001";
 
 const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
   ? process.env.VUE_APP_INSTALLED_APP_ID
@@ -70,12 +70,6 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   }
 })();
 
-let signalQueue = [];
-let signalInterval;
-
-const wait = (amount = 0) =>
-  new Promise(resolve => setTimeout(resolve, amount));
-
 const manageSignals = (signal, dispatch) => {
   console.log("Incoming signal");
   const signalData = signal.data.payload;
@@ -85,26 +79,8 @@ const manageSignals = (signal, dispatch) => {
       console.log("INCOMING SIGNAL > NEW MESSAGE");
       console.log("payload" + JSON.stringify(signalPayload));
 
-      // setup async ui update to avoid signals getting lost.
-      if (!signalInterval) {
-        signalInterval = setInterval(async () => {
-          const signalPayloads = signalQueue.slice();
-          signalQueue = [];
+      dispatch("elementalChat/addSignalMessageToChannel", signalPayload);
 
-          // signalPayloads.forEach(async signalPayload => {
-          for (let i = 0; i < signalPayloads.length; i++) {
-            // trigger action in elemental_chat to add message to message list
-            const signalPayload = signalPayloads[i];
-            dispatch("elementalChat/addSignalMessageToChannel", {
-              channel: signalPayload.channelData,
-              message: signalPayload.messageData
-            });
-            await wait(100);
-          }
-        }, 500);
-      }
-
-      signalQueue.push(signalPayload);
       break;
     case "Channel":
       console.log("INCOMING SIGNAL > NEW CHANNEL");

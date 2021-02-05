@@ -65,44 +65,6 @@ const callZomeLocal = async (
 
 const callZome = isHoloHosted() ? callZomeHolo : callZomeLocal;
 
-function _addMessageToChannel(rootState, commit, state, channel, message) {
-  // verify message for channel does not already exist
-  const messageExists = !!channel.messages.find(
-    m => message.message.uuid === m.message.uuid
-  );
-  if (messageExists) return;
-
-  const internalMessages = [...channel.messages];
-  internalMessages.push(message);
-  const internalChannel = {
-    ...channel,
-    last_seen: { Message: message.entryHash },
-    messages: internalMessages
-  };
-
-  internalMessages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
-
-  log("got message", message);
-  log(
-    `adding message to the channel ${internalChannel.channel.uuid}`,
-    internalChannel
-  );
-
-  // if this update was to the currently selected channel, then we
-  // also have to update the state.channel object
-  if (state.channel.channel.uuid == channel.channel.uuid) {
-    commit("setChannel", internalChannel);
-  } else {
-    commit("setUnseen", channel.channel.uuid);
-  }
-
-  log("addMessageToChannel dexie start");
-  rootState.hcDb.elementalChat
-    .put(internalChannel, channel.channel.uuid)
-    .then(log("addMessageToChannel dexie done"))
-    .catch(error => log(error));
-}
-
 let listChannelsIntervalId = 0;
 let pollMessagesIntervalId = 0;
 
@@ -284,31 +246,12 @@ export default {
         })
         .catch(error => log("listChannels zome error", error));
     },
-    addSignalMessageToChannel: async (
-      { commit, rootState, state },
-      payload
-    ) => {
-      const { channel: signalChannel, ...signalMessage } = payload;
-      log("new message signal received");
-      // verify channel (within which the message belongs) exists
-      const appChannel = state.channels.find(
-        channel => channel.channel.uuid === signalChannel.channel.uuid
-      );
-      if (!appChannel) return;
-      rootState.hcDb.elementalChat
-        .get(appChannel.channel.uuid)
-        .then(channel => {
-          // if new message push to channel message list and update the channel
-          log("received signal message : ", signalMessage);
-          _addMessageToChannel(
-            rootState,
-            commit,
-            state,
-            channel,
-            signalMessage.message
-          );
-        })
-        .catch(error => log(error));
+    addSignalMessageToChannel: async ({ commit }, payload) => {
+      log("adding signal message: ", payload);
+      commit("addMessageToChannel", {
+        channel: payload.channelData,
+        message: payload.messageData
+      });
     },
     addMessageToChannel: async (
       { commit, rootState, state, dispatch },
@@ -335,13 +278,7 @@ export default {
       )
         .then(message => {
           log("addMessageToChannel zome done");
-          _addMessageToChannel(
-            rootState,
-            commit,
-            state,
-            state.channel,
-            message
-          );
+          commit("addMessageToChannel", { channel: state.channel, message });
           const signalMessageData = {
             messageData: message,
             channelData: payload.channel
@@ -480,15 +417,52 @@ export default {
     }
   },
   mutations: {
-    setChannel(state, payload) {
-      log("setChannel payload", payload);
-      state.channel = { ...payload };
-      state.channels.map(channel => {
-        if (channel.channel.uuid === payload.channel.uuid) {
-          log("clearing unseen for ", channel);
-          channel.unseen = false;
+    addMessageToChannel(state, payload) {
+      const { channel, message } = payload;
+
+      // verify channel (within which the message belongs) exists
+      const appChannel = state.channels.find(
+        c => c.channel.uuid === channel.channel.uuid
+      );
+      if (!appChannel) return;
+
+      // verify message for channel does not already exist
+      const messageExists = !!appChannel.messages.find(
+        m => message.message.uuid === m.message.uuid
+      );
+      if (messageExists) return;
+
+      appChannel.messages.push(message);
+      appChannel.messages.sort((a, b) => a.createdAt[0] - b.createdAt[0]);
+
+      log("got message", message);
+      log(
+        `adding message to the channel ${appChannel.channel.uuid}`,
+        appChannel
+      );
+
+      state.channels = state.channels.map(c => {
+        if (c.channel.uuid === channel.channel.uuid) {
+          return appChannel;
+        } else {
+          return c;
         }
       });
+
+      // if this update was to the currently selected channel, then we
+      // also have to update the state.channel object
+      if (state.channel.channel.uuid == appChannel.channel.uuid) {
+        const internalChannel = {
+          ...appChannel,
+          last_seen: { Message: message.entryHash }
+        };
+        _setChannel(state, internalChannel);
+      } else {
+        _setUnseen(state, channel.channel.uuid);
+      }
+    },
+    setChannel(state, payload) {
+      _setChannel(state, payload);
     },
     setChannels(state, payload) {
       payload.map(channel => {
@@ -523,13 +497,7 @@ export default {
       state.error = payload;
     },
     setUnseen(state, payload) {
-      // find channel by uuid and update unseen when found
-      state.channels.map(channel => {
-        if (channel.channel.uuid === payload) {
-          log("setting unseen for ", channel);
-          channel.unseen = true;
-        }
-      });
+      _setUnseen(state, payload);
     },
     resetState(state) {
       (state.channels = []),
@@ -557,3 +525,24 @@ export default {
     }
   }
 };
+
+function _setUnseen(state, uuid) {
+  // find channel by uuid and update unseen when found
+  state.channels.map(channel => {
+    if (channel.channel.uuid === uuid) {
+      log("setting unseen for ", channel);
+      channel.unseen = true;
+    }
+  });
+}
+
+function _setChannel(state, payload) {
+  log("setChannel payload", payload);
+  state.channel = { ...payload };
+  state.channels.map(channel => {
+    if (channel.channel.uuid === payload.channel.uuid) {
+      log("clearing unseen for ", channel);
+      channel.unseen = false;
+    }
+  });
+}
