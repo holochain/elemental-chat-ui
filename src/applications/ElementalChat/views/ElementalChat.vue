@@ -1,8 +1,9 @@
 <template>
   <div>
     <v-app-bar app dense dark tile elevation="5">
-      <v-toolbar-title class="title pl-0"
-        >Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
+      <v-toolbar-title class="title pl-0 no-wrap">
+        <img src="@/assets/chat-cutout.png" height="20" width="22" />
+        Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
 
@@ -62,6 +63,15 @@
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
+    <v-card dark outlined class="pa-1 mb-1">
+      <v-card-text class="pl-0 text-center lime black-text">
+        This is a proof of concept application, not intended for full production
+        use. Read more in our
+        <a @click="visitPocPage" class="underline link-text"
+          >Elemental Chat FAQs</a
+        >
+      </v-card-text>
+    </v-card>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">
         <v-col cols="5" md="3">
@@ -193,6 +203,9 @@ export default {
     },
     channelAdded() {
       this.showAdd = false;
+    },
+    visitPocPage() {
+      window.open("https://holo.host/faq-tag/elemental-chat/", "_blank");
     }
   },
   computed: {
@@ -226,5 +239,22 @@ export default {
   margin-right: 10px;
   margin-top: 5px;
   cursor: pointer;
+}
+.no-wrap {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lime {
+  background-color: #d7ea44;
+}
+.underline {
+  text-decoration: underline;
+}
+.link-text {
+  color: #5c007a !important;
+}
+.black-text {
+  color: black !important;
 }
 </style>
