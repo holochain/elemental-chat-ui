@@ -426,6 +426,11 @@ export default {
       );
       if (!appChannel) return;
 
+      if (!appChannel.messages) {
+        console.log("channel found with null messages:", appChannel);
+        return;
+      }
+
       // verify message for channel does not already exist
       const messageExists = !!appChannel.messages.find(
         m => message.message.uuid === m.message.uuid
