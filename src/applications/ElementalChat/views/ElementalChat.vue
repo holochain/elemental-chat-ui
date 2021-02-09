@@ -63,6 +63,13 @@
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
+    <v-card dark outlined class="pa-1 mb-1">
+      <v-card-text class="pl-0 text-center lime black-text">
+        This is a proof of concept application, not intended for full production
+        use. Read more in our
+        <a @click="visitPocPage" class="underline">Elemental Chat FAQs</a>
+      </v-card-text>
+    </v-card>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">
         <v-col cols="5" md="3">
@@ -194,6 +201,9 @@ export default {
     },
     channelAdded() {
       this.showAdd = false;
+    },
+    visitPocPage() {
+      window.open("https://holo.host/faq-tag/elemental-chat/", "_blank");
     }
   },
   computed: {
@@ -232,5 +242,14 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.lime {
+  background-color: #d7ea44;
+}
+.underline {
+  text-decoration: underline;
+}
+.black-text {
+  color: black !important;
 }
 </style>
