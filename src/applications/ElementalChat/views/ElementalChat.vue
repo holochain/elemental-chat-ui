@@ -2,7 +2,7 @@
   <div>
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0 no-wrap">
-        <img src="@/assets/chat-cutout.png" height="20" width="22" />
+        <img src="@/assets/chat.png" width="35px" class="title-logo" />
         Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
@@ -63,13 +63,15 @@
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
-    <v-card dark outlined class="pa-1 mb-1">
+    <v-card dark outlined class="mb-1 v-application banner">
       <v-card-text class="pl-0 text-center lime black-text">
-        This is a proof of concept application, not intended for full production
-        use. Read more in our
-        <a @click="visitPocPage" class="underline link-text"
-          >Elemental Chat FAQs</a
-        >
+        <p class="banner-text">
+          This is a proof of concept application, not intended for full
+          production use. Read more in our
+          <a @click="visitPocPage" class="underline link-text"
+            >Elemental Chat FAQs</a
+          >
+        </p>
       </v-card-text>
     </v-card>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
@@ -251,10 +253,24 @@ export default {
 .underline {
   text-decoration: underline;
 }
+.title-logo {
+  margin: -5px;
+  padding: 3px;
+}
 .link-text {
   color: #5c007a !important;
 }
 .black-text {
   color: black !important;
+}
+.banner-text {
+  font-size: 15px;
+  margin-bottom: -10px;
+}
+.banner {
+  border-radius: 0px;
+  box-shadow: 0px 10px 10px 2px rgba(128, 128, 0, 0.2),
+    0px 10px 10px 2px rgba(128, 128, 0, 0.2),
+    0px 10px 10px 2px rgba(128, 128, 0, 0.2) !important;
 }
 </style>
