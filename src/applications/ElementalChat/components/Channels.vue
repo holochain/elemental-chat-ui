@@ -98,6 +98,6 @@ export default {
 <style>
 .channels-container {
   overflow-y: auto;
-  height: calc(100vh - 75px);
+  height: calc(100vh - 150px);
 }
 </style>

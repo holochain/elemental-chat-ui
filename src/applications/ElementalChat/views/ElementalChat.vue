@@ -67,7 +67,9 @@
       <v-card-text class="pl-0 text-center lime black-text">
         This is a proof of concept application, not intended for full production
         use. Read more in our
-        <a @click="visitPocPage" class="underline">Elemental Chat FAQs</a>
+        <a @click="visitPocPage" class="underline link-text"
+          >Elemental Chat FAQs</a
+        >
       </v-card-text>
     </v-card>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
@@ -248,6 +250,9 @@ export default {
 }
 .underline {
   text-decoration: underline;
+}
+.link-text {
+  color: #5c007a !important;
 }
 .black-text {
   color: black !important;
