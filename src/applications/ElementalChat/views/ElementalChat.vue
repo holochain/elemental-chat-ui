@@ -2,7 +2,7 @@
   <div>
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0 no-wrap">
-        <img src="@/assets/chat-transparent.png" height="20" width="22" />
+        <img src="@/assets/chat-cutout.png" height="20" width="22" />
         Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
