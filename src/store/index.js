@@ -123,7 +123,8 @@ const initializeAppHolo = async (commit, dispatch, state) => {
 
   if (!state.holoClient) {
     const webSdkConnection = new WebSdkConnection(
-      process.env.VUE_APP_CHAPERONE_SERVER_URL
+      process.env.VUE_APP_CHAPERONE_SERVER_URL,
+      signal => manageSignals(signal, dispatch)
     );
     holoClient = createHoloClient(webSdkConnection);
     commit("setHoloClient", holoClient);
