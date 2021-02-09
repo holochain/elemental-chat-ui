@@ -63,7 +63,7 @@
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
-    <v-card dark outlined class="pa-1 mb-1 v-application elevation-5">
+    <v-card dark outlined class="mb-1 v-application banner">
       <v-card-text class="pl-0 text-center lime black-text">
         <p class="banner-text">
           This is a proof of concept application, not intended for full
@@ -264,7 +264,13 @@ export default {
   color: black !important;
 }
 .banner-text {
-  margin-top: 0%;
-  margin-bottom: -6px;
+  font-size: 15px;
+  margin-bottom: -10px;
+}
+.banner {
+  border-radius: 0px;
+  box-shadow: 0px 10px 10px 2px rgba(128, 128, 0, 0.2),
+    0px 10px 10px 2px rgba(128, 128, 0, 0.2),
+    0px 10px 10px 2px rgba(128, 128, 0, 0.2) !important;
 }
 </style>
