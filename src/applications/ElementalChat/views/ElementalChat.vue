@@ -1,8 +1,9 @@
 <template>
   <div>
     <v-app-bar app dense dark tile elevation="5">
-      <v-toolbar-title class="title pl-0"
-        >Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
+      <v-toolbar-title class="title pl-0 no-wrap">
+        <img src="@/assets/chat-transparent.png" height="20" width="22" />
+        Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
 
@@ -226,5 +227,10 @@ export default {
   margin-right: 10px;
   margin-top: 5px;
   cursor: pointer;
+}
+.no-wrap {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
