@@ -2,7 +2,7 @@
   <div>
     <v-app-bar app dense dark tile elevation="5">
       <v-toolbar-title class="title pl-0 no-wrap">
-        <img src="@/assets/chat.png" width="35px" class="title-logo" />
+        <img src="@/assets/chat.png" class="title-logo" />
         Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
@@ -253,9 +253,14 @@ export default {
 .underline {
   text-decoration: underline;
 }
+.title {
+  display: flex;
+  align-items: center;
+}
+
 .title-logo {
-  margin: -5px;
-  padding: 3px;
+  width: 30px;
+  margin-right: 5px;
 }
 .link-text {
   color: #5c007a !important;
