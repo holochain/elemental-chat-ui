@@ -11,6 +11,7 @@ import { arrayBufferToBase64 } from "./utils";
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient(webSdkConnection) {
   return {
+    signUp: (...args) => webSdkConnection.signUp(...args),
     signIn: (...args) => webSdkConnection.signIn(...args),
     signOut: (...args) => webSdkConnection.signOut(...args),
     appInfo: (...args) => webSdkConnection.appInfo(...args),
@@ -124,7 +125,11 @@ const initializeAppHolo = async (commit, dispatch, state) => {
   if (!state.holoClient) {
     const webSdkConnection = new WebSdkConnection(
       process.env.VUE_APP_CHAPERONE_SERVER_URL,
-      signal => manageSignals(signal, dispatch)
+      signal => manageSignals(signal, dispatch),
+      {
+        logo_url: "img/ECLogoWhiteMiddle.png",
+        app_name: "Elemental Chat"
+      }
     );
     holoClient = createHoloClient(webSdkConnection);
     commit("setHoloClient", holoClient);
@@ -140,9 +145,15 @@ const initializeAppHolo = async (commit, dispatch, state) => {
   }
 
   if (!state.isHoloSignedIn) {
+    const createAccount = window.confirm("Create a new account?");
     try {
-      await holoClient.signIn();
-      commit("setIsHoloSignedIn", true);
+      if (createAccount) {
+        await holoClient.signUp();
+        commit("setIsHoloSignedIn", true);
+      } else {
+        await holoClient.signIn();
+        commit("setIsHoloSignedIn", true);
+      }
     } catch (e) {
       commit("setIsChaperoneDisconnected", true);
       return;
