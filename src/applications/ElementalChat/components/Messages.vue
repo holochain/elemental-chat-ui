@@ -77,7 +77,7 @@ export default {
 .chat-container {
   box-sizing: border-box;
   overflow-y: auto;
-  height: calc(100vh - 150px);
+  height: calc(100vh - 218px);
 }
 ul {
   list-style-type: none;

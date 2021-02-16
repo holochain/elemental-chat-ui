@@ -1,0 +1,12 @@
+{
+    "app_id": "app_version",
+    "log_level": true,
+    "connection": {
+        "secure": false,
+        "port": 8888
+    },
+    "web_user_legend": {
+        "bob@holo.host":        "uhCAkkeIowX20hXW+9wMyh0tQY5Y73RybHi1BdpKdIdbD26Dl/xwq",
+        "alice@holo.host":      "uhCAkTFYCB48/Bx/QvKQPVSuXAV8sLHKJXrh6ZS8YVe2MdsvSgc7q"
+    }
+}
