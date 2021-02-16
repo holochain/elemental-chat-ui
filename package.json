@@ -14,7 +14,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@holo-host/web-sdk": "~0.3.1",
+    "@holo-host/web-sdk": "Holo-Host/web-sdk#30f7fb3aa7f10f7d5c059ee953f453b8916c9577",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",
