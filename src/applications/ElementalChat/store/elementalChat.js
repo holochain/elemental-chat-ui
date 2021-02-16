@@ -426,9 +426,8 @@ export default {
       );
       if (!appChannel) return;
 
-      if (!appChannel.messages) {
-        console.log("channel found with null messages:", appChannel);
-        return;
+      if (appChannel.messages === undefined) {
+        appChannel.messages = [];
       }
 
       // verify message for channel does not already exist
