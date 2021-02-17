@@ -130,6 +130,7 @@ const initializeAppHolo = async (commit, dispatch, state) => {
         logo_url: "img/ECLogoWhiteMiddle.png",
         app_name: "Elemental Chat",
         info_link: "https://holo.host/faq-tag/elemental-chat"
+        // publisher_name: "Holo"
       }
     );
     holoClient = createHoloClient(webSdkConnection);
@@ -146,15 +147,9 @@ const initializeAppHolo = async (commit, dispatch, state) => {
   }
 
   if (!state.isHoloSignedIn) {
-    const createAccount = window.confirm("Create a new account?");
     try {
-      if (createAccount) {
-        await holoClient.signUp();
-        commit("setIsHoloSignedIn", true);
-      } else {
-        await holoClient.signIn();
-        commit("setIsHoloSignedIn", true);
-      }
+      await holoClient.signIn();
+      commit("setIsHoloSignedIn", true);
     } catch (e) {
       commit("setIsChaperoneDisconnected", true);
       return;
