@@ -24,7 +24,7 @@ const doResetConnection = async dispatch => {
 
 const callZomeHolo = (_, rootState, zome_name, fn_name, payload) => {
   return rootState.holoClient.zomeCall(
-    "chat_dna_alias",
+    "elemental-chat", // this dna_alias should be whatever is set in HHA
     zome_name,
     fn_name,
     payload
