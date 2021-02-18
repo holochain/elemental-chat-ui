@@ -146,15 +146,9 @@ const initializeAppHolo = async (commit, dispatch, state) => {
   }
 
   if (!state.isHoloSignedIn) {
-    const createAccount = window.confirm("Create a new account?");
     try {
-      if (createAccount) {
-        await holoClient.signUp();
-        commit("setIsHoloSignedIn", true);
-      } else {
-        await holoClient.signIn();
-        commit("setIsHoloSignedIn", true);
-      }
+      await holoClient.signIn();
+      commit("setIsHoloSignedIn", true);
     } catch (e) {
       commit("setIsChaperoneDisconnected", true);
       return;
