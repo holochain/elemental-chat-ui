@@ -130,7 +130,6 @@ const initializeAppHolo = async (commit, dispatch, state) => {
         logo_url: "img/ECLogoWhiteMiddle.png",
         app_name: "Elemental Chat",
         info_link: "https://holo.host/faq-tag/elemental-chat"
-        // publisher_name: "Holo"
       }
     );
     holoClient = createHoloClient(webSdkConnection);
