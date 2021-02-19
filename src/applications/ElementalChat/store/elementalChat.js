@@ -8,7 +8,8 @@ function pollMessages(dispatch, active_chatter, channel) {
   });
 }
 
-function log(action, data) { // eslint-disable-line
+function log(action, data) {
+  // eslint-disable-line
   console.log(Date.now(), action);
   if (data !== undefined) console.log(data);
 }
@@ -287,20 +288,9 @@ export default {
         })
         .catch(error => log("addMessageToChannel zome error:", error));
     },
-    signalMessageSent: async ({ rootState }, payload) => {
+    signalMessageSent: async ({ rootState, dispatch }, payload) => {
       log("signalMessageSent start");
-      rootState.holochainClient
-        .callZome(
-          {
-            cap: null,
-            cell_id: rootState.appInterface.cellId,
-            zome_name: "chat",
-            fn_name: "signal_chatters",
-            provenance: rootState.agentKey,
-            payload
-          },
-          60000
-        )
+      callZome(dispatch, rootState, "chat", "signal_chatters", payload, 60000)
         .then(result => {
           log(`signalMessageSent zome done`, result);
         })
