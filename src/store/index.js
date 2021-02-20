@@ -95,7 +95,7 @@ const manageSignals = (signal, dispatch) => {
 };
 
 const clearStateIfDnaChanged = (appInfo, commit, dispatch, state) => {
-  const cellId = appInfo.cell_data[0][0];
+  const cellId = appInfo.cell_data[0].cell_id;
   const dnaHash = arrayBufferToBase64(cellId[0]);
   console.log("cellId : ", dnaHash, arrayBufferToBase64(cellId[1]));
 
@@ -174,7 +174,7 @@ const initializeAppLocal = (commit, dispatch, state) => {
         .then(appInfo => {
           clearStateIfDnaChanged(appInfo, commit, dispatch, state);
 
-          const cellId = appInfo.cell_data[0][0];
+          const cellId = appInfo.cell_data[0].cell_id;
           const agentId = cellId[1];
           console.log("agent key : ", arrayBufferToBase64(agentId));
           commit("setAgentKey", agentId);
