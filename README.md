@@ -17,21 +17,22 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
    - [elemental-chat DNA](https://github.com/holochain/elemental-chat)
 2. Now you can fire everything up with:
 
-   1. In one terminal window install and run the dna with with `hc` like this:
+   1. In one terminal window install and run the hApp with with `hc` like so:
 
    ```shell
-   hc generate -a elemental-chat-test ../elemental-chat/elemental-chat.dna.gz
-   hc run -l -p 8888
+   hc sandbox create
+   hc sandbox call install-app-bundle ../elemental-chat/elemental-chat.happ
+   hc sandbox run -l -p 8888
    ```
 
    2. In another terminal window serve the UI with:
 
    ```shell
    npm install
-   VUE_APP_INSTALLED_APP_ID=elemental-chat-test npm run serve:develop
+   VUE_APP_INSTALLED_APP_ID=elemental-chat npm run serve:develop
    ```
 
-3. When you're done and you want to clean up all the holochain databases that `hc` created in `/tmp`, run `hc clean`
+3. When you're done and you want to clean up all the holochain databases that `hc` created in `/tmp`, run `hc sandbox clean`
 
 ## Build:
 
