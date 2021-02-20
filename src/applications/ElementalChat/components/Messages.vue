@@ -82,4 +82,10 @@ export default {
 ul {
   list-style-type: none;
 }
+.message .v-card__text {
+  padding: 0;
+}
+.message .v-sheet {
+  border: 0;
+}
 </style>
