@@ -1,0 +1,10 @@
+name = "elemental-chat"
+type = "webpack"
+account_id = "account_id_here"
+# workers_dev = true
+route = "chat.holo.host/*"
+zone_id = "35f34e8f9d04ef8c87283ea9fb812989"
+
+[site]
+bucket = "./dist"
+entry-point = "workers-site"
