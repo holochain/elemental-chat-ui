@@ -72,7 +72,7 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
 })();
 
 const manageSignals = () => {
-  // signal, dispatch
+  // (signal, dispatch)
   console.log("Silencing Incoming signal");
   // const signalData = signal.data.payload;
   // const { signal_name: signalName, signal_payload: signalPayload } = signalData;
