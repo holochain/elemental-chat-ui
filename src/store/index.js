@@ -71,27 +71,28 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   }
 })();
 
-const manageSignals = (signal, dispatch) => {
-  console.log("Incoming signal");
-  const signalData = signal.data.payload;
-  const { signal_name: signalName, signal_payload: signalPayload } = signalData;
-  switch (signalName) {
-    case "Message":
-      console.log("INCOMING SIGNAL > NEW MESSAGE");
-      console.log("payload" + JSON.stringify(signalPayload));
+const manageSignals = () => {
+  // signal, dispatch
+  console.log("Silencing Incoming signal");
+  // const signalData = signal.data.payload;
+  // const { signal_name: signalName, signal_payload: signalPayload } = signalData;
+  // switch (signalName) {
+  //   case "Message":
+  //     console.log("INCOMING SIGNAL > NEW MESSAGE");
+  //     console.log("payload" + JSON.stringify(signalPayload));
 
-      dispatch("elementalChat/addSignalMessageToChannel", signalPayload);
+  //     dispatch("elementalChat/addSignalMessageToChannel", signalPayload);
 
-      break;
-    case "Channel":
-      console.log("INCOMING SIGNAL > NEW CHANNEL");
-      // TODO: Implement channel signals
-      // trigger action in elemental_chat module to add channel to channel list
-      // dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
-      break;
-    default:
-      throw new Error("Received an unsupported signal by name : ", name);
-  }
+  //     break;
+  //   case "Channel":
+  //     console.log("INCOMING SIGNAL > NEW CHANNEL");
+  //     // TODO: Implement channel signals
+  //     // trigger action in elemental_chat module to add channel to channel list
+  //     // dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
+  //     break;
+  //   default:
+  //     throw new Error("Received an unsupported signal by name : ", name);
+  // }
 };
 
 const clearStateIfDnaChanged = (appInfo, commit, dispatch, state) => {
