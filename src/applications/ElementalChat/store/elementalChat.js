@@ -259,8 +259,14 @@ export default {
       payload
     ) => {
       log("addMessageToChannel start");
+      let last_seen = payload.channel.last_seen;
+      if (payload.channel.last_seen.Message) {
+        last_seen = {
+          Message: toUint8Array(payload.channel.last_seen.Message)
+        };
+      }
       const holochainPayload = {
-        last_seen: payload.channel.last_seen,
+        last_seen,
         channel: payload.channel.channel,
         message: {
           ...payload.message,
@@ -281,8 +287,11 @@ export default {
         .then(message => {
           log("addMessageToChannel zome done");
           commit("addMessageToChannel", { channel: state.channel, message });
+
           console.log("MESSAGE:", message);
+
           console.log("CHANNEL:", payload.channel);
+
           message["entryHash"] = toUint8Array(message["entryHash"]);
           message["createdBy"] = toUint8Array(message["createdBy"]);
           let channel = payload.channel;
@@ -326,10 +335,6 @@ export default {
           log("listMessages zome done");
           payload.channel.last_seen = { First: null };
           if (result.messages.length > 0) {
-            console.log(
-              "convert last_seen-->",
-              result.messages[result.messages.length - 1].entryHash
-            );
             let data = toUint8Array(
               result.messages[result.messages.length - 1].entryHash
             );
