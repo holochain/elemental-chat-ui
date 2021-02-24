@@ -1,4 +1,4 @@
-import { isHoloHosted } from "@/utils";
+import { isHoloHosted, toUint8Array } from "@/utils";
 
 function pollMessages(dispatch, active_chatter, channel) {
   dispatch("listMessages", {
@@ -269,6 +269,7 @@ export default {
         },
         chunk: 0
       };
+      log("addMessageToChannel start", holochainPayload);
       callZome(
         dispatch,
         rootState,
@@ -280,10 +281,17 @@ export default {
         .then(message => {
           log("addMessageToChannel zome done");
           commit("addMessageToChannel", { channel: state.channel, message });
+          console.log("MESSAGE:", message);
+          console.log("CHANNEL:", payload.channel);
+          message["entryHash"] = toUint8Array(message["entryHash"]);
+          message["createdBy"] = toUint8Array(message["createdBy"]);
+          let channel = payload.channel;
+          channel.info["created_by"] = toUint8Array(channel.info["created_by"]);
           const signalMessageData = {
             messageData: message,
-            channelData: payload.channel
+            channelData: channel
           };
+          log("sending signalMessages", signalMessageData);
           dispatch("signalMessageSent", signalMessageData);
         })
         .catch(error => log("addMessageToChannel zome error:", error));
@@ -318,8 +326,15 @@ export default {
           log("listMessages zome done");
           payload.channel.last_seen = { First: null };
           if (result.messages.length > 0) {
+            console.log(
+              "convert last_seen-->",
+              result.messages[result.messages.length - 1].entryHash
+            );
+            let data = toUint8Array(
+              result.messages[result.messages.length - 1].entryHash
+            );
             payload.channel.last_seen = {
-              Message: result.messages[result.messages.length - 1].entryHash
+              Message: data
             };
           }
 
