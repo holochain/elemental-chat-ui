@@ -62,7 +62,7 @@ console.log("WEB_CLIENT_URI : ", WEB_CLIENT_URI);
   function myArrayBuffer() {
     // this: File or Blob
     return new Promise(resolve => {
-      let fr = new FileReader();
+      const fr = new FileReader();
       fr.onload = () => {
         resolve(fr.result);
       };
@@ -212,7 +212,7 @@ function conductorConnected(state) {
 /*
 function conductorConnecting(state) {
   return state.reconnectingIn ===  0;
-}*/
+} */
 
 function conductorInBackoff(state) {
   return state.reconnectingIn > 0;

@@ -59,8 +59,9 @@ const callZomeLocal = async (
     return result;
   } catch (error) {
     log("ERROR: callZome threw error", error);
-    if (error == "Error: Socket is not open")
+    if (error == "Error: Socket is not open") {
       return doResetConnection(dispatch);
+    }
   }
 };
 
@@ -108,8 +109,9 @@ export default {
               await rootState.hcDb.elementalChat
                 .get(c[i].channel.uuid)
                 .then(m => {
-                  if (m !== undefined && m.messages !== undefined)
+                  if (m !== undefined && m.messages !== undefined) {
                     messages += m.messages.length;
+                  }
                 });
             }
           });
@@ -221,7 +223,7 @@ export default {
           } else {
             commit("setChannels", result.channels);
             log("put listChannels dexie start");
-            let hcDBState =
+            const hcDBState =
               (await rootState.hcDb.elementalChat.get("General")) || [];
             let newChannels = [];
             newChannels = result.channels.filter(channel => {
@@ -229,15 +231,16 @@ export default {
                 c => c.channel.uuid == channel.channel.uuid
               );
             });
-            let sortedChannels = sortChannels(result.channels);
+            const sortedChannels = sortChannels(result.channels);
             rootState.hcDb.elementalChat
               .put(sortedChannels, payload.category)
               .then(log("put listChannels dexie done"))
               .catch(error => log(error));
             log("SETTING channels in indexDb : ", result.channels);
 
-            if (state.channel.info.name === "" && result.channels.length > 0)
+            if (state.channel.info.name === "" && result.channels.length > 0) {
               dispatch("setChannel", { ...result.channels[0], messages: [] });
+            }
 
             // Get messages for the newChannels without active_chatter
             newChannels.forEach(channel =>
@@ -294,7 +297,7 @@ export default {
 
           message["entryHash"] = toUint8Array(message["entryHash"]);
           message["createdBy"] = toUint8Array(message["createdBy"]);
-          let channel = payload.channel;
+          const channel = payload.channel;
           channel.info["created_by"] = toUint8Array(channel.info["created_by"]);
           const signalMessageData = {
             messageData: message,
@@ -335,7 +338,7 @@ export default {
           log("listMessages zome done");
           payload.channel.last_seen = { First: null };
           if (result.messages.length > 0) {
-            let data = toUint8Array(
+            const data = toUint8Array(
               result.messages[result.messages.length - 1].entryHash
             );
             payload.channel.last_seen = {
@@ -375,7 +378,7 @@ export default {
           log("put listMessages dexie start");
 
           if (state.channel.channel.uuid !== uuid) {
-            if (result.messages.length > 0)
+            if (result.messages.length > 0) {
               if (channel === undefined || channel.messages === undefined) {
                 commit("setUnseen", uuid);
               } else {
@@ -383,6 +386,7 @@ export default {
                   commit("setUnseen", uuid);
                 }
               }
+            }
           }
           rootState.hcDb.elementalChat
             .put(internalChannel, uuid)
@@ -396,7 +400,7 @@ export default {
     },
     async rehydrateChannels({ dispatch, commit, rootState }) {
       dispatch("listChannels", { category: "General" });
-      let channels = [];
+      const channels = [];
       await rootState.hcDb.elementalChat.each(channelEntry => {
         if (channelEntry.length === 0) return;
         if (channelEntry.length > 0) {
@@ -480,7 +484,7 @@ export default {
     },
     setChannels(state, payload) {
       payload.map(channel => {
-        let found = state.channels.find(
+        const found = state.channels.find(
           c => c.channel.uuid === channel.channel.uuid
         );
         if (found) {
@@ -503,7 +507,7 @@ export default {
       }
     },
     createChannel(state, payload) {
-      let channels = state.channels;
+      const channels = state.channels;
       channels.push(payload);
       state.channels = sortChannels(channels);
     },
