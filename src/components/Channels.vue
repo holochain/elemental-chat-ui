@@ -64,8 +64,7 @@ export default {
     ...mapActions('elementalChat', [
       'setChannel',
       'createChannel',
-      'listMessages',
-      'rehydrateChannels'
+      'listMessages'
     ]),
     checkCreateChannel (input) {
       if (input.info.name === '') return
@@ -93,9 +92,6 @@ export default {
     channel (val) {
       console.log('channel value : ', val)
     }
-  },
-  created () {
-    this.rehydrateChannels()
   }
 }
 </script>

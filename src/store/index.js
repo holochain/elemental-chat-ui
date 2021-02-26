@@ -202,6 +202,8 @@ export default new Vuex.Store({
     firstConnect: false
   },
   mutations: {
+    // TODO: this should be called localAgentKey, because it is only relevant in the local holochain case.
+    // But there might be a better way to separate those cases and insulate the rest of the app from the distinction.
     setAgentKey (state, payload) {
       state.agentKey = payload
     },
@@ -272,12 +274,14 @@ export default new Vuex.Store({
     },
     initializeAgent ({ commit, dispatch, state }) {
       // TODO: put this back to how it should be
-      commit('needsHandle', false)
-      commit('setAgentHandle', Math.random().toString(36).replace(/[^a-z]+/g, ''))
+      const storedAgentHandle = window.localStorage.getItem('agentHandle')
+      if (storedAgentHandle) {
+        commit('setAgentHandle', storedAgentHandle)
+        commit('needsHandle', false)
+      } else {
+        commit('needsHandle', true)
+      }
       initializeApp(commit, dispatch, state)
-    },
-    setAgentHandle ({ commit }, payload) {
-      commit('setAgentHandle', payload)
     },
     skipBackoff ({ commit }) {
       commit('setReconnecting', 0)
@@ -291,7 +295,6 @@ export default new Vuex.Store({
       }
       commit('setIsHoloSignedIn', false)
       commit('contentReset')
-      dispatch('elementalChat/resetState')
       dispatch('initializeAgent')
     }
   },

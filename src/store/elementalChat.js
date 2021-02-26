@@ -96,10 +96,10 @@ export default {
     getStats: async () => {
       // nada
     },
-    resetStats ({ commit }) {
+    resetStats () {
       // bupkis
     },
-    setChannel: async ({ commit, rootState, dispatch }, payload) => {
+    setChannel: async ({ commit }, payload) => {
       commit('setChannel', payload)
     },
     setChannelPolling: async ({ dispatch }) => {
@@ -292,12 +292,6 @@ export default {
     diplayErrorMessage ({ commit }, payload) {
       commit('setError', payload)
     },
-    async rehydrateChannels ({ dispatch }) {
-      dispatch('listChannels', { category: 'General' })
-    },
-    resetState ({ commit }) {
-      commit('resetState')
-    },
     refreshChatter ({ dispatch, rootState }) {
       log('refreshChatter start')
       callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000)
@@ -393,14 +387,6 @@ export default {
     },
     setUnseen (state, payload) {
       _setUnseen(state, payload)
-    },
-    resetState (state) {
-      (state.channels = []),
-      (state.channel = {
-        info: { name: '' },
-        channel: { category: 'General', uuid: '' },
-        messages: []
-      })
     },
     loadStats (state) {
       state.showStats = true
