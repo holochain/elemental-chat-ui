@@ -1,0 +1,72 @@
+STORE: ACTIONS AND STATE
+
+App.vue
+  actions: setAgentHandle, skipBackoff,
+  ec actions: displayErrorMessage, setChannelPolling,
+  state: 'agentHandle',
+      'needsHandle',
+      'conductorDisconnected',
+      'firstConnect',
+      'reconnectingIn',
+      'isHoloSignedIn',
+      'isChaperoneDisconnected'
+  ec state: 'error'
+
+ElementalChat
+  ec actions
+      'listChannels',
+      'updateHandle',
+      'getStats',
+      'resetStats'
+  actions
+    'holoLogout'
+  ec state
+    'channels',
+    'channel',
+    'stats',
+    'showStats',
+    'statsLoading'
+  state
+    conductorDisconnected
+    appInterface
+
+Channels  
+  ec actions
+          "setChannel",
+      "createChannel",
+      "listMessages",
+      "rehydrateChannels"
+  ec state
+    "channel"
+
+Message
+  ec actions
+    diplayErrorMessage
+  ec state  
+    "channels"
+
+Messages
+  ec actions
+    addMessageToChannel
+  state 
+    conductorDisconnected
+  ec state
+    channel
+
+CONDUCTOR CALLS
+
+app info, plus
+
+zome calls
+'chat', 'agent_stats'
+'chat', 'create_channel',
+'chat', 'list_channels'
+'chat', 'create_message',
+'chat', 'signal_chatters',
+'chat', 'list_messages',
+'chat', 'refresh_chatter'
+
+signal:
+  signalName: Message
+
+  currently doesn't handle signalName: channel

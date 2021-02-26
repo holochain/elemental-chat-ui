@@ -179,61 +179,61 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions } from 'vuex'
 export default {
-  name: "ElementalChat",
+  name: 'ElementalChat',
   components: {
-    Channels: () => import("./components/Channels.vue"),
-    Messages: () => import("./components/Messages.vue")
+    Channels: () => import('./components/Channels.vue'),
+    Messages: () => import('./components/Messages.vue')
   },
-  data() {
+  data () {
     return {
       showAdd: false,
       refreshKey: 0
-    };
+    }
   },
   methods: {
-    ...mapActions("elementalChat", [
-      "listChannels",
-      "updateHandle",
-      "getStats",
-      "resetStats"
+    ...mapActions('elementalChat', [
+      'listChannels',
+      'updateHandle',
+      'getStats',
+      'resetStats'
     ]),
-    ...mapActions(["holoLogout"]),
-    openChannel() {
-      this.refreshKey += 1;
+    ...mapActions(['holoLogout']),
+    openChannel () {
+      this.refreshKey += 1
     },
-    channelAdded() {
-      this.showAdd = false;
+    channelAdded () {
+      this.showAdd = false
     },
-    visitPocPage() {
-      window.open("https://holo.host/faq-tag/elemental-chat/", "_blank");
+    visitPocPage () {
+      window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
     }
   },
   computed: {
-    ...mapState(["conductorDisconnected"]),
-    ...mapState(["appInterface"]),
-    ...mapState("elementalChat", [
-      "channels",
-      "channel",
-      "stats",
-      "showStats",
-      "statsLoading"
+    ...mapState(['conductorDisconnected']),
+    ...mapState(['appInterface']),
+    ...mapState('elementalChat', [
+      'channels',
+      'channel',
+      'stats',
+      'showStats',
+      'statsLoading'
     ]),
-    ...mapState(["isHoloSignedIn"]),
-    shouldDisplayStats() {
-      return this.showStats;
+    ...mapState(['isHoloSignedIn']),
+    shouldDisplayStats () {
+      return this.showStats
     },
-    statsAreLoading() {
-      return this.statsLoading;
+    statsAreLoading () {
+      return this.statsLoading
     }
   },
   watch: {
-    conductorDisconnected(val) {
-      if (!val) this.listChannels({ category: "General" });
+    conductorDisconnected (val) {
+      if (!val) this.listChannels({ category: 'General' })
     }
   }
-};
+}
 </script>
 <style scoped>
 .logout {
