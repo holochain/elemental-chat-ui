@@ -17,4 +17,4 @@ module.exports = {
   moduleFileExtensions,
   collectCoverage: true,
   collectCoverageFrom: ["**/*.{js,vue}", "!**/node_modules/**"]
-};
+}

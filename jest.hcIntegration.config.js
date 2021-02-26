@@ -6,4 +6,4 @@ module.exports = {
   collectCoverage: false,
   testMatch: ["<rootDir>/tests/**/integration/**/*.spec.{js,jsx,ts,tsx}"] // ,
   // transform
-};
+}

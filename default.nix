@@ -3,8 +3,8 @@
 with pkgs;
 
 {
-  holo-envoy = mkYarnPackage rec {
-    name = "holo-envoy";
+  elemental-chat-ui = mkYarnPackage rec {
+    name = "elemental-chat-ui";
     src = gitignoreSource ./.;
 
     nativeBuildInputs = [
@@ -23,7 +23,7 @@ with pkgs;
     installPhase = ''
         mkdir $out
         mv node_modules $out
-        cd deps/@holo-host/envoy/
+        cd deps/@holochain/elemental-chat-ui/
         mv build websocket-wrappers server.js $out
         makeWrapper ${nodejs}/bin/node $out/bin/${name} \
           --add-flags $out/server.js

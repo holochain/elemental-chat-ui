@@ -3,16 +3,16 @@ import {
   Config,
   TransportConfigType,
   ProxyConfigType
-} from "@holochain/tryorama";
+} from '@holochain/tryorama'
 
-const path = require("path");
+const path = require('path')
 
-export const RETRY_DELAY = 1000;
-export const RETRY_COUNT = 10;
+export const RETRY_DELAY = 1000
+export const RETRY_COUNT = 10
 
 // Note: this is a copy of the network config used in ec dna tests
 const network = {
-  bootstrap_service: "https://bootstrap.holo.host",
+  bootstrap_service: 'https://bootstrap.holo.host',
   transport_pool: [
     {
       type: TransportConfigType.Proxy,
@@ -20,7 +20,7 @@ const network = {
       proxy_config: {
         type: ProxyConfigType.RemoteProxyClient,
         proxy_url:
-          "kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/proxy.holochain.org/p/5778/--"
+          'kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/proxy.holochain.org/p/5778/--'
       }
     }
   ],
@@ -35,9 +35,9 @@ const network = {
   }
 };
 
-export const orchestrator = new Orchestrator();
-export const conductorConfig = Config.gen({ network });
+export const orchestrator = new Orchestrator()
+export const conductorConfig = Config.gen() // Config.gen({ network })
 export const elChatDna = {
-  path: path.join(__dirname, "../../../dnas/elemental-chat.dna.gz"),
-  nick: "elemental-chat"
-};
+  path: path.join(__dirname, '../../../dnas/elemental-chat.dna.gz'),
+  nick: 'elemental-chat'
+}

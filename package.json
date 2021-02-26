@@ -24,12 +24,15 @@
     "dexie": "^3.0.2",
     "localforage": "^1.9.0",
     "localforage-getitems": "^1.4.2",
+    "regenerator-runtime": "^0.13.7",
     "register-service-worker": "^1.7.1",
+    "tape": "^5.2.0",
     "uuid": "^8.3.1",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vuetify": "^2.2.11",
-    "vuex": "^3.4.0"
+    "vuex": "^3.4.0",
+    "waait": "^1.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",

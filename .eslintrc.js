@@ -5,6 +5,13 @@ module.exports = {
   },
   plugins: ["jest"],
   extends: ["plugin:vue/essential", "eslint:recommended", "@vue/prettier", "plugin:jest/recommended"],
+  globals: {
+    expect: "readonly",
+    it: "readonly",
+    describe: "readonly",      
+    before: "readonly",
+    after: "readonly"
+  },
   parserOptions: {
     parser: "babel-eslint"
   },
