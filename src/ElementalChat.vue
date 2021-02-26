@@ -183,8 +183,8 @@ import { mapState, mapActions } from "vuex";
 export default {
   name: "ElementalChat",
   components: {
-    Channels: () => import("../components/Channels.vue"),
-    Messages: () => import("../components/Messages.vue")
+    Channels: () => import("./components/Channels.vue"),
+    Messages: () => import("./components/Messages.vue")
   },
   data() {
     return {

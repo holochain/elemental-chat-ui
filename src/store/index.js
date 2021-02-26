@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import { AppWebsocket } from '@holochain/conductor-api'
 import { Connection as WebSdkConnection } from '@holo-host/web-sdk'
 import { isHoloHosted, isHoloSelfHosted } from '@/utils'
-import elementalChat from '@/applications/ElementalChat/store/elementalChat'
+import elementalChat from '@/store/elementalChat'
 
 import dexiePlugin from './dexiePlugin'
 import { arrayBufferToBase64 } from './utils'
@@ -31,8 +31,7 @@ const DNA_UUID = '0001'
 
 const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
   ? process.env.VUE_APP_INSTALLED_APP_ID
-  : // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
-  process.env.VUE_APP_WEB_CLIENT_PORT === '8888'
+  : process.env.VUE_APP_WEB_CLIENT_PORT === '8888' // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
     ? 'elemental-chat-1'
     : process.env.VUE_APP_WEB_CLIENT_PORT === '9999'
       ? 'elemental-chat-2'
@@ -51,25 +50,25 @@ console.log(
 )
 console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
-console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI);
+console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
 
-(function () {
-  if ('File' in self) {
-    File.prototype.arrayBuffer = File.prototype.arrayBuffer || myArrayBuffer
-  }
-  Blob.prototype.arrayBuffer = Blob.prototype.arrayBuffer || myArrayBuffer
+// (function () {
+//   if ('File' in self) {
+//     window.File.prototype.arrayBuffer = window.File.prototype.arrayBuffer || myArrayBuffer
+//   }
+//   Blob.prototype.arrayBuffer = Blob.prototype.arrayBuffer || myArrayBuffer
 
-  function myArrayBuffer () {
-    // this: File or Blob
-    return new Promise(resolve => {
-      const fr = new FileReader()
-      fr.onload = () => {
-        resolve(fr.result)
-      }
-      fr.readAsArrayBuffer(this)
-    })
-  }
-})()
+//   function myArrayBuffer () {
+//     // this: File or Blob
+//     return new Promise(resolve => {
+//       const fr = new FileReader()
+//       fr.onload = () => {
+//         resolve(fr.result)
+//       }
+//       fr.readAsArrayBuffer(this)
+//     })
+//   }
+// })()
 
 const manageSignals = (signal, dispatch) => {
   console.log('Incoming signal')
@@ -90,7 +89,7 @@ const manageSignals = (signal, dispatch) => {
       // dispatch("elementalChat/addSignalChannel", signalPayload.ChannelData);
       break
     default:
-      throw new Error('Received an unsupported signal by name : ', name)
+      throw new Error('Received an unsupported signal by name : ', signalName)
   }
 }
 
@@ -107,7 +106,7 @@ const clearStateIfDnaChanged = (appInfo, commit, dispatch, state) => {
     ) {
       state.hcDb.agent.put(dnaHash, 'dnaHash')
     } else {
-      if (dnaHash != storedDnaHash) {
+      if (dnaHash !== storedDnaHash) {
         commit('contentReset')
         dispatch('elementalChat/resetState')
       }
@@ -284,12 +283,12 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    initialiseStore ({ commit, state, dispatch }) {
+    initializeStore ({ commit, state, dispatch }) {
       state.hcDb.version(1).stores({
         agent: '',
         elementalChat: ''
       })
-      dispatch('initialiseAgent')
+      dispatch('initializeAgent')
       // refresh chatter state every 2 hours
       setInterval(function () {
         if (conductorConnected(state)) {
@@ -301,12 +300,12 @@ export default new Vuex.Store({
           if (conductorInBackoff(state)) {
             commit('setReconnecting', state.reconnectingIn - 1)
           } else {
-            dispatch('initialiseAgent')
+            dispatch('initializeAgent')
           }
         }
       }, 1000)
     },
-    initialiseAgent ({ commit, dispatch, state }) {
+    initializeAgent ({ commit, dispatch, state }) {
       state.hcDb.agent.get('agentHandle').then(agentHandle => {
         if (
           agentHandle === null ||
@@ -337,7 +336,7 @@ export default new Vuex.Store({
       commit('setIsHoloSignedIn', false)
       commit('contentReset')
       dispatch('elementalChat/resetState')
-      dispatch('initialiseAgent')
+      dispatch('initializeAgent')
     }
   },
   modules: {
