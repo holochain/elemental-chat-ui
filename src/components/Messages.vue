@@ -21,55 +21,56 @@
   </v-card>
 </template>
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapState } from 'vuex'
+
 export default {
-  name: "Messages",
+  name: 'Messages',
   components: {
-    Message: () => import("./Message.vue")
+    Message: () => import('./Message.vue')
   },
-  data() {
+  data () {
     return {
       personScrolling: false
-    };
+    }
   },
   methods: {
-    ...mapActions("elementalChat", ["addMessageToChannel"]),
-    messageCreated(message) {
+    ...mapActions('elementalChat', ['addMessageToChannel']),
+    messageCreated (message) {
       this.addMessageToChannel({
         channel: this.channel,
         message: message
-      });
+      })
     },
-    personScroll() {
-      var container = this.$el.querySelector("#container");
+    personScroll () {
+      var container = this.$el.querySelector('#container')
       container.onscroll = () => {
-        this.personScrolling = true;
-        const height = container.offsetHeight + container.scrollTop;
+        this.personScrolling = true
+        const height = container.offsetHeight + container.scrollTop
         if (height === container.scrollHeight) {
-          this.personScrolling = false;
+          this.personScrolling = false
         }
-      };
+      }
     },
-    scrollToEnd() {
-      if (this.personScrolling) return;
-      var container = this.$el.querySelector("#container");
-      container.scrollTop = container.scrollHeight;
+    scrollToEnd () {
+      if (this.personScrolling) return
+      var container = this.$el.querySelector('#container')
+      container.scrollTop = container.scrollHeight
     }
   },
   computed: {
-    ...mapState(["conductorDisconnected"]),
-    ...mapState("elementalChat", ["channel"]),
-    messages() {
-      return this.channel.messages;
+    ...mapState(['conductorDisconnected']),
+    ...mapState('elementalChat', ['channel']),
+    messages () {
+      return this.channel.messages
     }
   },
   watch: {
-    channel() {
-      this.scrollToEnd();
+    channel () {
+      this.scrollToEnd()
     }
   },
-  mounted() {
-    this.scrollToEnd();
+  mounted () {
+    this.scrollToEnd()
   }
 };
 </script>

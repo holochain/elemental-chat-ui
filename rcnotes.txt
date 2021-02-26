@@ -70,3 +70,8 @@ signal:
   signalName: Message
 
   currently doesn't handle signalName: channel
+
+
+  maybe can remove setUnseen
+  probably can remove rehydrateChannels
+  probably remove contentReset

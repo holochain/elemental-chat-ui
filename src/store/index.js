@@ -5,7 +5,6 @@ import { Connection as WebSdkConnection } from '@holo-host/web-sdk'
 import { isHoloHosted, isHoloSelfHosted } from '@/utils'
 import elementalChat from '@/store/elementalChat'
 
-import dexiePlugin from './dexiePlugin'
 import { arrayBufferToBase64 } from './utils'
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
@@ -93,28 +92,6 @@ const manageSignals = (signal, dispatch) => {
   }
 }
 
-const clearStateIfDnaChanged = (appInfo, commit, dispatch, state) => {
-  const cellId = appInfo.cell_data[0][0]
-  const dnaHash = arrayBufferToBase64(cellId[0])
-  console.log('cellId : ', dnaHash, arrayBufferToBase64(cellId[1]))
-
-  state.hcDb.agent.get('dnaHash').then(storedDnaHash => {
-    if (
-      storedDnaHash === null ||
-      storedDnaHash === undefined ||
-      storedDnaHash === ''
-    ) {
-      state.hcDb.agent.put(dnaHash, 'dnaHash')
-    } else {
-      if (dnaHash !== storedDnaHash) {
-        commit('contentReset')
-        dispatch('elementalChat/resetState')
-      }
-      state.hcDb.agent.put(dnaHash, 'dnaHash')
-    }
-  })
-}
-
 let isInitializingHolo = false
 const initializeAppHolo = async (commit, dispatch, state) => {
   if (isInitializingHolo) return
@@ -154,10 +131,6 @@ const initializeAppHolo = async (commit, dispatch, state) => {
     }
   }
 
-  const appInfo = await holoClient.appInfo()
-
-  clearStateIfDnaChanged(appInfo, commit, dispatch, state)
-
   isInitializingHolo = false
 }
 
@@ -171,8 +144,6 @@ const initializeAppLocal = (commit, dispatch, state) => {
           installed_app_id: INSTALLED_APP_ID
         })
         .then(appInfo => {
-          clearStateIfDnaChanged(appInfo, commit, dispatch, state)
-
           const cellId = appInfo.cell_data[0][0]
           const agentId = cellId[1]
           console.log('agent key : ', arrayBufferToBase64(agentId))
@@ -268,8 +239,6 @@ export default new Vuex.Store({
     },
     contentReset (state) {
       console.log('CONTENT RESET (DNA CHANGED)')
-      state.hcDb.agent.put('', 'agentHandle')
-      state.hcDb.elementalChat.clear()
       state.needsHandle = true
       state.agentHandle = ''
     },
@@ -284,10 +253,6 @@ export default new Vuex.Store({
   },
   actions: {
     initializeStore ({ commit, state, dispatch }) {
-      state.hcDb.version(1).stores({
-        agent: '',
-        elementalChat: ''
-      })
       dispatch('initializeAgent')
       // refresh chatter state every 2 hours
       setInterval(function () {
@@ -306,22 +271,12 @@ export default new Vuex.Store({
       }, 1000)
     },
     initializeAgent ({ commit, dispatch, state }) {
-      state.hcDb.agent.get('agentHandle').then(agentHandle => {
-        if (
-          agentHandle === null ||
-          agentHandle === undefined ||
-          agentHandle === ''
-        ) {
-          commit('needsHandle', true)
-        } else {
-          commit('setAgentHandle', agentHandle)
-        }
-      })
+      commit('needsHandle', false)
+      commit('setAgentHandle', Math.random().toString(36).replace(/[^a-z]+/g, ''))
       initializeApp(commit, dispatch, state)
     },
-    setAgentHandle ({ commit, state }, payload) {
+    setAgentHandle ({ commit }, payload) {
       commit('setAgentHandle', payload)
-      state.hcDb.agent.put(payload, 'agentHandle')
     },
     skipBackoff ({ commit }) {
       commit('setReconnecting', 0)
@@ -341,6 +296,5 @@ export default new Vuex.Store({
   },
   modules: {
     elementalChat
-  },
-  plugins: [dexiePlugin]
+  }
 })

@@ -93,57 +93,14 @@ export default {
       log('Updating Handle')
       rootState.needsHandle = true
     },
-    getStats: async ({ state, rootState, dispatch, commit }) => {
-      log('Getting Stats...')
-      commit('loadStats')
-      callZome(dispatch, rootState, 'chat', 'agent_stats', null, 60000)
-        .then(async stats => {
-          log('stats zomeCall done')
-          log('Peer stats: ', stats)
-          let channels = 0
-          let messages = 0
-          await rootState.hcDb.elementalChat.get('General').then(async c => {
-            if (c === undefined) channels = 0
-            else channels = c.length
-            for (let i = 0; i < c.length; i++) {
-              await rootState.hcDb.elementalChat
-                .get(c[i].channel.uuid)
-                .then(m => {
-                  if (m !== undefined && m.messages !== undefined) {
-                    messages += m.messages.length
-                  }
-                })
-            }
-          })
-          channels =
-            channels > state.channels ? channels : state.channels.length
-          log('Total stats: ', { channels, messages, ...stats })
-          commit('setStats', { channels, messages, ...stats })
-        })
-        .catch(error => {
-          log('stats zomeCall error', error)
-          commit('resetStats')
-        })
+    getStats: async () => {
+      // nada
     },
     resetStats ({ commit }) {
-      commit('resetStats')
+      // bupkis
     },
     setChannel: async ({ commit, rootState, dispatch }, payload) => {
-      log('setChannel start')
-      log('Setting channel payload', payload)
-      rootState.hcDb.elementalChat
-        .get(payload.channel.uuid)
-        .then(channel => {
-          log('setChannel dexie done')
-          if (channel === undefined) channel = payload
-          commit('setChannel', channel)
-          pollMessages(dispatch, true, payload)
-          clearInterval(pollMessagesIntervalId)
-          pollMessagesIntervalId = setInterval(() => {
-            pollMessages(dispatch, true, payload)
-          }, 60000)
-        })
-        .catch(error => log(error))
+      // Used to set channel in hcdb
     },
     setChannelPolling: async ({ dispatch }) => {
       clearInterval(listChannelsIntervalId)
@@ -152,7 +109,7 @@ export default {
       }, 300000) // Polling every 5mins
     },
     addSignalChannel: async (
-      { commit, state, rootState, dispatch },
+      { commit, state, dispatch },
       payload
     ) => {
       const committedChannel = payload
@@ -168,13 +125,6 @@ export default {
       log('received channel : ', committedChannel)
       committedChannel.last_seen = { First: null }
       commit('createChannel', { ...committedChannel, messages: [] })
-      rootState.hcDb.elementalChat
-        .put(
-          { ...committedChannel, messages: [] },
-          committedChannel.channel.uuid
-        )
-        .then(log('createChannel dexie done'))
-        .catch(error => log(error))
       dispatch('setChannel', { ...committedChannel, messages: [] })
     },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
@@ -196,23 +146,12 @@ export default {
           committedChannel.last_seen = { First: null }
           commit('createChannel', { ...committedChannel, messages: [] })
           log('created channel : ', committedChannel)
-          rootState.hcDb.elementalChat
-            .put(
-              { ...committedChannel, messages: [] },
-              committedChannel.channel.uuid
-            )
-            .then(log('createChannel dexie done'))
-            .catch(error => log(error))
           dispatch('setChannel', { ...committedChannel, messages: [] })
         })
         .catch(error => log('createChannel zome error', error))
     },
     listChannels ({ commit, rootState, state, dispatch }, payload) {
       log('listChannels start')
-      rootState.hcDb.elementalChat.get(payload.category).then(channels => {
-        if (channels === undefined) return
-        commit('setChannels', channels)
-      })
       log('listChannels zome start')
       callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
         .then(async result => {
@@ -223,20 +162,8 @@ export default {
           } else {
             commit('setChannels', result.channels)
             log('put listChannels dexie start')
-            const hcDBState =
-              (await rootState.hcDb.elementalChat.get('General')) || []
             let newChannels = []
-            newChannels = result.channels.filter(channel => {
-              return !hcDBState.find(
-                c => c.channel.uuid == channel.channel.uuid
-              )
-            })
-            const sortedChannels = sortChannels(result.channels)
-            rootState.hcDb.elementalChat
-              .put(sortedChannels, payload.category)
-              .then(log('put listChannels dexie done'))
-              .catch(error => log(error))
-            log('SETTING channels in indexDb : ', result.channels)
+            newChannels = result.channels
 
             if (state.channel.info.name === '' && result.channels.length > 0) {
               dispatch('setChannel', { ...result.channels[0], messages: [] })
@@ -262,14 +189,16 @@ export default {
       payload
     ) => {
       log('addMessageToChannel start')
-      let last_seen = payload.channel.last_seen
+
+      console.log('payload', payload)
+      let lastSeen = payload.channel.last_seen
       if (payload.channel.last_seen.Message) {
-        last_seen = {
+        lastSeen = {
           Message: toUint8Array(payload.channel.last_seen.Message)
         }
       }
       const holochainPayload = {
-        last_seen,
+        last_seen: lastSeen,
         channel: payload.channel.channel,
         message: {
           ...payload.message,
@@ -295,10 +224,10 @@ export default {
 
           console.log('CHANNEL:', payload.channel)
 
-          message['entryHash'] = toUint8Array(message['entryHash'])
-          message['createdBy'] = toUint8Array(message['createdBy'])
+          message.entryHash = toUint8Array(message.entryHash)
+          message.createdBy = toUint8Array(message.createdBy)
           const channel = payload.channel
-          channel.info['created_by'] = toUint8Array(channel.info['created_by'])
+          channel.info.created_by = toUint8Array(channel.info.created_by)
           const signalMessageData = {
             messageData: message,
             channelData: channel
@@ -325,7 +254,7 @@ export default {
         active_chatter: payload.active_chatter
       }
       const uuid = payload.channel.channel.uuid
-      const channel = await rootState.hcDb.elementalChat.get(uuid)
+
       callZome(
         dispatch,
         rootState,
@@ -346,26 +275,7 @@ export default {
             }
           }
 
-          let signalMessages = []
-          let newMessages = []
-
-          if (!(channel === undefined || channel.messages === undefined)) {
-            // messages in new that aren't in old
-            newMessages = result.messages.filter(message => {
-              return !channel.messages.find(
-                c => c.message.uuid == message.message.uuid
-              )
-            })
-
-            // messages in old that aren't in new are ones that arrived as signals
-            signalMessages = channel.messages.filter(message => {
-              return !result.messages.find(
-                c => c.message.uuid == message.message.uuid
-              )
-            })
-          }
-
-          const messages = [...result.messages, ...signalMessages]
+          const messages = [...result.messages]
 
           messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
 
@@ -376,47 +286,14 @@ export default {
 
           commit('setChannelMessages', internalChannel)
           log('put listMessages dexie start')
-
-          if (state.channel.channel.uuid !== uuid) {
-            if (result.messages.length > 0) {
-              if (channel === undefined || channel.messages === undefined) {
-                commit('setUnseen', uuid)
-              } else {
-                if (newMessages.length > 0) {
-                  commit('setUnseen', uuid)
-                }
-              }
-            }
-          }
-          rootState.hcDb.elementalChat
-            .put(internalChannel, uuid)
-            .then(log('put listMessages dexie done'))
-            .catch(error => log(error))
         })
         .catch(error => log('listMessages zome done', error))
     },
     diplayErrorMessage ({ commit }, payload) {
       commit('setError', payload)
     },
-    async rehydrateChannels ({ dispatch, commit, rootState }) {
+    async rehydrateChannels ({ dispatch }) {
       dispatch('listChannels', { category: 'General' })
-      const channels = []
-      await rootState.hcDb.elementalChat.each(channelEntry => {
-        if (channelEntry.length === 0) return
-        if (channelEntry.length > 0) {
-          channelEntry.map(channel => channels.push(channel))
-        } else {
-          channels.push(channelEntry)
-        }
-      })
-      const uniqueChannels = channels.reduce((acc, current) => {
-        const x = acc.find(
-          channel => channel.channel.uuid === current.channel.uuid
-        )
-        if (!x) return acc.concat([current])
-        else return acc
-      }, [])
-      if (uniqueChannels.length > 0) commit('setChannels', uniqueChannels)
     },
     resetState ({ commit }) {
       commit('resetState')
