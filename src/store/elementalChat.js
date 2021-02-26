@@ -100,7 +100,7 @@ export default {
       // bupkis
     },
     setChannel: async ({ commit, rootState, dispatch }, payload) => {
-      // Used to set channel in hcdb
+      commit('setChannel', payload)
     },
     setChannelPolling: async ({ dispatch }) => {
       clearInterval(listChannelsIntervalId)

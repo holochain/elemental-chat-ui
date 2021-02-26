@@ -259,7 +259,7 @@ export default new Vuex.Store({
         if (conductorConnected(state)) {
           dispatch('elementalChat/refreshChatter')
         }
-      }, 1000 * 60 * 60 * 2)
+      }, 2 * 60 * 60 * 1000)
       setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
@@ -271,6 +271,7 @@ export default new Vuex.Store({
       }, 1000)
     },
     initializeAgent ({ commit, dispatch, state }) {
+      // TODO: put this back to how it should be
       commit('needsHandle', false)
       commit('setAgentHandle', Math.random().toString(36).replace(/[^a-z]+/g, ''))
       initializeApp(commit, dispatch, state)
