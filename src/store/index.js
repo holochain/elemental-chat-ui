@@ -212,6 +212,7 @@ export default new Vuex.Store({
     },
     setAgentHandle (state, payload) {
       state.agentHandle = payload
+      window.localStorage.setItem('agentHandle', payload)
       state.needsHandle = false
     },
     setAppInterface (state, payload) {

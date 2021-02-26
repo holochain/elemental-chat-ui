@@ -89,7 +89,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 import { isHoloHosted } from '@/utils'
 import ElementalChat from '@/ElementalChat.vue'
 
@@ -106,7 +106,8 @@ export default {
   },
   methods: {
     ...mapActions('elementalChat', ['diplayErrorMessage', 'setChannelPolling']),
-    ...mapActions(['setAgentHandle', 'skipBackoff']),
+    ...mapActions(['skipBackoff']),
+    ...mapMutations(['setAgentHandle']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
       this.setAgentHandle(this.internalAgentHandle)

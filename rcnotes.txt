@@ -74,7 +74,11 @@ signal:
   maybe can remove setUnseen
   probably remove contentReset
 
+TODO
+  store current channel id in localstorage
+
 
 Questions
   Is there a better way to separate out the two clients / modes (HC and Holo), such that the rest of the app is insulated from it?
   Is there a better way to handle the initialization? Calling initializeApp from initializeAgent feels weird to me.
+
