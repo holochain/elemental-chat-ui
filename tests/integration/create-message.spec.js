@@ -1,36 +1,45 @@
-import "regenerator-runtime/runtime.js"
+import 'regenerator-runtime/runtime.js' // TODO: follow-up on need for this import
 // import { fireEvent, within, act, wait } from '@testing-library/vue'
 // import msgpack from '@msgpack/msgpack'
 import { v4 as uuidv4 } from 'uuid'
 import waait from 'waait'
 import { orchestrator, conductorConfig, elChatDna } from './setup/tryorama'
-// import { renderAndWait } from '../utils'
+import { TIMEOUT } from './setup/globals'
+import { closeTestConductor } from './setup/helpers'
+// import { renderAndWait } from '../test-utils'
 // import HApp from '@/applications/ElementalChat/views/ElementalChat.vue'
 
-orchestrator.registerScenario('New Message Scenario', async (s, t) => {
+orchestrator.registerScenario('New Message Scenario', async (scenario, tape) => {
+  let chatter1, chatter2
+  beforeAll(async () => {
+    console.log('---------------> 1')
+    const [conductor] = await scenario.players([conductorConfig])
+    console.log('\n\nconductor : ', conductor)
+    console.log('---------------> 2')
+    // install app into tryorama conductor
+    const [[chatter1Happ], [chatter2Happ]] = await conductor.installAgentsHapps([
+      [[elChatDna]],
+      [[elChatDna]]
+    ])
+
+    console.log('---------------> 3');
+
+    // destructure and define agents
+    ([chatter1] = chatter1Happ.cells)
+    console.log('---------------> 4')
+
+    console.log(chatter1);
+    ([chatter2] = chatter2Happ.cells)
+  }, TIMEOUT)
+
+  afterAll(() => {
+    if (chatter2) {
+      chatter2.close()
+    }
+    closeTestConductor(chatter1, 'Create Request e2e')
+  })
+
   describe('New Message Flow', () => {
-    let chatter1, chatter2
-    beforeAll(async () => {
-      console.log('---------------> 1')
-      const [conductor] = await s.players([conductorConfig])
-      console.log('\n\nconductor : ', conductor)
-      console.log('---------------> 2')
-      // install app into tryorama conductor
-      const [[chatter1Happ], [chatter2Happ]] = await conductor.installAgentsHapps([
-        [[elChatDna]],
-        [[elChatDna]]
-      ])
-
-      console.log('---------------> 3');
-
-      // destructure and define agents
-      ([chatter1] = chatter1Happ.cells)
-      console.log('---------------> 4')
-
-      console.log(chatter1);
-      ([chatter2] = chatter2Happ.cells)
-    })
-
     it('returns message', async () => {
       console.log(chatter2)
       // Create a channel
@@ -64,7 +73,7 @@ orchestrator.registerScenario('New Message Scenario', async (s, t) => {
     })
   })
 
-  // t.ok()
+  // tape.ok()
 })
 
 orchestrator.run()
