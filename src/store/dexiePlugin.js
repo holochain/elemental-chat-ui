@@ -1,7 +1,7 @@
 export default store => {
   store.subscribe((mutation, state) => {// eslint-disable-line
     // console.log(mutation, state);
-  });
+  })
 
   store.subscribeAction({
     before: (action, state) => {// eslint-disable-line
@@ -10,5 +10,5 @@ export default store => {
     after: (action, state) => {// eslint-disable-line
       // console.log("after", action, state);
     }
-  });
-};
+  })
+}
