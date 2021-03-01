@@ -1,15 +1,11 @@
-import path from 'path'
-import {
+const path = require('path')
+const {
   Orchestrator,
   Config,
   TransportConfigType,
   ProxyConfigType
-} from '@holochain/tryorama'
-
-const __dirname = path.resolve()
-
-export const RETRY_DELAY = 1000
-export const RETRY_COUNT = 10
+} = require('@holochain/tryorama')
+// const { RETRY_DELAY, RETRY_COUNT } = require('./globals.js')
 
 // Note: this is a copy of the network config used in ec dna tests
 const network = {
@@ -36,9 +32,15 @@ const network = {
   }
 }
 
-export const orchestrator = new Orchestrator()
-export const conductorConfig = Config.gen() // Config.gen({ network })
-export const elChatDna = {
+const orchestrator = new Orchestrator()
+const conductorConfig = Config.gen() // Config.gen({ network })
+const elChatDna = {
   path: path.join(__dirname, '../../../dnas/elemental-chat.dna.gz'),
   nick: 'elemental-chat'
+}
+
+module.exports = {
+  orchestrator,
+  conductorConfig,
+  elChatDna
 }

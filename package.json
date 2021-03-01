@@ -2,7 +2,6 @@
   "name": "elemental-chat-ui",
   "version": "0.0.1-alpha29",
   "private": true,
-  "type": "module",
   "scripts": {
     "serve": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:8000/' vue-cli-service serve",
     "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
@@ -12,18 +11,17 @@
     "serve:develop": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
     "lint": "vue-cli-service lint",
     "fetch-dna": "mkdir -p dnas && sh ./scripts/fetch-dna.sh",
-    "babel": "./node_modules/.bin/babel",
     "test:unit": "vue-cli-service test:unit",
-    "test:integration": "nix-shell --command 'VUE_APP_CONTEXT='holochain' npx babel-node tests/integration/index.js --config=./jest.hcIntegration.config.js --watch --runInBand --detectOpenHandles' && exit",
+    "test:integration": "nix-shell --command 'VUE_APP_CONTEXT='holochain' node scripts/test.js --config=./jest.hcIntegration.config.js --watch --runInBand --detectOpenHandles' && exit",
     "test:e2e": "vue-cli-service test:e2e"
   },
   "dependencies": {
-    "@babel/cli": "^7.13.0",
     "@babel/preset-env": "^7.13.8",
     "@holo-host/web-sdk": "Holo-Host/web-sdk#6d3fa2999042a0fa9ec7532650e91d5f05063239",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@testing-library/jest-dom": "^5.11.9",
     "async-wait-until": "^1.2.6",
+    "babel-plugin-module-resolver": "^4.1.0",
     "core-js": "^3.6.5",
     "dexie": "^3.0.2",
     "localforage": "^1.9.0",
@@ -41,7 +39,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",
-    "@babel/node": "^7.13.0",
     "@holochain/tryorama": "git://github.com/holochain/tryorama.git#8e32511fa56db1a3394bd88841ba05fc9f30ffbc",
     "@msgpack/msgpack": "^2.4.0",
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -70,6 +67,22 @@
     "vue-cli-plugin-vuetify": "~2.0.7",
     "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.3.0"
+  },
+  "babel": {
+    "presets": [
+      "@vue/cli-plugin-babel/preset",
+      "@babel/preset-env"
+    ],
+    "plugins": [
+      [
+        "module-resolver",
+        {
+          "root": [
+            "src"
+          ]
+        }
+      ]
+    ]
   },
   "lint-staged": {
     "*.{js,jsx,vue}": [

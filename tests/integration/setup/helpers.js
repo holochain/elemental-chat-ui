@@ -1,6 +1,6 @@
-// import { TIMEOUT } from './globals'
+const { TIMEOUT } = require('./globals.js')
 
-export const closeTestConductor = (agent, testName) => {
+const closeTestConductor = (agent, testName) => {
   try {
     agent.kill()
   } catch (err) {
@@ -32,3 +32,7 @@ export const closeTestConductor = (agent, testName) => {
 //     }, pollingInterval);
 //   });
 // };
+
+module.exports = {
+  closeTestConductor
+}

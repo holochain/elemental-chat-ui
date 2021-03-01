@@ -8,8 +8,8 @@ module.exports = {
   verbose: true,
   testEnvironment: 'jsdom',
   transform: {
+    '.*\\.(js)$': 'babel-jest',
     '^.+\\.vue$': 'vue-jest',
-    '.*\\.(js)$': 'babel-jest', // babel-register
     '^.+\\.tsx?$': 'ts-jest'
   },
   roots: ['<rootDir>/src/', '<rootDir>/tests/'],

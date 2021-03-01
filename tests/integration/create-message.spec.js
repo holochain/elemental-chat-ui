@@ -1,44 +1,48 @@
-import 'regenerator-runtime/runtime.js' // TODO: follow-up on need for this import
-// import { fireEvent, within, act, wait } from '@testing-library/vue'
-// import msgpack from '@msgpack/msgpack'
-import { v4 as uuidv4 } from 'uuid'
-import waait from 'waait'
-import { orchestrator, conductorConfig, elChatDna } from './setup/tryorama'
-import { TIMEOUT } from './setup/globals'
-import { closeTestConductor } from './setup/helpers'
-// import { renderAndWait } from '../test-utils'
-// import HApp from '@/applications/ElementalChat/views/ElementalChat.vue'
+require('regenerator-runtime/runtime.js') // TODO: follow-up on need for this import
+// const { fireEvent, within, act, wait } = require('@testing-library/vue')
+// const msgpack = require('@msgpack/msgpack')
+const { v4: uuidv4 } = require('uuid')
+const waait = require('waait')
+const { conductorConfig, elChatDna, orchestrator } = require('./setup/tryorama.js')
+const { TIMEOUT } = require('./setup/globals.js')
+const { closeTestConductor } = require('./setup/helpers.js')
+// const { renderAndWait } = require('../test-utils.js')
+// const HApp = require('@/applications/ElementalChat/views/ElementalChat.vue')
 
-orchestrator.registerScenario('New Message Scenario', async (scenario, tape) => {
-  let chatter1, chatter2
-  beforeAll(async () => {
-    console.log('---------------> 1')
-    const [conductor] = await scenario.players([conductorConfig])
-    console.log('\n\nconductor : ', conductor)
-    console.log('---------------> 2')
-    // install app into tryorama conductor
-    const [[chatter1Happ], [chatter2Happ]] = await conductor.installAgentsHapps([
-      [[elChatDna]],
-      [[elChatDna]]
-    ])
+console.log(' START with >>>>>>>>>>>>>>>> ', orchestrator)
 
-    console.log('---------------> 3');
-
-    // destructure and define agents
-    ([chatter1] = chatter1Happ.cells)
-    console.log('---------------> 4')
-    console.log(chatter1);
-    ([chatter2] = chatter2Happ.cells)
-  }, TIMEOUT)
-
-  afterAll(() => {
-    if (chatter2) {
-      chatter2.close()
-    }
-    closeTestConductor(chatter1, 'Create Request e2e')
-  })
+orchestrator.registerScenario('New Message Scenario', async (scenario, t) => {
+  console.log(' >>>> SCENARIO ', scenario)
 
   describe('New Message Flow', () => {
+    let chatter1, chatter2
+    beforeAll(async () => {
+      console.log('---------------> 1')
+      const [conductor] = await scenario.players([conductorConfig])
+      console.log('\n\nconductor : ', conductor)
+      console.log('---------------> 2')
+      // install app into tryorama conductor
+      const [[chatter1Happ], [chatter2Happ]] = await conductor.installAgentsHapps([
+        [[elChatDna]],
+        [[elChatDna]]
+      ])
+
+      console.log('---------------> 3');
+
+      // destructure and define agents
+      ([chatter1] = chatter1Happ.cells)
+      console.log('---------------> 4')
+      console.log(chatter1);
+      ([chatter2] = chatter2Happ.cells)
+    }, TIMEOUT)
+
+    afterAll(() => {
+      if (chatter2) {
+        chatter2.close()
+      }
+      closeTestConductor(chatter1, 'Create Request e2e')
+    })
+
     it('returns message', async () => {
       console.log(chatter2)
       // Create a channel
@@ -71,4 +75,8 @@ orchestrator.registerScenario('New Message Scenario', async (scenario, tape) => 
       expect(true).toBe(true)
     })
   })
+})
+
+test('test ', () => {
+  orchestrator.run()
 })
