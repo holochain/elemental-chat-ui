@@ -5,8 +5,8 @@
   "scripts": {
     "serve:dev-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:develop",
     "serve:dev-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:develop",
-    "hc:agent-1": "holochain-run-dna -p 8888 -i elemental-chat-1 -u kitse-proxy://nFCWLsuRC0X31UMv8cJxioL-lBRFQ74UQAsb8qL4XyM/kitsune-quic/h/proxy.holochain.org/p/5775/-- ../elemental-chat/elemental-chat.dna.gz",
-    "hc:agent-2": "holochain-run-dna -p 9999 -i elemental-chat-2 -u kitse-proxy://nFCWLsuRC0X31UMv8cJxioL-lBRFQ74UQAsb8qL4XyM/kitsune-quic/h/proxy.holochain.org/p/5775/-- ../elemental-chat/elemental-chat.dna.gz",
+    "hc:agent-1": "holochain-run-dna -p 8888 -i elemental-chat-1 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/165.22.32.11/p/5778/-- ../elemental-chat/elemental-chat.dna.gz",
+    "hc:agent-2": "holochain-run-dna -p 9999 -i elemental-chat-2 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/165.22.32.11/p/5778/-- ../elemental-chat/elemental-chat.dna.gz",
     "serve:develop": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
     "serve": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:8000/' vue-cli-service serve",
     "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",

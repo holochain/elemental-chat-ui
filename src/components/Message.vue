@@ -30,52 +30,52 @@
   />
 </template>
 <script>
-import { mapState, mapActions } from "vuex";
-import { v4 as uuidv4 } from "uuid";
+import { mapState, mapActions } from 'vuex'
+import { v4 as uuidv4 } from 'uuid'
 export default {
-  name: "Message",
+  name: 'Message',
   components: {},
-  props: ["message", "mode"],
-  data() {
+  props: ['message', 'mode'],
+  data () {
     return {
-      internalMode: "",
-      uuid: "",
-      content: "",
-      createdAt: "xx"
-    };
+      internalMode: '',
+      uuid: '',
+      content: '',
+      createdAt: 'xx'
+    }
   },
   computed: {
-    ...mapState("elementalChat", ["channels"])
+    ...mapState('elementalChat', ['channels'])
   },
   methods: {
-    ...mapActions("elementalChat", ["diplayErrorMessage"]),
-    createMessage() {
+    ...mapActions('elementalChat', ['diplayErrorMessage']),
+    createMessage () {
       const message = {
         uuid: uuidv4(),
         content: this.content
-      };
+      }
       if (!this.channels.length) {
         this.diplayErrorMessage({
-          message: "You must first create a channel before sending a message.",
+          message: 'You must first create a channel before sending a message.',
           shouldShow: true
-        });
+        })
         // refresh error msg setting after 5sec
         setTimeout(() => {
-          this.diplayErrorMessage({ message: "", shouldShow: false });
-        }, 5000);
+          this.diplayErrorMessage({ message: '', shouldShow: false })
+        }, 5000)
       } else {
-        this.$emit("message-created", message);
+        this.$emit('message-created', message)
       }
-      this.content = "";
+      this.content = ''
     }
   },
-  created() {
+  created () {
     if (this.message) {
-      this.internalMode = this.mode;
-      this.content = this.message.message.content;
-      this.createdAt = `${new Date(this.message.createdAt[0] * 1000)}`;
-      this.uuid = this.message.message.uuid;
+      this.internalMode = this.mode
+      this.content = this.message.message.content
+      this.createdAt = `${new Date(this.message.createdAt[0] * 1000)}`
+      this.uuid = this.message.message.uuid
     }
   }
-};
+}
 </script>

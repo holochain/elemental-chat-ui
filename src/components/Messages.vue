@@ -21,7 +21,7 @@
   </v-card>
 </template>
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState, mapGetters } from 'vuex'
 
 export default {
   name: 'Messages',
@@ -42,7 +42,7 @@ export default {
       })
     },
     personScroll () {
-      var container = this.$el.querySelector('#container')
+      const container = this.$el.querySelector('#container')
       container.onscroll = () => {
         this.personScrolling = true
         const height = container.offsetHeight + container.scrollTop
@@ -53,13 +53,13 @@ export default {
     },
     scrollToEnd () {
       if (this.personScrolling) return
-      var container = this.$el.querySelector('#container')
+      const container = this.$el.querySelector('#container')
       container.scrollTop = container.scrollHeight
     }
   },
   computed: {
     ...mapState('holochain', ['conductorDisconnected']),
-    ...mapState('elementalChat', ['channel']),
+    ...mapGetters('elementalChat', ['channel']),
     messages () {
       return this.channel.messages
     }

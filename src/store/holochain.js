@@ -98,7 +98,7 @@ export const callZome = isHoloHosted() ? callZomeHolo : callZomeLocal
 
 // commit, dispatch and state here are relative to the holochain store, not the global store
 let isInitializingHolo = false
-const initializeAppHolo = async (commit, dispatch, state) => {
+const initializeClientHolo = async (commit, dispatch, state) => {
   if (isInitializingHolo) return
   isInitializingHolo = true
   let holoClient
@@ -140,49 +140,45 @@ const initializeAppHolo = async (commit, dispatch, state) => {
 }
 
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
-const initializeAppLocal = (commit, dispatch, _) => {
-  AppWebsocket.connect(WEB_CLIENT_URI, signal =>
-    handleSignal(signal, dispatch)
-  )
-    .then(holochainClient => {
-      console.log('just got holochainClient', holochainClient)
+const initializeClientLocal = async (commit, dispatch, _) => {
+  try {
+    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, signal =>
+      handleSignal(signal, dispatch))
 
-      holochainClient
-        .appInfo({
-          installed_app_id: INSTALLED_APP_ID
-        })
-        .then(appInfo => {
-          const cellId = appInfo.cell_data[0][0]
-          const agentId = cellId[1]
-          console.log('agent key : ', arrayBufferToBase64(agentId))
-          commit('setAgentKey', agentId)
-          commit('setAppInterface', {
-            port: WEB_CLIENT_PORT,
-            appId: INSTALLED_APP_ID,
-            cellId,
-            appVersion: APP_VERSION
-          })
-          console.log('about to commit hcClient', holochainClient)
-          commit('setHolochainClient', holochainClient)
-        })
-      holochainClient.onclose = function (e) {
-        // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
-        // we create new keys... therefore the identity shouold not be held inbetween sessions
-        commit('resetConnectionState')
-        console.log(
-          `Socket is closed. Reconnect will be attempted in ${RECONNECT_SECONDS} seconds.`,
-          e.reason
-        )
-        commit('setReconnecting', RECONNECT_SECONDS)
-      }
+    const appInfo = await holochainClient.appInfo({
+      installed_app_id: INSTALLED_APP_ID
     })
-    .catch(error => {
-      console.log('Connection Error ', error)
+
+    const cellId = appInfo.cell_data[0][0]
+    const agentId = cellId[1]
+    console.log('agent key : ', arrayBufferToBase64(agentId))
+    commit('setAgentKey', agentId)
+    commit('setAppInterface', {
+      port: WEB_CLIENT_PORT,
+      appId: INSTALLED_APP_ID,
+      cellId,
+      appVersion: APP_VERSION
+    })
+    commit('setHolochainClient', holochainClient)
+    dispatch('elementalChat/refreshChatter', null, { root: true })
+
+    holochainClient.client.socket.onclose = function (e) {
+      // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
+      // we create new keys... therefore the identity shouold not be held inbetween sessions
+      commit('resetConnectionState')
+      console.log(
+        `Socket is closed. Reconnect will be attempted in ${RECONNECT_SECONDS} seconds.`,
+        e.reason
+      )
       commit('setReconnecting', RECONNECT_SECONDS)
-    })
+    }
+  } catch (e) {
+    console.log('Connection Error ', e)
+    commit('setReconnecting', RECONNECT_SECONDS)
+  }
 }
 
-const initializeApp = isHoloHosted() ? initializeAppHolo : initializeAppLocal
+const initializeClient = isHoloHosted() ? initializeClientHolo : initializeClientLocal
 
 function conductorConnected (state) {
   return state.reconnectingIn === -1
@@ -206,30 +202,31 @@ export default {
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
-      initializeApp(commit, dispatch, state)
+      initializeClient(commit, dispatch, state)
+
       setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
-            commit('holochain/setReconnecting', state.reconnectingIn - 1)
+            commit('setReconnecting', state.reconnectingIn - 1)
           } else {
-            dispatch('initializeAgent')
+            initializeClient(commit, dispatch, state)
           }
         }
       }, 1000)
     },
     skipBackoff ({ commit }) {
-      commit('holochain/setReconnecting', 0)
+      commit('setReconnecting', 0)
     },
     resetConnectionState ({ commit }) {
-      commit('holochain/resetConnectionState')
+      commit('resetConnectionState')
     },
     async holoLogout ({ rootState, commit, dispatch }) {
       if (rootState.holoClient) {
         await rootState.holoClient.signOut()
       }
-      commit('clearAgentHandle')
-      commit('holochain/setIsHoloSignedIn', false)
-      dispatch('initializeAgent')
+      commit('clearAgentHandle', null, { root: true })
+      commit('setIsHoloSignedIn', false)
+      dispatch('initializeAgent', null, { root: true })
     }
   },
   mutations: {

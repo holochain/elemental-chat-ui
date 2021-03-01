@@ -106,7 +106,7 @@ export default {
   },
   methods: {
     ...mapActions('elementalChat', ['diplayErrorMessage', 'setChannelPolling']),
-    ...mapActions(['skipBackoff']),
+    ...mapActions('holochain', ['skipBackoff']),
     ...mapMutations(['setAgentHandle']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
@@ -122,14 +122,16 @@ export default {
   },
   computed: {
     ...mapState('elementalChat', ['error']),
-    ...mapState([
-      'agentHandle',
-      'needsHandle',
+    ...mapState('holochain', [
       'conductorDisconnected',
       'firstConnect',
       'reconnectingIn',
       'isHoloSignedIn',
       'isChaperoneDisconnected'
+    ]),
+    ...mapState([
+      'agentHandle',
+      'needsHandle'
     ]),
     shouldDisplayNickPrompt () {
       return (

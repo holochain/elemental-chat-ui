@@ -28,8 +28,9 @@ export default new Vuex.Store({
   actions: {
     initializeStore ({ dispatch }) {
       dispatch('initializeAgent')
+      dispatch('holochain/initialize')
     },
-    initializeAgent ({ commit, dispatch }) {
+    initializeAgent ({ commit }) {
       const storedAgentHandle = window.localStorage.getItem('agentHandle')
       if (storedAgentHandle) {
         commit('setAgentHandle', storedAgentHandle)
@@ -37,7 +38,6 @@ export default new Vuex.Store({
       } else {
         commit('needsHandle', true)
       }
-      dispatch('holochain/initialize')
     }
   },
   modules: {
