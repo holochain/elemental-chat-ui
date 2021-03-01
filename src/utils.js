@@ -13,3 +13,8 @@ export function toUint8Array (value) {
     return value
   }
 }
+
+export function log (action, data) {
+  console.log(Date.now(), action)
+  if (data !== undefined) console.log(data)
+}

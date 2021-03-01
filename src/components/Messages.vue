@@ -58,7 +58,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['conductorDisconnected']),
+    ...mapState('holochain', ['conductorDisconnected']),
     ...mapState('elementalChat', ['channel']),
     messages () {
       return this.channel.messages

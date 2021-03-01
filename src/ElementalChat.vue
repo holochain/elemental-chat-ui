@@ -20,7 +20,7 @@
               icon
               v-bind="attrs"
               v-on="on"
-              @click="updateHandle()"
+              @click="editHandle()"
               small
             >
               <v-icon>mdi-account-cog</v-icon>
@@ -195,11 +195,11 @@ export default {
   methods: {
     ...mapActions('elementalChat', [
       'listChannels',
-      'updateHandle',
+      'editHandle',
       'getStats',
       'resetStats'
     ]),
-    ...mapActions(['holoLogout']),
+    ...mapActions('holochain', ['holoLogout']),
     openChannel () {
       this.refreshKey += 1
     },
@@ -211,8 +211,10 @@ export default {
     }
   },
   computed: {
-    ...mapState(['conductorDisconnected']),
-    ...mapState(['appInterface']),
+    ...mapState('holochain', [
+      'conductorDisconnected',
+      'appInterface',
+      'isHoloSignedIn']),
     ...mapState('elementalChat', [
       'channels',
       'channel',
@@ -220,7 +222,6 @@ export default {
       'showStats',
       'statsLoading'
     ]),
-    ...mapState(['isHoloSignedIn']),
     shouldDisplayStats () {
       return this.showStats
     },

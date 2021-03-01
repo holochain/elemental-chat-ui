@@ -1,17 +1,12 @@
-import { isHoloHosted, toUint8Array } from '@/utils'
+import { toUint8Array, log } from '@/utils'
+import { callZome } from './holochain'
 
-function pollMessages (dispatch, active_chatter, channel) {
+function pollMessages (dispatch, activeChatter, channel) {
   dispatch('listMessages', {
     channel: channel,
     chunk: { start: 0, end: 0 },
-    active_chatter
+    active_chatter: activeChatter
   })
-}
-
-function log (action, data) {
-  // eslint-disable-line
-  console.log(Date.now(), action)
-  if (data !== undefined) console.log(data)
 }
 
 function sortChannels (val) {
@@ -19,56 +14,21 @@ function sortChannels (val) {
   return val
 }
 
-const doResetConnection = async dispatch => {
-  return dispatch('resetConnectionState', null, { root: true })
-}
-
-const callZomeHolo = (_, rootState, zome_name, fn_name, payload) => {
-  return rootState.holoClient.zomeCall(
-    'elemental-chat', // this dna_alias should be whatever is set in HHA
-    zome_name,
-    fn_name,
-    payload
-  )
-}
-
-const callZomeLocal = async (
-  dispatch,
-  rootState,
-  zome_name,
-  fn_name,
-  payload,
-  timeout
-) => {
-  if (rootState.conductorDisconnected) {
-    log('callZome called when disconnected from conductor')
-    return
-  }
-  try {
-    const result = await rootState.holochainClient.callZome(
-      {
-        cap: null,
-        cell_id: rootState.appInterface.cellId,
-        zome_name,
-        fn_name,
-        provenance: rootState.agentKey,
-        payload
-      },
-      timeout
-    )
-    return result
-  } catch (error) {
-    log('ERROR: callZome threw error', error)
-    if (error == 'Error: Socket is not open') {
-      return doResetConnection(dispatch)
-    }
-  }
-}
-
-const callZome = isHoloHosted() ? callZomeHolo : callZomeLocal
-
 let listChannelsIntervalId = 0
-let pollMessagesIntervalId = 0
+
+export const handleSignal = (signal, dispatch) => {
+  const signalData = signal.data.payload
+  const { signal_name: signalName, signal_payload: signalPayload } = signalData
+  switch (signalName) {
+    case 'Message':
+      console.log('INCOMING SIGNAL > NEW MESSAGE')
+      console.log('payload' + JSON.stringify(signalPayload))
+      dispatch('elementalChat/addSignalMessageToChannel', signalPayload, { root: true })
+      break
+    default:
+      throw new Error('Received an unsupported signal by name : ', signalName)
+  }
+}
 
 export default {
   namespaced: true,
@@ -89,7 +49,7 @@ export default {
     }
   },
   actions: {
-    updateHandle: async ({ rootState }) => {
+    editHandle: async ({ rootState }) => {
       log('Updating Handle')
       rootState.needsHandle = true
     },
@@ -161,7 +121,6 @@ export default {
             log('listChannels zome returned undefined')
           } else {
             commit('setChannels', result.channels)
-            log('put listChannels dexie start')
             let newChannels = []
             newChannels = result.channels
 
@@ -253,7 +212,6 @@ export default {
         chunk: payload.chunk,
         active_chatter: payload.active_chatter
       }
-      const uuid = payload.channel.channel.uuid
 
       callZome(
         dispatch,
@@ -285,7 +243,6 @@ export default {
           }
 
           commit('setChannelMessages', internalChannel)
-          log('put listMessages dexie start')
         })
         .catch(error => log('listMessages zome done', error))
     },
