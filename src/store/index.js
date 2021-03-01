@@ -24,15 +24,13 @@ Vue.use(Vuex)
 
 const RECONNECT_SECONDS = 15
 
-const APP_VERSION = process.env.VUE_APP_UI_VERSION
-
 const DNA_VERSION = 'alpha19'
 const DNA_UUID = '0001'
 
 const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
   ? process.env.VUE_APP_INSTALLED_APP_ID
-  : // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
-  process.env.VUE_APP_WEB_CLIENT_PORT === '8888'
+  // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
+  : process.env.VUE_APP_WEB_CLIENT_PORT === '8888'
     ? 'elemental-chat-1'
     : process.env.VUE_APP_WEB_CLIENT_PORT === '9999'
       ? 'elemental-chat-2'
@@ -107,7 +105,7 @@ const clearStateIfDnaChanged = (appInfo, commit, dispatch, state) => {
     ) {
       state.hcDb.agent.put(dnaHash, 'dnaHash')
     } else {
-      if (dnaHash != storedDnaHash) {
+      if (dnaHash !== storedDnaHash) {
         commit('contentReset')
         dispatch('elementalChat/resetState')
       }
@@ -156,6 +154,8 @@ const initializeAppHolo = async (commit, dispatch, state) => {
   }
 
   const appInfo = await holoClient.appInfo()
+  const cellId = appInfo.cell_data[0][0]
+  commit('setDnaHash', 'u' + Buffer.from(cellId[0]).toString('base64'))
 
   clearStateIfDnaChanged(appInfo, commit, dispatch, state)
 
@@ -181,9 +181,9 @@ const initializeAppLocal = (commit, dispatch, state) => {
           commit('setAppInterface', {
             port: WEB_CLIENT_PORT,
             appId: INSTALLED_APP_ID,
-            cellId,
-            appVersion: APP_VERSION
+            cellId
           })
+          commit('setDnaHash', 'u' + Buffer.from(cellId[0]).toString('base64'))
           commit('setHolochainClient', holochainClient)
           dispatch('elementalChat/refreshChatter')
         })
@@ -229,6 +229,7 @@ export default new Vuex.Store({
     needsHandle: false,
     agentHandle: '',
     appInterface: null,
+    dnaHash: null,
     firstConnect: false
   },
   mutations: {
@@ -244,6 +245,9 @@ export default new Vuex.Store({
     },
     setAppInterface (state, payload) {
       state.appInterface = payload
+    },
+    setDnaHash (state, payload) {
+      state.dnaHash = payload
     },
     setReconnecting (state, payload) {
       state.firstConnect = false
@@ -281,6 +285,7 @@ export default new Vuex.Store({
       state.conductorDisconnected = true
       state.reconnectingIn = RECONNECT_SECONDS
       state.appInterface = null
+      state.dnaHash = null
     }
   },
   actions: {

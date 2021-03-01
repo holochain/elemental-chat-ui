@@ -57,9 +57,9 @@
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
           </template>
-          <div v-if="!appInterface">Loading Version Info...</div>
-          <div v-if="appInterface">UI: {{ appInterface.appVersion }}</div>
-          <div v-if="appInterface">DNA: {{ appInterface.appId }}</div>
+          <div v-if="!dnaHash">Loading Version Info...</div>
+          <div v-if="dnaHash">UI: {{ APP_VERSION }}</div>
+          <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
@@ -179,61 +179,65 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions } from 'vuex'
 export default {
-  name: "ElementalChat",
+  name: 'ElementalChat',
   components: {
-    Channels: () => import("../components/Channels.vue"),
-    Messages: () => import("../components/Messages.vue")
+    Channels: () => import('../components/Channels.vue'),
+    Messages: () => import('../components/Messages.vue')
   },
-  data() {
+  data () {
     return {
       showAdd: false,
       refreshKey: 0
-    };
+    }
   },
   methods: {
-    ...mapActions("elementalChat", [
-      "listChannels",
-      "updateHandle",
-      "getStats",
-      "resetStats"
+    ...mapActions('elementalChat', [
+      'listChannels',
+      'updateHandle',
+      'getStats',
+      'resetStats'
     ]),
-    ...mapActions(["holoLogout"]),
-    openChannel() {
-      this.refreshKey += 1;
+    ...mapActions(['holoLogout']),
+    openChannel () {
+      this.refreshKey += 1
     },
-    channelAdded() {
-      this.showAdd = false;
+    channelAdded () {
+      this.showAdd = false
     },
-    visitPocPage() {
-      window.open("https://holo.host/faq-tag/elemental-chat/", "_blank");
+    visitPocPage () {
+      window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
     }
   },
   computed: {
-    ...mapState(["conductorDisconnected"]),
-    ...mapState(["appInterface"]),
-    ...mapState("elementalChat", [
-      "channels",
-      "channel",
-      "stats",
-      "showStats",
-      "statsLoading"
+    ...mapState(['conductorDisconnected']),
+    ...mapState(['appInterface']),
+    ...mapState(['dnaHash']),
+    ...mapState('elementalChat', [
+      'channels',
+      'channel',
+      'stats',
+      'showStats',
+      'statsLoading'
     ]),
-    ...mapState(["isHoloSignedIn"]),
-    shouldDisplayStats() {
-      return this.showStats;
+    ...mapState(['isHoloSignedIn']),
+    shouldDisplayStats () {
+      return this.showStats
     },
-    statsAreLoading() {
-      return this.statsLoading;
+    statsAreLoading () {
+      return this.statsLoading
     }
   },
   watch: {
-    conductorDisconnected(val) {
-      if (!val) this.listChannels({ category: "General" });
+    conductorDisconnected (val) {
+      if (!val) this.listChannels({ category: 'General' })
     }
+  },
+  created () {
+    this.APP_VERSION = process.env.VUE_APP_UI_VERSION
   }
-};
+}
 </script>
 <style scoped>
 .logout {
