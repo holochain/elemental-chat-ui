@@ -27,7 +27,6 @@ orchestrator.registerScenario('New Message Scenario', async (scenario, tape) => 
     // destructure and define agents
     ([chatter1] = chatter1Happ.cells)
     console.log('---------------> 4')
-
     console.log(chatter1);
     ([chatter2] = chatter2Happ.cells)
   }, TIMEOUT)
@@ -72,8 +71,4 @@ orchestrator.registerScenario('New Message Scenario', async (scenario, tape) => 
       expect(true).toBe(true)
     })
   })
-
-  // tape.ok()
 })
-
-orchestrator.run()

@@ -2,6 +2,7 @@
   "name": "elemental-chat-ui",
   "version": "0.0.1-alpha29",
   "private": true,
+  "type": "module",
   "scripts": {
     "serve": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:8000/' vue-cli-service serve",
     "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
@@ -11,11 +12,14 @@
     "serve:develop": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
     "lint": "vue-cli-service lint",
     "fetch-dna": "mkdir -p dnas && sh ./scripts/fetch-dna.sh",
+    "babel": "./node_modules/.bin/babel",
     "test:unit": "vue-cli-service test:unit",
-    "test:integration": "nix-shell --command 'VUE_APP_CONTEXT='holochain' npx jest --watch --runInBand --detectOpenHandles --config=./jest.hcIntegration.config.js' && exit",
+    "test:integration": "nix-shell --command 'VUE_APP_CONTEXT='holochain' npx babel-node tests/integration/index.js --config=./jest.hcIntegration.config.js --watch --runInBand --detectOpenHandles' && exit",
     "test:e2e": "vue-cli-service test:e2e"
   },
   "dependencies": {
+    "@babel/cli": "^7.13.0",
+    "@babel/preset-env": "^7.13.8",
     "@holo-host/web-sdk": "Holo-Host/web-sdk#6d3fa2999042a0fa9ec7532650e91d5f05063239",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@testing-library/jest-dom": "^5.11.9",
@@ -32,12 +36,13 @@
     "vue-router": "^3.2.0",
     "vuetify": "^2.2.11",
     "vuex": "^3.4.0",
-    "waait": "^1.0.5"
+    "waait": "^1.0.5",
+    "webpack": "^5.24.2"
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",
-    "@babel/preset-env": "^7.13.5",
-    "@holochain/tryorama": "^0.4.0-dev.4",
+    "@babel/node": "^7.13.0",
+    "@holochain/tryorama": "git://github.com/holochain/tryorama.git#8e32511fa56db1a3394bd88841ba05fc9f30ffbc",
     "@msgpack/msgpack": "^2.4.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-e2e-cypress": "~4.5.0",

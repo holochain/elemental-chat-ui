@@ -1,20 +1,20 @@
 const {
   transformIgnorePatterns,
   moduleFileExtensions
-} = require("./jest.common.config");
+} = require('./jest.common.config')
 
 module.exports = {
-  preset: "@vue/cli-plugin-unit-jest",
+  preset: '@vue/cli-plugin-unit-jest',
   verbose: true,
-  testEnvironment: "jsdom",
+  testEnvironment: 'jsdom',
   transform: {
-    "^.+\\.vue$": "vue-jest",
-    ".*\\.(js)$": "babel-jest",
-    "^.+\\.tsx?$": "ts-jest"
+    '^.+\\.vue$': 'vue-jest',
+    '.*\\.(js)$': 'babel-jest', // babel-register
+    '^.+\\.tsx?$': 'ts-jest'
   },
-  roots: ["<rootDir>/src/", "<rootDir>/tests/"],
+  roots: ['<rootDir>/src/', '<rootDir>/tests/'],
   transformIgnorePatterns,
   moduleFileExtensions,
   collectCoverage: true,
-  collectCoverageFrom: ["**/*.{js,vue}", "!**/node_modules/**"]
+  collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**']
 }

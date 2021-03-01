@@ -1,3 +1,4 @@
+import path from 'path'
 import {
   Orchestrator,
   Config,
@@ -5,7 +6,7 @@ import {
   ProxyConfigType
 } from '@holochain/tryorama'
 
-const path = require('path')
+const __dirname = path.resolve()
 
 export const RETRY_DELAY = 1000
 export const RETRY_COUNT = 10
@@ -33,7 +34,7 @@ const network = {
     default_rpc_multi_timeout_ms: 2000, // default 2000
     agent_info_expires_after_ms: 1000 * 60 * 20 // default 1000 * 60 * 20 (20 minutes)
   }
-};
+}
 
 export const orchestrator = new Orchestrator()
 export const conductorConfig = Config.gen() // Config.gen({ network })
