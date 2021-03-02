@@ -69,10 +69,10 @@ signal:
   signalName: Message
 
 TODO
-variable names: message.message, and channel.channel. should be messageEl.message, channelEl.entry, argument names are messageElement, and message. TBD
 addMessageToChannel is overloaded in confusing way. Action and mutation take different typed args for `message`
+optimistic update for adding a channel (? or does this break stuff? In which case, loading indicator)
+
 
 Questions
-  Is there a better way to handle the initialization? Calling initializeApp from initializeAgent feels weird to me.
-  Should channel be stored in addition to channels? Alternative is just to store "currentChannelId", and create a getter to fetch the actual channel
   Investigate addSignalChannel. Can we remove it?
+  is adding a message currently optimistic?

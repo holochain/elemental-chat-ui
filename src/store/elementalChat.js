@@ -68,7 +68,7 @@ export default {
       const committedChannel = payload
       // don't add channel if already exists
       const channelExists = !!state.channels.find(
-        channel => channel.channel.uuid === committedChannel.channel.uuid
+        channel => channel.entry.uuid === committedChannel.entry.uuid
       )
       if (channelExists) return
 
@@ -78,7 +78,7 @@ export default {
       log('received channel : ', committedChannel)
       committedChannel.last_seen = { First: null }
       commit('createChannel', { ...committedChannel, messages: [] })
-      commit('setCurrentChannelId', committedChannel.channel.uuid)
+      commit('setCurrentChannelId', committedChannel.entry.uuid)
     },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       log('createChannel start')
@@ -99,7 +99,7 @@ export default {
           committedChannel.last_seen = { First: null }
           commit('createChannel', { ...committedChannel, messages: [] })
           log('created channel : ', committedChannel)
-          commit('setCurrentChannelId', committedChannel.channel.uuid)
+          commit('setCurrentChannelId', committedChannel.entry.uuid)
         })
         .catch(error => log('createChannel zome error', error))
     },
@@ -118,7 +118,7 @@ export default {
             newChannels = result.channels
 
             if (getters.channel.info.name === '' && result.channels.length > 0) {
-              commit('setCurrentChannelId', result.channels[0].channel.uuid)
+              commit('setCurrentChannelId', result.channels[0].entry.uuid)
             }
 
             // Get messages for the newChannels without active_chatter
@@ -151,7 +151,7 @@ export default {
       }
       const holochainPayload = {
         last_seen: lastSeen,
-        channel: payload.channel.channel,
+        channel: payload.channel.entry,
         message: {
           ...payload.message,
           content: `${rootState.agentHandle.toUpperCase()}:
@@ -193,11 +193,11 @@ export default {
         })
         .catch(error => log('signalMessageSent zome error:', error))
     },
-    async listMessages ({ commit, state, rootState, dispatch }, payload) {
+    async listMessages ({ commit, rootState, dispatch }, payload) {
       log('listMessages start')
       log('listMessages payload', payload)
       const holochainPayload = {
-        channel: payload.channel.channel,
+        channel: payload.channel.entry,
         chunk: payload.chunk,
         active_chatter: payload.active_chatter
       }
@@ -255,7 +255,7 @@ export default {
 
       // verify channel (within which the message belongs) exists
       const appChannel = state.channels.find(
-        c => c.channel.uuid === channel.channel.uuid
+        c => c.entry.uuid === channel.entry.uuid
       )
       if (!appChannel) return
 
@@ -265,7 +265,7 @@ export default {
 
       // verify message for channel does not already exist
       const messageExists = !!appChannel.messages.find(
-        m => message.message.uuid === m.message.uuid
+        m => message.entry.uuid === m.entry.uuid
       )
       if (messageExists) return
 
@@ -274,12 +274,12 @@ export default {
 
       log('got message', message)
       log(
-        `adding message to the channel ${appChannel.channel.uuid}`,
+        `adding message to the channel ${appChannel.entry.uuid}`,
         appChannel
       )
 
       state.channels = state.channels.map(c => {
-        if (c.channel.uuid === channel.channel.uuid) {
+        if (c.entry.uuid === channel.entry.uuid) {
           return appChannel
         } else {
           return c
@@ -287,8 +287,8 @@ export default {
       })
 
       // Set the updated channel to unseen if it's not the current channel
-      if (state.currentChannelId !== appChannel.channel.uuid) {
-        _setUnseen(state, appChannel.channel.uuid)
+      if (state.currentChannelId !== appChannel.entry.uuid) {
+        _setUnseen(state, appChannel.entry.uuid)
       }
     },
     setCurrentChannelId (state, payload) {
@@ -297,7 +297,7 @@ export default {
     setChannels (state, payload) {
       payload.map(channel => {
         const found = state.channels.find(
-          c => c.channel.uuid === channel.channel.uuid
+          c => c.entry.uuid === channel.entry.uuid
         )
         if (found) {
           channel.unseen = found.unseen
@@ -310,7 +310,7 @@ export default {
     setChannelMessages (state, payload) {
       console.log('setting payload', payload)
       state.channels = state.channels.map(channel =>
-        channel.channel.uuid !== payload.channel.uuid
+        channel.entry.uuid !== payload.entry.uuid
           ? channel
           : { ...channel, ...payload })
     },
@@ -346,14 +346,14 @@ export default {
     channel: state => {
       const emptyChannel = {
         info: { name: '' },
-        channel: { category: 'General', uuid: '' },
+        entry: { category: 'General', uuid: '' },
         messages: [],
         unseen: false
       }
 
       if (state.currentChannelId === null) return emptyChannel
 
-      const channel = state.channels.find(channel => channel.channel.uuid === state.currentChannelId)
+      const channel = state.channels.find(channel => channel.entry.uuid === state.currentChannelId)
       if (!channel) {
         console.error(`Couldn't find channel with uuid: ${state.currentChannelId}`)
         return emptyChannel
@@ -366,7 +366,7 @@ export default {
 
 function _setUnseen (state, uuid) {
   // find channel by uuid and update unseen when found
-  const channel = state.channels.find(channel => channel.channel.uuid === uuid)
+  const channel = state.channels.find(channel => channel.entry.uuid === uuid)
 
   if (channel) {
     log('setting unseen for channel id:', uuid)
@@ -378,7 +378,7 @@ function _setCurrentChannelId (state, uuid) {
   log('setCurrentChannelId', uuid)
   state.currentChannelId = uuid
 
-  const channel = state.channels.find(channel => channel.channel.uuid === uuid)
+  const channel = state.channels.find(channel => channel.entry.uuid === uuid)
 
   if (channel) {
     log('clearing unseen for channel id:', uuid)

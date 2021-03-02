@@ -26,7 +26,7 @@
             :key="i"
             @click="
               $emit('open-channel');
-              setCurrentChannelId(channel.channel.uuid);
+              setCurrentChannelId(channel.entry.uuid);
             "
           >
             <v-list-item-icon>

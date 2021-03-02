@@ -4,12 +4,12 @@
       <ul class="pb-10 pl-0">
         <li
           v-for="message in messages"
-          :key="message.message.uuid"
+          :key="message.entry.uuid"
           class="message"
         >
           <message
             :message="message"
-            :key="message.message.uuid"
+            :key="message.entry.uuid"
             mode="display"
           />
         </li>

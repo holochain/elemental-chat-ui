@@ -122,7 +122,7 @@
         </v-col>
         <v-col cols="7" md="9">
           <v-card class="ma-0 pt-n1 pl-1" dark>
-            <messages :key="channel.channel.uuid" :channel="channel" />
+            <messages :key="channel.entry.uuid" :channel="channel" />
           </v-card>
         </v-col>
       </v-row>
@@ -217,7 +217,6 @@ export default {
       'isHoloSignedIn']),
     ...mapState('elementalChat', [
       'channels',
-      'channel',
       'stats',
       'showStats',
       'statsLoading'
