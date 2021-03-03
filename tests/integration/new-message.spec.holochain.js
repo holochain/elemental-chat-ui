@@ -61,24 +61,17 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     await http_ctrls.close();
 
     console.log('Shutting down player conductors...')
-    // if (bobboChat) {
-    //   await closeTestConductor(bobboChat, 'Create new Message')
-    // }
-    // await closeTestConductor(aliceChat, 'Create new Message')
+    if (bobboChat) {
+      await closeTestConductor(bobboChat, 'Create new Message')
+    }
+    await closeTestConductor(aliceChat, 'Create new Message')
   })
 
   describe('New Message Flow', () => {
     it('creates and displays new message', async () => {
       // *********
-      // Log into hApp
+      // register nickname
       // *********
-      // wait for the signup/signin modal to load
-      await wait(4000)
-
-      await page.waitForSelector('iframe')
-      const iframe = await findIframe(page, CHAPERONE_SERVER_URL)
-      await iframe.$('.modal-open')
-
       // wait for home page to load
       await wait(3000)
       const headers = await page.$$('h1')
@@ -93,60 +86,50 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await wait(3000)
       const buttons = await page.$$('button')
 
-      // *********
-      // Create new Channel
-      // *********
+      // // *********
+      // // create new channel
+      // // *********
       const channelId = uuidv4()
       const newChannel = {
         name: 'Test Channel',
         channel: { category: 'General', uuid: channelId }
       }
 
-      // Create a channel
+      // create a channel in tyrorama
       const channel = await aliceChat.call('chat', 'create_channel', newChannel)
       console.log(' NEW CHANNEL : ', channel)
 
-      ////////////////////////////////
-      // Enter into UI
-       ////////////////////////////////
-
-       // *********
-      // Create new Message
+      //  *********
+      // create new message
       // *********
-      // const { debug, getByText, getByLabelText } = await renderAndWait(HApp)
-      // debug()
+      const { debug, getByText, getByLabelText } = await renderAndWait(HApp)
+      debug()
 
-      // await wait(() => getByText('Elemental Chat'))
-      // debug()
+      await wait(() => getByText('Elemental Chat'))
+      debug()
 
-      // const newMessage = {
-      //   last_seen: { First: null },
-      //   channel: channel.channel,
-      //   chunk: 0,
-      //   message: {
-      //     uuid: uuidv4(),
-      //     content: 'Hello from alice :)'
-      //   }
-      // }
+      const newMessage = {
+        last_seen: { First: null },
+        channel: channel.channel,
+        chunk: 0,
+        message: {
+          uuid: uuidv4(),
+          content: 'Hello from alice :)'
+        }
+      }
 
-      //   fireEvent.change(getByLabelText('Send a message'), { target: { value: newMessage.message } })
-      //   fireEvent.keyPress(input, { key: "Enter", code: 13, charCode: 13 });
-      // })
+      await page.type(`#counterpartyId`, newMessage.message, { delay: 10 })
+        const sendButton = await page.$$('button.send___2L0x3')
+        sendButton[5].click()
+      })
 
-      // // alice sends a message
-      // const callListMessages = await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: {start:0, end: 1} })
-      // const messages = await waitZomeResult(callListMessages, 90000, 10000)
-      // console.log(' LIST MESSAGES', messages)
+      // alice sends a message
+      const callListMessages = await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: {start:0, end: 1} })
+      const messages = await waitZomeResult(callListMessages, 90000, 10000)
+      console.log(' LIST MESSAGES', messages)
 
-      // expect(getByText(newMessage.message)).toBeInTheDocument()
-
-      // // await waait(7500)
-
-      // expect(message).toBeTruthy()
-
-      expect(true).toBe(true)
+      expect(getByText(newMessage.message)).toBeInTheDocument()
     })
-  })
 })
 
 orchestrator.run()
