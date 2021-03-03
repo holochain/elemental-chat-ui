@@ -7,6 +7,7 @@ import vuetify from "./plugins/vuetify";
 import Dexie from "dexie";
 const hcDb = new Dexie("holochain");
 
+console.log("--->", store);
 const storeSubscriber = store;
 storeSubscriber.state.hcDb = hcDb;
 Vue.config.productionTip = false;

@@ -48,3 +48,10 @@ if (
 }
 
 jest.run(argv)
+  .then((success) => {
+    console.log('Successfully completed Jest integration tests: ', success)
+    process.exit()
+  })
+  .catch((failure) => {
+    console.error('Error running Jest integration tests: ', failure)
+  })

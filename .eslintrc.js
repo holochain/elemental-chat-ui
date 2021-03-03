@@ -4,11 +4,16 @@ module.exports = {
     node: true
   },
   plugins: ["jest"],
-  extends: ["plugin:vue/essential", "eslint:recommended", "@vue/prettier", "plugin:jest/recommended"],
+  extends: [
+    "plugin:vue/essential",
+    "eslint:recommended",
+    "@vue/prettier",
+    "plugin:jest/recommended"
+  ],
   globals: {
     expect: "readonly",
     it: "readonly",
-    describe: "readonly",      
+    describe: "readonly",
     before: "readonly",
     after: "readonly"
   },
@@ -18,13 +23,6 @@ module.exports = {
   rules: {
     "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off"
-  },
-  globals: {
-    expect: "readonly",
-    it: "readonly",
-    describe: "readonly",      
-    before: "readonly",
-    after: "readonly"
   },
   overrides: [
     {

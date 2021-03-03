@@ -1,7 +1,7 @@
 #!/bin/bash
 build () {
     sed -i "s/const DNA_UUID = \".*\"/const DNA_UUID = \"$1\"/" src/store/index.js
-    npm run build-self-hosted
+    yarn run build-self-hosted
     cd dist
     rm service-worker.js
     zip -r elemental-chat.zip .
