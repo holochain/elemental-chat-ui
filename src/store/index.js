@@ -147,6 +147,7 @@ const initializeAppHolo = async (commit, dispatch, state) => {
     try {
       await holoClient.signIn()
       commit('setIsHoloSignedIn', true)
+      dispatch('elementalChat/refreshChatter')
     } catch (e) {
       commit('setIsChaperoneDisconnected', true)
       return

@@ -105,7 +105,7 @@ export default {
           await rootState.hcDb.elementalChat.get('General').then(async c => {
             if (c === undefined) channels = 0
             else channels = c.length
-            for (let i = 0; i < c.length; i++) {
+            for (let i = 0; i < channels; i++) {
               await rootState.hcDb.elementalChat
                 .get(c[i].channel.uuid)
                 .then(m => {
@@ -295,10 +295,10 @@ export default {
 
           console.log('CHANNEL:', payload.channel)
 
-          message['entryHash'] = toUint8Array(message['entryHash'])
-          message['createdBy'] = toUint8Array(message['createdBy'])
+          message.entryHash = toUint8Array(message.entryHash)
+          message.createdBy = toUint8Array(message.createdBy)
           const channel = payload.channel
-          channel.info['created_by'] = toUint8Array(channel.info['created_by'])
+          channel.info.created_by = toUint8Array(channel.info.created_by)
           const signalMessageData = {
             messageData: message,
             channelData: channel
@@ -312,7 +312,7 @@ export default {
       log('signalMessageSent start')
       callZome(dispatch, rootState, 'chat', 'signal_chatters', payload, 60000)
         .then(result => {
-          log(`signalMessageSent zome done`, result)
+          log('signalMessageSent zome done', result)
         })
         .catch(error => log('signalMessageSent zome error:', error))
     },
