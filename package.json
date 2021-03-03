@@ -6,7 +6,7 @@
     "serve:dev-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:develop",
     "serve:dev-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:develop",
     "serve:develop": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
-    "serve": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24273/' vue-cli-service serve",
+    "serve": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:8000/' vue-cli-service serve",
     "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
     "build-self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
@@ -14,7 +14,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@holo-host/web-sdk": "Holo-Host/web-sdk#eb0acf3470ac449af90b82a8dcc52462de7c364b",
+    "@holo-host/web-sdk": "^0.4.0",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "async-wait-until": "^1.2.6",
     "core-js": "^3.6.5",
