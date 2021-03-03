@@ -1,9 +1,15 @@
+import { takeSnapshot } from '../../test-utils'
+
 export const TIMEOUT = 300000
 export const POLLING_INTERVAL = 1000
 export const HOSTED_AGENT = {
   email: 'alice@holo.host',
   password: '12344321'
 }
+
+export const findElementByText = async (element, text, page) => await page.$x(`//${element}[contains(., ${text})]`)
+
+export const toBeOnPage = (element, text, page) => !!findElementByText(element, text, page)
 
 export const closeTestConductor = async (agent, testName) => {
   try {
