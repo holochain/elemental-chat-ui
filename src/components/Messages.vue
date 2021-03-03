@@ -10,13 +10,12 @@
           <message
             :message="message"
             :key="message.entry.uuid"
-            mode="display"
           />
         </li>
       </ul>
     </div>
     <v-card-actions class="pa-0 pt-1">
-      <message mode="create" @message-created="messageCreated" />
+      <message :handleCreateMessage="handleCreateMessage" />
     </v-card-actions>
   </v-card>
 </template>
@@ -34,9 +33,9 @@ export default {
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['addMessageToChannel']),
-    messageCreated (message) {
-      this.addMessageToChannel({
+    ...mapActions('elementalChat', ['createMessage']),
+    handleCreateMessage (message) {
+      this.createMessage({
         channel: this.channel,
         message: message
       })

@@ -69,10 +69,10 @@ signal:
   signalName: Message
 
 TODO
-addMessageToChannel is overloaded in confusing way. Action and mutation take different typed args for `message`
 optimistic update for adding a channel (? or does this break stuff? In which case, loading indicator)
-
 
 Questions
   Investigate addSignalChannel. Can we remove it?
   is adding a message currently optimistic?
+  why doesn't "unseen" + clear when switching to a channel?
+

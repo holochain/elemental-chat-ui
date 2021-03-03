@@ -160,7 +160,8 @@ const initializeClientLocal = async (commit, dispatch, _) => {
       appVersion: APP_VERSION
     })
     commit('setHolochainClient', holochainClient)
-    dispatch('elementalChat/refreshChatter', null, { root: true })
+    // TODO: remove this call to refreshChatter, and the refreshChatter action
+    // dispatch('elementalChat/refreshChatter', null, { root: true })
 
     holochainClient.client.socket.onclose = function (e) {
       // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),

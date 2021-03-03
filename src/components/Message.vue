@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="internalMode === 'display'" dark outlined class="pa-1 mb-1">
+  <v-card v-if="isDisplayMode" dark outlined class="pa-1 mb-1">
     <v-card-text class="pl-0">
       <v-tooltip left>
         <template v-slot:activator="{ on, attrs }">
@@ -35,7 +35,11 @@ import { v4 as uuidv4 } from 'uuid'
 export default {
   name: 'Message',
   components: {},
-  props: ['message', 'mode'],
+  props: {
+    message: Object,
+    mode: String,
+    handleCreateMessage: Function
+  },
   data () {
     return {
       internalMode: '',
@@ -45,7 +49,10 @@ export default {
     }
   },
   computed: {
-    ...mapState('elementalChat', ['channels'])
+    ...mapState('elementalChat', ['channels']),
+    isDisplayMode () {
+      return !!this.message
+    }
   },
   methods: {
     ...mapActions('elementalChat', ['diplayErrorMessage']),
@@ -64,14 +71,13 @@ export default {
           this.diplayErrorMessage({ message: '', shouldShow: false })
         }, 5000)
       } else {
-        this.$emit('message-created', message)
+        this.handleCreateMessage(message)
       }
       this.content = ''
     }
   },
   created () {
     if (this.message) {
-      this.internalMode = this.mode
       this.content = this.message.entry.content
       this.createdAt = `${new Date(this.message.createdAt[0] * 1000)}`
       this.uuid = this.message.entry.uuid

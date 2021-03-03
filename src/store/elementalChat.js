@@ -1,5 +1,7 @@
 import { toUint8Array, log } from '@/utils'
+import { arrayBufferToBase64 } from '@/store/utils'
 import { callZome } from './holochain'
+import { uniqBy } from 'lodash'
 
 function pollMessages (dispatch, activeChatter, channel) {
   dispatch('listMessages', {
@@ -62,7 +64,7 @@ export default {
       }, 300000) // Polling every 5mins
     },
     addSignalChannel: async (
-      { commit, state, dispatch },
+      { commit, state },
       payload
     ) => {
       const committedChannel = payload
@@ -136,13 +138,10 @@ export default {
         message: payload.messageData
       })
     },
-    addMessageToChannel: async (
-      { commit, rootState, state, dispatch },
+    createMessage: async (
+      { commit, rootState, dispatch },
       payload
     ) => {
-      log('addMessageToChannel start')
-
-      console.log('payload', payload)
       let lastSeen = payload.channel.last_seen
       if (payload.channel.last_seen.Message) {
         lastSeen = {
@@ -154,44 +153,48 @@ export default {
         channel: payload.channel.entry,
         message: {
           ...payload.message,
-          content: `${rootState.agentHandle.toUpperCase()}:
-      ${payload.message.content}`
+          content: `${rootState.agentHandle}: ${payload.message.content}`
         },
         chunk: 0
       }
-      log('addMessageToChannel start', holochainPayload)
-      callZome(
-        dispatch,
-        rootState,
-        'chat',
-        'create_message',
-        holochainPayload,
-        60000
-      )
-        .then(message => {
-          log('addMessageToChannel zome done')
-          commit('addMessageToChannel', { channel: payload.channel, message })
 
-          message.entryHash = toUint8Array(message.entryHash)
-          message.createdBy = toUint8Array(message.createdBy)
-          const channel = payload.channel
-          channel.info.created_by = toUint8Array(channel.info.created_by)
-          const signalMessageData = {
-            messageData: message,
-            channelData: channel
-          }
-          log('sending signalMessages', signalMessageData)
-          dispatch('signalMessageSent', signalMessageData)
-        })
-        .catch(error => log('addMessageToChannel zome error:', error))
+      let message
+
+      try {
+        message = await callZome(
+          dispatch,
+          rootState,
+          'chat',
+          'create_message',
+          holochainPayload,
+          60000)
+      } catch (e) {
+        log('createMessage zome error:', e)
+        return
+      }
+
+      commit('addMessageToChannel', { channel: payload.channel, message })
+
+      message.entryHash = toUint8Array(message.entryHash)
+      message.createdBy = toUint8Array(message.createdBy)
+      const channel = payload.channel
+      channel.info.created_by = toUint8Array(channel.info.created_by)
+
+      dispatch('signalSpecificChatters', {
+        signal_message_data: {
+          messageData: message,
+          channelData: channel
+        },
+        chatters: payload.channel.activeChatters
+      })
     },
-    signalMessageSent: async ({ rootState, dispatch }, payload) => {
-      log('signalMessageSent start')
-      callZome(dispatch, rootState, 'chat', 'signal_chatters', payload, 60000)
+    signalSpecificChatters: async ({ rootState, dispatch }, payload) => {
+      log('signalSpecificChatters start')
+      callZome(dispatch, rootState, 'chat', 'signal_specific_chatters', payload, 60000)
         .then(result => {
-          log('signalMessageSent zome done', result)
+          log('signalSpecificChatters zome done', result)
         })
-        .catch(error => log('signalMessageSent zome error:', error))
+        .catch(error => log('signalSpecificChatters zome error:', error))
     },
     async listMessages ({ commit, rootState, dispatch }, payload) {
       log('listMessages start')
@@ -212,13 +215,14 @@ export default {
       )
         .then(result => {
           log('listMessages zome done')
+          // TODO: is the next line necessary?
           payload.channel.last_seen = { First: null }
           if (result.messages.length > 0) {
-            const data = toUint8Array(
+            const messageHash = toUint8Array(
               result.messages[result.messages.length - 1].entryHash
             )
             payload.channel.last_seen = {
-              Message: data
+              Message: messageHash
             }
           }
 
@@ -226,12 +230,10 @@ export default {
 
           messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
 
-          const internalChannel = {
+          commit('setChannelMessages', {
             ...payload.channel,
             messages
-          }
-
-          commit('setChannelMessages', internalChannel)
+          })
         })
         .catch(error => log('listMessages zome done', error))
     },
@@ -250,8 +252,6 @@ export default {
   mutations: {
     addMessageToChannel (state, payload) {
       const { channel, message } = payload
-
-      console.log('addmessagetochannel', payload)
 
       // verify channel (within which the message belongs) exists
       const appChannel = state.channels.find(
@@ -348,18 +348,25 @@ export default {
         info: { name: '' },
         entry: { category: 'General', uuid: '' },
         messages: [],
+        activeChatters: [],
         unseen: false
       }
 
       if (state.currentChannelId === null) return emptyChannel
 
       const channel = state.channels.find(channel => channel.entry.uuid === state.currentChannelId)
+
       if (!channel) {
         console.error(`Couldn't find channel with uuid: ${state.currentChannelId}`)
         return emptyChannel
       }
 
-      return channel
+      const activeChatters = uniqBy((channel.messages || []).map(message => message.createdBy), arrayBufferToBase64)
+
+      return {
+        ...channel,
+        activeChatters
+      }
     }
   }
 }
