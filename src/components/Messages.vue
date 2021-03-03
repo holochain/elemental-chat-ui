@@ -34,10 +34,10 @@ export default {
   },
   methods: {
     ...mapActions('elementalChat', ['createMessage']),
-    handleCreateMessage (message) {
+    handleCreateMessage (content) {
       this.createMessage({
         channel: this.channel,
-        message: message
+        content
       })
     },
     personScroll () {

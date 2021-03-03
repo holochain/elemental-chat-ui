@@ -26,7 +26,7 @@
             :key="i"
             @click="
               $emit('open-channel');
-              setCurrentChannelId(channel.entry.uuid);
+              joinChannel(channel.entry.uuid);
             "
           >
             <v-list-item-icon>
@@ -45,7 +45,7 @@
 
 <script>
 
-import { mapGetters, mapActions, mapMutations } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import { v4 as uuidv4 } from 'uuid'
 
 export default {
@@ -63,10 +63,8 @@ export default {
   methods: {
     ...mapActions('elementalChat', [
       'createChannel',
-      'listMessages'
-    ]),
-    ...mapMutations('elementalChat', [
-      'setCurrentChannelId'
+      'listMessages',
+      'joinChannel'
     ]),
     checkCreateChannel (input) {
       if (input.info.name === '') return

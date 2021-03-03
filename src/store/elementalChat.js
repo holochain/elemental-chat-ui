@@ -1,7 +1,8 @@
+import { v4 as uuidv4 } from 'uuid'
+import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64 } from '@/store/utils'
 import { callZome } from './holochain'
-import { uniqBy } from 'lodash'
 
 function pollMessages (dispatch, activeChatter, channel) {
   dispatch('listMessages', {
@@ -63,25 +64,6 @@ export default {
         dispatch('listChannels', { category: 'General' })
       }, 300000) // Polling every 5mins
     },
-    addSignalChannel: async (
-      { commit, state },
-      payload
-    ) => {
-      const committedChannel = payload
-      // don't add channel if already exists
-      const channelExists = !!state.channels.find(
-        channel => channel.entry.uuid === committedChannel.entry.uuid
-      )
-      if (channelExists) return
-
-      // currently this follows the same logic as if we had created our own channel...
-      // todo: distinguish between committed and received channels
-      log('new channel signal received')
-      log('received channel : ', committedChannel)
-      committedChannel.last_seen = { First: null }
-      commit('createChannel', { ...committedChannel, messages: [] })
-      commit('setCurrentChannelId', committedChannel.entry.uuid)
-    },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       log('createChannel start')
       const holochainPayload = {
@@ -101,7 +83,7 @@ export default {
           committedChannel.last_seen = { First: null }
           commit('createChannel', { ...committedChannel, messages: [] })
           log('created channel : ', committedChannel)
-          commit('setCurrentChannelId', committedChannel.entry.uuid)
+          dispatch('joinChannel', committedChannel.entry.uuid)
         })
         .catch(error => log('createChannel zome error', error))
     },
@@ -120,7 +102,7 @@ export default {
             newChannels = result.channels
 
             if (getters.channel.info.name === '' && result.channels.length > 0) {
-              commit('setCurrentChannelId', result.channels[0].entry.uuid)
+              dispatch('joinChannel', result.channels[0].entry.uuid)
             }
 
             // Get messages for the newChannels without active_chatter
@@ -148,18 +130,18 @@ export default {
           Message: toUint8Array(payload.channel.last_seen.Message)
         }
       }
+
       const holochainPayload = {
         last_seen: lastSeen,
         channel: payload.channel.entry,
         message: {
-          ...payload.message,
-          content: `${rootState.agentHandle}: ${payload.message.content}`
+          uuid: uuidv4(),
+          content: `${rootState.agentHandle}: ${payload.content}`
         },
         chunk: 0
       }
 
       let message
-
       try {
         message = await callZome(
           dispatch,
@@ -185,7 +167,8 @@ export default {
           messageData: message,
           channelData: channel
         },
-        chatters: payload.channel.activeChatters
+        chatters: payload.channel.activeChatters,
+        include_active_chatters: true
       })
     },
     signalSpecificChatters: async ({ rootState, dispatch }, payload) => {
@@ -247,6 +230,9 @@ export default {
           log('refreshChatter zome done')
         })
         .catch(error => log('refreshChatter zome error', error))
+    },
+    joinChannel ({ commit }, payload) {
+      commit('setCurrentChannelId', payload)
     }
   },
   mutations: {
@@ -291,8 +277,15 @@ export default {
         _setUnseen(state, appChannel.entry.uuid)
       }
     },
-    setCurrentChannelId (state, payload) {
-      _setCurrentChannelId(state, payload)
+    setCurrentChannelId (state, uuid) {
+      state.currentChannelId = uuid
+
+      const channel = state.channels.find(channel => channel.entry.uuid === uuid)
+
+      if (channel) {
+        log('clearing unseen for channel id:', uuid)
+        channel.unseen = false
+      }
     },
     setChannels (state, payload) {
       payload.map(channel => {
@@ -378,17 +371,5 @@ function _setUnseen (state, uuid) {
   if (channel) {
     log('setting unseen for channel id:', uuid)
     channel.unseen = true
-  }
-}
-
-function _setCurrentChannelId (state, uuid) {
-  log('setCurrentChannelId', uuid)
-  state.currentChannelId = uuid
-
-  const channel = state.channels.find(channel => channel.entry.uuid === uuid)
-
-  if (channel) {
-    log('clearing unseen for channel id:', uuid)
-    channel.unseen = false
   }
 }

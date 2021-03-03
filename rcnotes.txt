@@ -69,10 +69,22 @@ signal:
   signalName: Message
 
 TODO
-optimistic update for adding a channel (? or does this break stuff? In which case, loading indicator)
+Loading indicator for adding a channel and sending a message
+Clean up logs
+Prevent users from creating message when there's no channel
+refactor addMessageToChannel to addMessagesToChannel. Make this the only way a message can get in a channel (whether I create a message, recieve a signal, or list messages form a channel)
+when you get a signal from a channel you don't have, add it, if it's not the current channel, mark as unseen
+(add channel should be idempotent)
 
+stats: 
+  peers
+  active peers
+  channels count
+  messages count
+
+TEST CASE
+  Messages arriving before gossip, make sure that the signal message doesn't get lost in the list_messages result
+  
 Questions
-  Investigate addSignalChannel. Can we remove it?
-  is adding a message currently optimistic?
   why doesn't "unseen" + clear when switching to a channel?
 

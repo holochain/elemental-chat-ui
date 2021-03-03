@@ -72,8 +72,6 @@ const callZomeLocal = async (
     return
   }
   try {
-    console.log('callingZome', fnName, state.holochainClient)
-
     const result = await state.holochainClient.callZome(
       {
         cap: null,
@@ -94,7 +92,29 @@ const callZomeLocal = async (
   }
 }
 
-export const callZome = isHoloHosted() ? callZomeHolo : callZomeLocal
+const LOG_ZOME_CALLS = true
+export const callZome = async (
+  dispatch,
+  rootState,
+  zomeName,
+  fnName,
+  payload,
+  timeout
+) => {
+  if (LOG_ZOME_CALLS) {
+    console.log('zome call:', zomeName, fnName, payload)
+  }
+
+  const result = isHoloHosted()
+    ? await callZomeHolo(dispatch, rootState, zomeName, fnName, payload, timeout)
+    : await callZomeLocal(dispatch, rootState, zomeName, fnName, payload, timeout)
+
+  if (LOG_ZOME_CALLS) {
+    console.log('zome result:', zomeName, fnName, result)
+  }
+
+  return result
+}
 
 // commit, dispatch and state here are relative to the holochain store, not the global store
 let isInitializingHolo = false
@@ -160,8 +180,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
       appVersion: APP_VERSION
     })
     commit('setHolochainClient', holochainClient)
-    // TODO: remove this call to refreshChatter, and the refreshChatter action
-    // dispatch('elementalChat/refreshChatter', null, { root: true })
+    dispatch('elementalChat/refreshChatter', null, { root: true })
 
     holochainClient.client.socket.onclose = function (e) {
       // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
@@ -179,7 +198,18 @@ const initializeClientLocal = async (commit, dispatch, _) => {
   }
 }
 
-const initializeClient = isHoloHosted() ? initializeClientHolo : initializeClientLocal
+const initializeClient = (commit, dispatch, state) => {
+  isHoloHosted()
+    ? initializeClientHolo(commit, dispatch, state)
+    : initializeClientLocal(commit, dispatch, state)
+
+  // refresh chatter state every 2 hours
+  setInterval(function () {
+    if (conductorConnected(state)) {
+      dispatch('elementalChat/refreshChatter')
+    }
+  }, 1000 * 60 * 60 * 2)
+}
 
 function conductorConnected (state) {
   return state.reconnectingIn === -1

@@ -31,7 +31,7 @@
 </template>
 <script>
 import { mapState, mapActions } from 'vuex'
-import { v4 as uuidv4 } from 'uuid'
+
 export default {
   name: 'Message',
   components: {},
@@ -57,10 +57,6 @@ export default {
   methods: {
     ...mapActions('elementalChat', ['diplayErrorMessage']),
     createMessage () {
-      const message = {
-        uuid: uuidv4(),
-        content: this.content
-      }
       if (!this.channels.length) {
         this.diplayErrorMessage({
           message: 'You must first create a channel before sending a message.',
@@ -71,7 +67,7 @@ export default {
           this.diplayErrorMessage({ message: '', shouldShow: false })
         }, 5000)
       } else {
-        this.handleCreateMessage(message)
+        this.handleCreateMessage(this.content)
       }
       this.content = ''
     }
