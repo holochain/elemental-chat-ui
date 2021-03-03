@@ -3,41 +3,42 @@ import { v4 as uuidv4 } from 'uuid'
 import wait from 'waait'
 import httpServers from './setup/setupServers.js'
 import { orchestrator, conductorConfig, elChatDna } from './setup/tryorama'
-import { HOSTED_AGENT, TIMEOUT, closeTestConductor, findIframe, waitLoad, holoAuthenticateUser, waitZomeResult } from './setup/helpers'
+import { TIMEOUT, closeTestConductor, findIframe, waitLoad, holoAuthenticateUser, waitZomeResult } from './setup/helpers'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
   const outstandingRequestIds = []
   let aliceChat, bobboChat, page, wsConnected, ports, close
   beforeAll(async () => {
-  //   console.log('Settng up players on elemental chat...')
-  //   // instantiate player conductors
-  //   const [alice, bobbo] = await scenario.players([conductorConfig, conductorConfig], false)
-  //   await alice.startup()
-  //   await bobbo.startup()
-  //   // install elemental chat on both player conductors
-  //   const [[aliceChatHapp]] = await alice.installAgentsHapps([[[elChatDna]]])
-  //   const [[bobboChatHapp]] = await bobbo.installAgentsHapps([[[elChatDna]]]);
-  //   // grab chat cell from list of happ cells to use as the 'player'
-  //   ([aliceChat] = aliceChatHapp.cells);
-  //   ([bobboChat] = bobboChatHapp.cells)
+    console.log('Settng up players on elemental chat...')
+    // Tryorama: instantiate player conductors
+    const [alice, bobbo] = await scenario.players([conductorConfig, conductorConfig], false)
+    await alice.startup()
+    await bobbo.startup()
+    // Tryorama: install elemental chat on both player conductors
+    const [[aliceChatHapp]] = await alice.installAgentsHapps([[[elChatDna]]])
+    const [[bobboChatHapp]] = await bobbo.installAgentsHapps([[[elChatDna]]]);
+    // Tryorama: grab chat cell from list of happ cells to use as the 'player'
+    ([aliceChat] = aliceChatHapp.cells);
+    ([bobboChat] = bobboChatHapp.cells)
 
-  //   console.log('Sharing nodes')
-  //   await scenario.shareAllNodes([alice])
+    console.log('Sharing nodes')
+    await scenario.shareAllNodes([alice])
 
-  //   // alice declares self as chatter
-  //   await aliceChat.call('chat', 'refresh_chatter', null);
+    // Tryorama: alice declares self as chatter
+    await aliceChat.call('chat', 'refresh_chatter', null);
 
-    // spin up ui server only (not holo env)
+    // locally spin up ui server only (not holo env)
     ({ ports, close } = httpServers())
 
-    // use pupeeteer to mock Holo Hosted Agent Actions
+    // Puppeteer: use pupeeteer to mock Holo Hosted Agent Actions
     console.log(global.__BROWSER__);
     page = await global.__BROWSER__.newPage()
 
-    // emulate avg desktop viewport
+    // Puppeteer: emulate avg desktop viewport
     await page.setViewport({ width: 1442, height: 1341 })
     await page.goto(`http://localhost:${ports.ui}/dist/index.html`)
 
+    // Puppeteer: setup logs
     const client = page._client
     client.on('Network.webSocketFrameSent', ({ response }) => {
       wsConnected = !!response
@@ -49,10 +50,10 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       _.remove(outstandingRequestIds, id => id === callId)
     })
 
-  //   // confirm blank slate
-  //   console.log('Confirming empty state at start')
-  //   let stats = await aliceChat.call('chat', 'stats', {category: "General"})
-  //   expect(stats).toEqual(stats, {agents: 0, active: 0, channels: 0, messages: 0})
+    // Tryorama: confirm blank starting slate
+    console.log('Confirming empty state at start')
+    let stats = await aliceChat.call('chat', 'stats', {category: "General"})
+    expect(stats).toEqual(stats, {agents: 0, active: 0, channels: 0, messages: 0})
   }, TIMEOUT)
 
   afterAll(async () => {
@@ -78,16 +79,12 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       const iframe = await findIframe(page, CHAPERONE_SERVER_URL)
       await iframe.$('.modal-open')
 
-      const { email, password } = await holoAuthenticateUser(page, iframe, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
-      expect(email).toBe(HOSTED_AGENT.email)
-      expect(password).toBe(HOSTED_AGENT.password)
-
       // wait for home page to load
       await wait(3000)
       const headers = await page.$$('h1')
       const title = headers[0]
       const appTitle = await page.evaluate(title => title.innerHTML, title)
-      expect(appTitle).toBe('Test Fuel')
+      expect(appTitle).toBe('Elemental Chat')
 
       // wait for home page to reload
       // TODO: Remove reload page trigger and timeout once resolve signIn/refresh after signUp bug..
@@ -99,15 +96,15 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // *********
       // Create new Channel
       // *********
-      // const channelId = uuidv4()
-      // const newChannel = {
-      //   name: 'Test Channel',
-      //   channel: { category: 'General', uuid: channelId }
-      // }
+      const channelId = uuidv4()
+      const newChannel = {
+        name: 'Test Channel',
+        channel: { category: 'General', uuid: channelId }
+      }
 
-      // // Create a channel
-      // const channel = await aliceChat.call('chat', 'create_channel', newChannel)
-      // console.log(' NEW CHANNEL : ', channel)
+      // Create a channel
+      const channel = await aliceChat.call('chat', 'create_channel', newChannel)
+      console.log(' NEW CHANNEL : ', channel)
 
       ////////////////////////////////
       // Enter into UI

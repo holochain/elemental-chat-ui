@@ -12,8 +12,10 @@
     "serve-dev-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve-develop",
     "serve-develop": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
     "test-unit": "vue-cli-service test-unit",
-    "test-integration": "nix-shell --command 'VUE_APP_CONTEXT='holochain' node scripts/test.js --config=./jest.integration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
-    "test-holochain-env": "yarn run build-holochain && yarn run test-integration",
+    "test-integration-hc": "nix-shell --command 'VUE_APP_CONTEXT='holochain' node scripts/test.js --config=./jest.hcintegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
+    "test-integration-holo": "nix-shell --command 'VUE_APP_CONTEXT='holo-host' node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
+    "test-holochain-env": "yarn run build-holochain && yarn run test-integration-hc",
+    "test-holo-host-env": "yarn run build-holo-host && yarn run test-integration-holo",
     "test-e2e": "vue-cli-service test-e2e",
     "fetch-dna": "mkdir -p dnas && sh ./scripts/fetch-dna.sh",
     "lint": "vue-cli-service lint"
