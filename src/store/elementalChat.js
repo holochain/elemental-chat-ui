@@ -115,9 +115,9 @@ export default {
     },
     addSignalMessageToChannel: async ({ commit }, payload) => {
       log('adding signal message: ', payload)
-      commit('addMessageToChannel', {
-        channel: payload.channelData,
-        message: payload.messageData
+      commit('addMessagesToChannel', {
+        channelId: payload.channelData.entry.uuid,
+        messages: [payload.messageData]
       })
     },
     createMessage: async (
@@ -155,7 +155,7 @@ export default {
         return
       }
 
-      commit('addMessageToChannel', { channel: payload.channel, message })
+      commit('addMessagesToChannel', { channelId: payload.channel.uuid, messages: [message] })
 
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
@@ -198,7 +198,6 @@ export default {
       )
         .then(result => {
           log('listMessages zome done')
-          // TODO: is the next line necessary?
           payload.channel.last_seen = { First: null }
           if (result.messages.length > 0) {
             const messageHash = toUint8Array(
@@ -213,8 +212,8 @@ export default {
 
           messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
 
-          commit('setChannelMessages', {
-            ...payload.channel,
+          commit('addMessagesToChannel', {
+            channelId: payload.channel.entry.uuid,
             messages
           })
         })
@@ -236,45 +235,33 @@ export default {
     }
   },
   mutations: {
-    addMessageToChannel (state, payload) {
-      const { channel, message } = payload
+    addMessagesToChannel (state, payload) {
+      const { channelId, messages } = payload
 
       // verify channel (within which the message belongs) exists
-      const appChannel = state.channels.find(
-        c => c.entry.uuid === channel.entry.uuid
+      const channel = state.channels.find(
+        c => c.entry.uuid === channelId
       )
-      if (!appChannel) return
+      if (!channel) return
 
-      if (appChannel.messages === undefined) {
-        appChannel.messages = []
+      if (channel.messages === undefined) {
+        channel.messages = []
       }
 
-      // verify message for channel does not already exist
-      const messageExists = !!appChannel.messages.find(
-        m => message.entry.uuid === m.entry.uuid
-      )
-      if (messageExists) return
-
-      appChannel.messages.push(message)
-      appChannel.messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
-
-      log('got message', message)
-      log(
-        `adding message to the channel ${appChannel.entry.uuid}`,
-        appChannel
-      )
+      channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
+        .sort((a, b) => a.createdAt[0] - b.createdAt[0])
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
-          return appChannel
+          return channel
         } else {
           return c
         }
       })
 
       // Set the updated channel to unseen if it's not the current channel
-      if (state.currentChannelId !== appChannel.entry.uuid) {
-        _setUnseen(state, appChannel.entry.uuid)
+      if (state.currentChannelId !== channel.entry.uuid) {
+        _setUnseen(state, channel.entry.uuid)
       }
     },
     setCurrentChannelId (state, uuid) {
