@@ -13,7 +13,7 @@
     </v-card-text>
   </v-card>
   <v-textarea
-    v-else
+    v-else-if="this.channels.length > 0"
     class="ml-0 mr-0"
     v-model="content"
     label="Send a message"
@@ -42,7 +42,6 @@ export default {
   },
   data () {
     return {
-      internalMode: '',
       uuid: '',
       content: '',
       createdAt: 'xx'
@@ -57,7 +56,7 @@ export default {
   methods: {
     ...mapActions('elementalChat', ['diplayErrorMessage']),
     createMessage () {
-      if (!this.channels.length) {
+      if (this.channels.length === 0) {
         this.diplayErrorMessage({
           message: 'You must first create a channel before sending a message.',
           shouldShow: true
