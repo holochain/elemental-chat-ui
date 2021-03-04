@@ -20,7 +20,11 @@
             $emit('channel-added');
           "
         />
-        <v-list v-if="channels.length" dense>
+        <v-list
+          v-if="channels.length"
+          dense
+          v-bind:aria-labelledby="labelledBy"
+        >
           <v-list-item
             v-for="(channel, i) in channels"
             :key="i"
@@ -43,57 +47,58 @@
   </v-card>
 </template>
 <script>
-import { mapState, mapActions } from "vuex";
-import { v4 as uuidv4 } from "uuid";
+import { mapState, mapActions } from 'vuex'
+import { v4 as uuidv4 } from 'uuid'
 export default {
-  name: "Channels",
-  props: ["channels", "showAdd"],
-  data() {
+  name: 'Channels',
+  props: ['channels', 'showAdd', 'labelledBy'],
+  data () {
     return {
       actionChannel: {
-        info: { name: "" },
-        channel: { category: "General", uuid: uuidv4() },
+        info: { name: '' },
+        channel: { category: 'General', uuid: uuidv4() },
         messages: []
       }
-    };
+    }
   },
   methods: {
-    ...mapActions("elementalChat", [
-      "setChannel",
-      "createChannel",
-      "listMessages",
-      "rehydrateChannels"
+    ...mapActions('elementalChat', [
+      'setChannel',
+      'createChannel',
+      'listMessages',
+      'rehydrateChannels'
     ]),
-    checkCreateChannel(input) {
-      if (input.info.name === "") return;
-      else this.createChannel(input);
+    checkCreateChannel (input) {
+      if (input.info.name !== '') {
+        this.createChannel(input)
+      }
     },
-    unseenMessages() {
-      return this.channel.unseen;
+    unseenMessages () {
+      return this.channel.unseen
     }
   },
   computed: {
-    ...mapState("elementalChat", ["channel"]),
-    showEmptyMessage() {
-      return this.showAdd || !this.channels.length;
+    ...mapState('elementalChat', ['channel']),
+    showEmptyMessage () {
+      return this.showAdd || !this.channels.length
     }
   },
   watch: {
-    showAdd() {
+    showAdd () {
       this.actionChannel = {
-        info: { name: "" },
-        channel: { category: "General", uuid: uuidv4() },
+        info: { name: '' },
+        channel: { category: 'General', uuid: uuidv4() },
         messages: []
-      };
+      }
     },
-    channel(val) {
-      console.log("channel value : ", val);
+    channel (val) {
+      console.log('channel value : ', val)
     }
   },
-  created() {
-    this.rehydrateChannels();
+  created () {
+    this.rehydrateChannels()
   }
-};
+}
 </script>
 <style>
 .channels-container {

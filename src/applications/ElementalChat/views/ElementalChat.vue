@@ -78,7 +78,7 @@
       <v-row no-gutters height="100%">
         <v-col cols="5" md="3">
           <v-toolbar dense dark tile class="mb-1">
-            <v-toolbar-title>Channels</v-toolbar-title>
+            <v-toolbar-title id="channels-header">Channels</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
@@ -116,6 +116,7 @@
           <channels
             :channels="channels"
             :showAdd="showAdd"
+            labelled-by="channels-header"
             @open-channel="openChannel"
             @channel-added="channelAdded"
           />
