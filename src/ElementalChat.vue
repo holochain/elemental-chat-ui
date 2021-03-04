@@ -36,7 +36,7 @@
               icon
               v-bind="attrs"
               v-on="on"
-              @click="getStats()"
+              @click="handleShowStats"
               small
             >
               <v-icon>mdi-chart-line</v-icon>
@@ -104,7 +104,7 @@
                   icon
                   v-bind="attrs"
                   v-on="on"
-                  @click="showAdd = true"
+                  @click="showingAdd = true"
                   small
                 >
                   <v-icon>mdi-chat-plus-outline</v-icon>
@@ -116,7 +116,7 @@
           <channels
             :key="refreshKey"
             :channels="channels"
-            :showAdd="showAdd"
+            :showingAdd="showingAdd"
             @open-channel="openChannel"
             @channel-added="channelAdded"
           />
@@ -128,7 +128,7 @@
         </v-col>
       </v-row>
     </v-card>
-    <v-dialog v-model="shouldDisplayStats" persistent max-width="660">
+    <v-dialog v-model="showingStats" persistent max-width="660">
       <v-card>
         <v-card-title class="headline">
           Stats
@@ -140,7 +140,7 @@
               Total peers:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.agents == undefined ? "--" : stats.agents }} 👤
+              {{ stats.agentCount === undefined ? "--" : stats.agentCount }} 👤
             </v-col>
           </v-row>
           <v-row align="center">
@@ -148,7 +148,7 @@
               Active peers:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.active == undefined ? "--" : stats.active }} 👤
+              {{ stats.activeCount === undefined ? "--" : stats.activeCount }} 👤
             </v-col>
           </v-row>
           <v-row align="center">
@@ -156,7 +156,7 @@
               Channels:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.channels === undefined ? "--" : stats.channels }} 🗨️
+              {{ stats.channelCount === undefined ? "--" : stats.channelCount }} 🗨️
             </v-col>
           </v-row>
           <v-row align="center">
@@ -164,13 +164,13 @@
               Messages:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.messages === undefined ? "--" : stats.messages }} 🗨️
+              {{ stats.messageCount === undefined ? "--" : stats.messageCount }} 🗨️
             </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="resetStats">
+          <v-btn text @click="showingStats = false">
             Close
           </v-btn>
         </v-card-actions>
@@ -189,26 +189,30 @@ export default {
   },
   data () {
     return {
-      showAdd: false,
+      showingAdd: false,
+      showingStats: false,
       refreshKey: 0
     }
   },
   methods: {
+    ...mapActions(['editHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
-      'editHandle',
-      'getStats',
-      'resetStats'
+      'getStats'
     ]),
     ...mapActions('holochain', ['holoLogout']),
     openChannel () {
       this.refreshKey += 1
     },
     channelAdded () {
-      this.showAdd = false
+      this.showingAdd = false
     },
     visitPocPage () {
       window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
+    },
+    handleShowStats () {
+      this.getStats()
+      this.showingStats = true
     }
   },
   computed: {
@@ -219,15 +223,11 @@ export default {
     ...mapState('elementalChat', [
       'channels',
       'stats',
-      'showStats',
       'statsLoading'
     ]),
     ...mapGetters('elementalChat', [
       'channel'
     ]),
-    shouldDisplayStats () {
-      return this.showStats
-    },
     statsAreLoading () {
       return this.statsLoading
     }

@@ -50,7 +50,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 export default {
   name: 'Channels',
-  props: ['channels', 'showAdd'],
+  props: ['channels', 'showingAdd'],
   data () {
     return {
       actionChannel: {
@@ -75,11 +75,11 @@ export default {
   computed: {
     ...mapGetters('elementalChat', ['channel']),
     showEmptyMessage () {
-      return this.showAdd || !this.channels.length
+      return this.showingAdd || !this.channels.length
     }
   },
   watch: {
-    showAdd () {
+    showingAdd () {
       this.actionChannel = {
         info: { name: '' },
         channel: { category: 'General', uuid: uuidv4() },

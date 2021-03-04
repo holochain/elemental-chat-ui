@@ -17,7 +17,35 @@ function sortChannels (val) {
   return val
 }
 
-let listChannelsIntervalId = 0
+function storeChannelCounts (channels) {
+  const currentChannelCounts = JSON.parse(window.localStorage.getItem('channelCounts') || '{}')
+  window.localStorage.setItem('channelCounts', JSON.stringify(channels.reduce((acc, channel) => {
+    const id = channel.entry.uuid
+    const messagesLength = (channel.messages || []).length
+    acc[id] = Math.max(messagesLength, currentChannelCounts[id])
+    return acc
+  }, {})))
+}
+
+function getStoredStats () {
+  const channelCountsString = window.localStorage.getItem('channelCounts')
+
+  const zeroStats = {
+    channelCount: 0,
+    messageCount: 0
+  }
+
+  if (channelCountsString) {
+    const channelCounts = JSON.parse(channelCountsString)
+    return Object.entries(channelCounts).reduce((acc, [_, messageCount]) => {
+      acc.channelCount++
+      acc.messageCount += messageCount
+      return acc
+    }, zeroStats)
+  } else {
+    return zeroStats
+  }
+}
 
 export const handleSignal = (signal, dispatch) => {
   const signalData = signal.data.payload
@@ -33,13 +61,14 @@ export const handleSignal = (signal, dispatch) => {
   }
 }
 
+let listChannelsIntervalId = 0
+
 export default {
   namespaced: true,
   state: {
     channels: [],
     currentChannelId: null,
     stats: {},
-    showStats: false,
     statsLoading: false,
     error: {
       shouldShow: false,
@@ -47,15 +76,29 @@ export default {
     }
   },
   actions: {
-    editHandle: async ({ rootState }) => {
-      log('Updating Handle')
-      rootState.needsHandle = true
+    initialize ({ dispatch }) {
+      const currentChannelId = window.localStorage.getItem('currentChannelId')
+      if (currentChannelId) {
+        dispatch('joinChannel', currentChannelId)
+      }
     },
-    getStats: async () => {
-      // nada
-    },
-    resetStats () {
-      // bupkis
+    getStats: async ({ rootState, dispatch, commit }) => {
+      commit('setStatsLoading', true)
+
+      let stats
+      try {
+        stats = await callZome(dispatch, rootState, 'chat', 'agent_stats', null, 60000)
+      } catch (e) {
+        log('stats zomeCall error', e)
+        commit('setStatsLoading', false)
+        return
+      }
+
+      commit('setStats', {
+        ...getStoredStats(),
+        agentCount: stats.agents,
+        activeCount: stats.active
+      })
     },
     setChannelPolling: async ({ dispatch }) => {
       clearInterval(listChannelsIntervalId)
@@ -78,23 +121,16 @@ export default {
       )
         .then(committedChannel => {
           committedChannel.last_seen = { First: null }
-          commit('addChannel', { ...committedChannel, messages: [] })
-          log('created channel : ', committedChannel)
+          commit('addChannels', [{ ...committedChannel, messages: [] }])
           dispatch('joinChannel', committedChannel.entry.uuid)
         })
         .catch(error => log('createChannel zome error', error))
     },
     listChannels ({ commit, rootState, dispatch, getters }, payload) {
-      log('listChannels start')
-      log('listChannels zome start')
       callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
         .then(async result => {
-          log('listChannels zome done')
-
-          if (!result) {
-            log('listChannels zome returned undefined')
-          } else {
-            commit('setChannels', result.channels)
+          if (result) {
+            commit('addChannels', result.channels)
             let newChannels = []
             newChannels = result.channels
 
@@ -112,7 +148,7 @@ export default {
     },
     handleMessageSignal: async ({ commit }, payload) => {
       log('adding signal message: ', payload)
-      commit('addChannel', payload.channelData)
+      commit('addChannels', [payload.channelData])
       commit('addMessagesToChannel', {
         channelId: payload.channelData.entry.uuid,
         messages: [payload.messageData]
@@ -170,16 +206,10 @@ export default {
       })
     },
     signalSpecificChatters: async ({ rootState, dispatch }, payload) => {
-      log('signalSpecificChatters start')
       callZome(dispatch, rootState, 'chat', 'signal_specific_chatters', payload, 60000)
-        .then(result => {
-          log('signalSpecificChatters zome done', result)
-        })
         .catch(error => log('signalSpecificChatters zome error:', error))
     },
     async listMessages ({ commit, rootState, dispatch }, payload) {
-      log('listMessages start')
-      log('listMessages payload', payload)
       const holochainPayload = {
         channel: payload.channel.entry,
         chunk: payload.chunk,
@@ -195,7 +225,6 @@ export default {
         30000
       )
         .then(result => {
-          log('listMessages zome done')
           payload.channel.last_seen = { First: null }
           if (result.messages.length > 0) {
             const messageHash = toUint8Array(
@@ -221,16 +250,11 @@ export default {
       commit('setError', payload)
     },
     refreshChatter ({ dispatch, rootState }) {
-      log('refreshChatter start')
       callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000)
-        .then(() => {
-          log('refreshChatter zome done')
-        })
         .catch(error => log('refreshChatter zome error', error))
     },
     joinChannel ({ state, commit }, payload) {
       commit('setCurrentChannelId', payload)
-      console.log('state.channels', state.channels.map(c => c.unseen))
     }
   },
   mutations: {
@@ -262,41 +286,25 @@ export default {
       if (state.currentChannelId !== channel.entry.uuid) {
         _setUnseen(state, channel.entry.uuid)
       }
+
+      // Update stats. This is a relatively expensive thing to do. There are definitely more effecient ways of updating.
+      // If the UI seems sluggish, look here for possible optimizations.
+      storeChannelCounts(state.channels)
     },
     setCurrentChannelId (state, uuid) {
       state.currentChannelId = uuid
+      window.localStorage.setItem('currentChannelId', uuid)
 
       const channel = state.channels.find(channel => channel.entry.uuid === uuid)
 
       if (channel) {
-        log('clearing unseen for channel id:', uuid)
         channel.unseen = false
       }
     },
-    setChannels (state, payload) {
-      payload.map(channel => {
-        const found = state.channels.find(
-          c => c.entry.uuid === channel.entry.uuid
-        )
-        if (found) {
-          channel.unseen = found.unseen
-        }
-        return channel
-      })
-
-      state.channels = sortChannels(payload)
-    },
-    setChannelMessages (state, payload) {
-      console.log('setting payload', payload)
-      state.channels = state.channels.map(channel =>
-        channel.entry.uuid !== payload.entry.uuid
-          ? channel
-          : { ...channel, ...payload })
-    },
-    addChannel (state, payload) {
+    addChannels (state, newChannels) {
       const channels = state.channels
-      channels.push(payload)
-      state.channels = sortChannels(uniqBy([...channels, payload], channel => channel.entry.uuid))
+      state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.entry.uuid))
+      storeChannelCounts(state.channels)
     },
     setError (state, payload) {
       state.error = payload
@@ -304,21 +312,15 @@ export default {
     setUnseen (state, payload) {
       _setUnseen(state, payload)
     },
-    loadStats (state) {
-      state.showStats = true
-      state.statsLoading = true
+    setStatsLoading (state, payload) {
+      state.statsLoading = payload
     },
     setStats (state, payload) {
-      state.showStats = true
       state.statsLoading = false
-      state.stats.agents = payload.agents
-      state.stats.active = payload.active
-      state.stats.channels = payload.channels
-      state.stats.messages = payload.messages
-    },
-    resetStats (state) {
-      state.showStats = undefined
-      state.statsLoading = undefined
+      state.stats.agentCount = payload.agentCount
+      state.stats.activeCount = payload.activeCount
+      state.stats.channelCount = payload.channelCount
+      state.stats.messageCount = payload.messageCount
     }
   },
   getters: {
@@ -336,7 +338,7 @@ export default {
       const channel = state.channels.find(channel => channel.entry.uuid === state.currentChannelId)
 
       if (!channel) {
-        console.error(`Couldn't find channel with uuid: ${state.currentChannelId}`)
+        log(`Couldn't find channel with uuid: ${state.currentChannelId}`)
         return emptyChannel
       }
 
@@ -355,7 +357,6 @@ function _setUnseen (state, uuid) {
   const channel = state.channels.find(channel => channel.entry.uuid === uuid)
 
   if (channel) {
-    log('setting unseen for channel id:', uuid)
     channel.unseen = true
   }
 }

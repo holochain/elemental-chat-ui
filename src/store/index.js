@@ -11,6 +11,9 @@ export default new Vuex.Store({
     agentHandle: ''
   },
   mutations: {
+    editHandle: async ({ rootState }) => {
+      rootState.needsHandle = true
+    },
     needsHandle (state, payload) {
       state.needsHandle = payload
     },
@@ -29,6 +32,7 @@ export default new Vuex.Store({
     initializeStore ({ dispatch }) {
       dispatch('initializeAgent')
       dispatch('holochain/initialize')
+      dispatch('elementalChat/initialize')
     },
     initializeAgent ({ commit }) {
       const storedAgentHandle = window.localStorage.getItem('agentHandle')

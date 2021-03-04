@@ -14,7 +14,7 @@ export function toUint8Array (value) {
   }
 }
 
-export function log (action, data) {
+export function log (action, ...rest) {
   console.log(Date.now(), action)
-  if (data !== undefined) console.log(data)
+  if (rest.length > 0) console.log(...rest)
 }

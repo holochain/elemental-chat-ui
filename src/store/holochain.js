@@ -29,10 +29,10 @@ const WEB_CLIENT_URI =
 // this dna_alias should be whatever is set in HHA
 const HOLO_DNA_ALIAS = 'elemental-chat'
 
-console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
-console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
-console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
-console.log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
+log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
+log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
+log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
+log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
@@ -102,7 +102,7 @@ export const callZome = async (
   timeout
 ) => {
   if (LOG_ZOME_CALLS) {
-    console.log('zome call:', zomeName, fnName, payload)
+    log(`${zomeName}.${fnName} zome call`, payload)
   }
 
   const result = isHoloHosted()
@@ -110,7 +110,7 @@ export const callZome = async (
     : await callZomeLocal(dispatch, rootState, zomeName, fnName, payload, timeout)
 
   if (LOG_ZOME_CALLS) {
-    console.log('zome result:', zomeName, fnName, result)
+    log(`${zomeName}.${fnName} zome result`, result)
   }
 
   return result
@@ -171,7 +171,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
 
     const cellId = appInfo.cell_data[0][0]
     const agentId = cellId[1]
-    console.log('agent key : ', arrayBufferToBase64(agentId))
+    log('agent key', arrayBufferToBase64(agentId))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {
       port: WEB_CLIENT_PORT,
@@ -193,7 +193,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
       commit('setReconnecting', RECONNECT_SECONDS)
     }
   } catch (e) {
-    console.log('Connection Error ', e)
+    log('Connection Error ', e)
     commit('setReconnecting', RECONNECT_SECONDS)
   }
 }
@@ -292,7 +292,6 @@ export default {
       state.isChaperoneDisconnected = payload
     },
     resetConnectionState (state) {
-      console.log('RESETTING CONNECTION STATE')
       state.holochainClient = null
       state.holoClient = null
       state.conductorDisconnected = true
