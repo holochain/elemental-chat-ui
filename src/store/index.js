@@ -8,7 +8,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     needsHandle: false,
-    agentHandle: ''
+    agentHandle: '',
+    errorMessage: ''
   },
   mutations: {
     editHandle: async ({ rootState }) => {
@@ -26,6 +27,9 @@ export default new Vuex.Store({
       state.agentHandle = ''
       window.localStorage.removeItem('agentHandle')
       state.needsHandle = true
+    },
+    setErrorMessage (state, message) {
+      state.errorMessage = message
     }
   },
   actions: {

@@ -30,7 +30,7 @@
   />
 </template>
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapMutations } from 'vuex'
 
 export default {
   name: 'Message',
@@ -44,7 +44,7 @@ export default {
     return {
       uuid: '',
       content: '',
-      createdAt: 'xx'
+      createdAt: ''
     }
   },
   computed: {
@@ -54,17 +54,14 @@ export default {
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['diplayErrorMessage']),
+    ...mapMutations(['setErrorMessage']),
     createMessage () {
       if (this.channels.length === 0) {
-        this.diplayErrorMessage({
-          message: 'You must first create a channel before sending a message.',
-          shouldShow: true
-        })
-        // refresh error msg setting after 5sec
+        this.setErrorMessage('You must first create a channel before sending a message.')
+        // refresh error msg setting after 10 secs
         setTimeout(() => {
-          this.diplayErrorMessage({ message: '', shouldShow: false })
-        }, 5000)
+          this.setErrorMessage('')
+        }, 10000)
       } else {
         this.handleCreateMessage(this.content)
       }

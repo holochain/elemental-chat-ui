@@ -69,11 +69,7 @@ export default {
     channels: [],
     currentChannelId: null,
     stats: {},
-    statsLoading: false,
-    error: {
-      shouldShow: false,
-      message: ''
-    }
+    statsLoading: false
   },
   actions: {
     initialize ({ dispatch }) {
@@ -246,14 +242,11 @@ export default {
         })
         .catch(error => log('listMessages zome done', error))
     },
-    diplayErrorMessage ({ commit }, payload) {
-      commit('setError', payload)
-    },
     refreshChatter ({ dispatch, rootState }) {
       callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000)
         .catch(error => log('refreshChatter zome error', error))
     },
-    joinChannel ({ state, commit }, payload) {
+    joinChannel ({ commit }, payload) {
       commit('setCurrentChannelId', payload)
     }
   },
@@ -305,9 +298,6 @@ export default {
       const channels = state.channels
       state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.entry.uuid))
       storeChannelCounts(state.channels)
-    },
-    setError (state, payload) {
-      state.error = payload
     },
     setUnseen (state, payload) {
       _setUnseen(state, payload)

@@ -45,12 +45,12 @@
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="error.shouldShow" persistent max-width="460">
+      <v-dialog v-model="shouldShowErrorMessage" persistent max-width="460">
         <v-card>
           <v-card-title class="headline">
             Hm... Something doesn't look right.
           </v-card-title>
-          <v-card-text>{{ error.message }}</v-card-text>
+          <v-card-text>{{ errorMessage }}</v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn text @click="clearErrorMessage">
@@ -105,23 +105,22 @@ export default {
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['diplayErrorMessage', 'setChannelPolling']),
+    ...mapActions('elementalChat', ['setChannelPolling']),
     ...mapActions('holochain', ['skipBackoff']),
-    ...mapMutations(['setAgentHandle']),
+    ...mapMutations(['setAgentHandle', 'setErrorMessage']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
       this.setAgentHandle(this.internalAgentHandle)
       this.dialog = false
     },
     clearErrorMessage () {
-      this.diplayErrorMessage({ message: '', shouldShow: false })
+      this.setErrorMessage('')
     },
     retryNow () {
       this.skipBackoff()
     }
   },
   computed: {
-    ...mapState('elementalChat', ['error']),
     ...mapState('holochain', [
       'conductorDisconnected',
       'firstConnect',
@@ -131,12 +130,13 @@ export default {
     ]),
     ...mapState([
       'agentHandle',
-      'needsHandle'
+      'needsHandle',
+      'errorMessage'
     ]),
     shouldDisplayNickPrompt () {
       return (
         this.needsHandle &&
-        !this.error.message &&
+        !this.errorMessage &&
         !this.conductorDisconnected &&
         !this.shouldDisplayHoloConnecting
       )
@@ -148,6 +148,9 @@ export default {
       return (
         isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected)
       )
+    },
+    shouldShowErrorMessage () {
+      return this.errorMessage.length > 0
     },
     holoConnectionMessage () {
       if (this.isChaperoneDisconnected) {
