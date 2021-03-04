@@ -69,11 +69,8 @@ signal:
   signalName: Message
 
 TODO
-Loading indicator for adding a channel and sending a message
 Clean up logs
-Prevent users from creating message when there's no channel
-when you get a signal from a channel you don't have, add it, if it's not the current channel, mark as unseen
-(add channel should be idempotent)
+organization of Vue components
 
 stats: 
   peers
@@ -83,7 +80,3 @@ stats:
 
 TEST CASE
   Messages arriving before gossip, make sure that the signal message doesn't get lost in the list_messages result
-  
-Questions
-  why doesn't "unseen" + clear when switching to a channel?
-

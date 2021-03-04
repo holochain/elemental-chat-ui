@@ -11,12 +11,12 @@
           outlined
           autofocus
           @keydown.enter="
-            checkCreateChannel(actionChannel);
+            handleCreateChannel(actionChannel);
             $emit('channel-added');
           "
           append-icon="mdi-plus-box-outline"
           @click:append="
-            checkCreateChannel(actionChannel);
+            handleCreateChannel(actionChannel);
             $emit('channel-added');
           "
         />
@@ -29,7 +29,7 @@
               joinChannel(channel.entry.uuid);
             "
           >
-            <v-list-item-icon>
+            <v-list-item-icon class='channel-icons'>
               <v-icon>mdi-chat-processing-outline</v-icon>
               <span v-if="channel.unseen">+</span>
             </v-list-item-icon>
@@ -66,13 +66,10 @@ export default {
       'listMessages',
       'joinChannel'
     ]),
-    checkCreateChannel (input) {
+    handleCreateChannel (input) {
       if (input.info.name === '') return
 
       this.createChannel(input)
-    },
-    unseenMessages () {
-      return this.channel.unseen
     }
   },
   computed: {
@@ -88,9 +85,6 @@ export default {
         channel: { category: 'General', uuid: uuidv4() },
         messages: []
       }
-    },
-    channel (val) {
-      console.log('channel value : ', val)
     }
   }
 }
@@ -99,5 +93,8 @@ export default {
 .channels-container {
   overflow-y: auto;
   height: calc(100vh - 150px);
+}
+.channel-icons {
+  width: 20px;
 }
 </style>

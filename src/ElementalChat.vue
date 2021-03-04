@@ -114,6 +114,7 @@
             </v-tooltip>
           </v-toolbar>
           <channels
+            :key="refreshKey"
             :channels="channels"
             :showAdd="showAdd"
             @open-channel="openChannel"
@@ -155,7 +156,7 @@
               Channels:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.channels == undefined ? "--" : stats.channels }} 🗨️
+              {{ stats.channels === undefined ? "--" : stats.channels }} 🗨️
             </v-col>
           </v-row>
           <v-row align="center">
@@ -163,7 +164,7 @@
               Messages:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.messages == undefined ? "--" : stats.messages }} 🗨️
+              {{ stats.messages === undefined ? "--" : stats.messages }} 🗨️
             </v-col>
           </v-row>
         </v-card-text>

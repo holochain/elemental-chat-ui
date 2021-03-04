@@ -22,12 +22,11 @@ let listChannelsIntervalId = 0
 export const handleSignal = (signal, dispatch) => {
   const signalData = signal.data.payload
   const { signal_name: signalName, signal_payload: signalPayload } = signalData
-  console.log('calling handleSignal', signalData)
   switch (signalName) {
     case 'Message':
-      console.log('INCOMING SIGNAL > NEW MESSAGE')
-      console.log('payload' + JSON.stringify(signalPayload))
-      dispatch('elementalChat/addSignalMessageToChannel', signalPayload, { root: true })
+      // even though this is defined in the elementalChat store module, it still needs to be called with full namespaced because it's actually called
+      // in the context of the holochain store module (hence the export).
+      dispatch('elementalChat/handleMessageSignal', signalPayload, { root: true })
       break
     default:
       throw new Error('Received an unsupported signal by name : ', signalName)
@@ -65,7 +64,6 @@ export default {
       }, 300000) // Polling every 5mins
     },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
-      log('createChannel start')
       const holochainPayload = {
         name: payload.info.name,
         channel: payload.channel
@@ -79,9 +77,8 @@ export default {
         60000
       )
         .then(committedChannel => {
-          log('createChannel zome done')
           committedChannel.last_seen = { First: null }
-          commit('createChannel', { ...committedChannel, messages: [] })
+          commit('addChannel', { ...committedChannel, messages: [] })
           log('created channel : ', committedChannel)
           dispatch('joinChannel', committedChannel.entry.uuid)
         })
@@ -113,8 +110,9 @@ export default {
         })
         .catch(error => log('listChannels zome error', error))
     },
-    addSignalMessageToChannel: async ({ commit }, payload) => {
+    handleMessageSignal: async ({ commit }, payload) => {
       log('adding signal message: ', payload)
+      commit('addChannel', payload.channelData)
       commit('addMessagesToChannel', {
         channelId: payload.channelData.entry.uuid,
         messages: [payload.messageData]
@@ -155,7 +153,7 @@ export default {
         return
       }
 
-      commit('addMessagesToChannel', { channelId: payload.channel.uuid, messages: [message] })
+      commit('addMessagesToChannel', { channelId: payload.channel.entry.uuid, messages: [message] })
 
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
@@ -230,8 +228,9 @@ export default {
         })
         .catch(error => log('refreshChatter zome error', error))
     },
-    joinChannel ({ commit }, payload) {
+    joinChannel ({ state, commit }, payload) {
       commit('setCurrentChannelId', payload)
+      console.log('state.channels', state.channels.map(c => c.unseen))
     }
   },
   mutations: {
@@ -294,10 +293,10 @@ export default {
           ? channel
           : { ...channel, ...payload })
     },
-    createChannel (state, payload) {
+    addChannel (state, payload) {
       const channels = state.channels
       channels.push(payload)
-      state.channels = sortChannels(channels)
+      state.channels = sortChannels(uniqBy([...channels, payload], channel => channel.entry.uuid))
     },
     setError (state, payload) {
       state.error = payload
