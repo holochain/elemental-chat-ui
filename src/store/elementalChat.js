@@ -338,7 +338,7 @@ export default {
       const channel = state.channels.find(channel => channel.entry.uuid === state.currentChannelId)
 
       if (!channel) {
-        log(`Couldn't find channel with uuid: ${state.currentChannelId}`)
+        console.log(`Couldn't find channel with uuid: ${state.currentChannelId}`)
         return emptyChannel
       }
 

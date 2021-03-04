@@ -29,10 +29,10 @@ const WEB_CLIENT_URI =
 // this dna_alias should be whatever is set in HHA
 const HOLO_DNA_ALIAS = 'elemental-chat'
 
-log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
-log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
-log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
-log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
+console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
+console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
+console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
+console.log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
@@ -171,7 +171,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
 
     const cellId = appInfo.cell_data[0][0]
     const agentId = cellId[1]
-    log('agent key', arrayBufferToBase64(agentId))
+    console.log('agent key', arrayBufferToBase64(agentId))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {
       port: WEB_CLIENT_PORT,
