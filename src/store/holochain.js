@@ -1,33 +1,16 @@
 import { AppWebsocket } from '@holochain/conductor-api'
 import { Connection as WebSdkConnection } from '@holo-host/web-sdk'
-import { isHoloHosted, isHoloSelfHosted, log } from '@/utils'
+import { isHoloHosted, log } from '@/utils'
+import {
+  RECONNECT_SECONDS,
+  APP_VERSION,
+  INSTALLED_APP_ID,
+  WEB_CLIENT_PORT,
+  WEB_CLIENT_URI,
+  HOLO_DNA_ALIAS
+} from '@/consts'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
-
-const RECONNECT_SECONDS = 15
-
-const APP_VERSION = process.env.VUE_APP_UI_VERSION
-
-const DNA_VERSION = 'alpha19'
-const DNA_UUID = '0001'
-
-const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
-  ? process.env.VUE_APP_INSTALLED_APP_ID
-  : process.env.VUE_APP_WEB_CLIENT_PORT === '8888' // for development/testing: dev agent 1 is served at port 8888, and dev agent 2 at port 9999
-    ? 'elemental-chat-1'
-    : process.env.VUE_APP_WEB_CLIENT_PORT === '9999'
-      ? 'elemental-chat-2'
-      : `elemental-chat:${DNA_VERSION}${DNA_UUID ? ':' + DNA_UUID : ''}` // default to elemental-chat:<dna version number>:<uuid> (appId format for holo self-hosted)
-
-const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888
-
-const WEB_CLIENT_URI =
-  isHoloHosted() || isHoloSelfHosted()
-    ? `wss://${window.location.hostname}/api/v1/ws/`
-    : `ws://localhost:${WEB_CLIENT_PORT}`
-
-// this dna_alias should be whatever is set in HHA
-const HOLO_DNA_ALIAS = 'elemental-chat'
 
 console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
@@ -261,8 +244,6 @@ export default {
     }
   },
   mutations: {
-    // TODO: this should be called localAgentKey, because it is only relevant in the local holochain case.
-    // But there might be a better way to separate those cases and insulate the rest of the app from the distinction.
     setAgentKey (state, payload) {
       state.agentKey = payload
     },

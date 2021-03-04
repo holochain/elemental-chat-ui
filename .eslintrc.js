@@ -1,5 +1,12 @@
 module.exports = {
   root: true,
+  globals: {
+    expect: 'readonly',
+    'it': 'readonly',
+    describe: 'readonly',
+    before: 'readonly',
+    after: 'readonly'
+  },
   env: {
     node: true
   },
