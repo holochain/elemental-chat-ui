@@ -136,7 +136,7 @@ export default {
       );
     },
     shouldDisplayDisconnected() {
-      return this.conductorDisconnected && !this.firstConnect;
+      return false // this.conductorDisconnected && !this.firstConnect;
     },
     shouldDisplayHoloConnecting() {
       return (

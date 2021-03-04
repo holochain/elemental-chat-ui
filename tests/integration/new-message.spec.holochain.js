@@ -3,11 +3,13 @@ import { v4 as uuidv4 } from 'uuid'
 import wait from 'waait'
 import httpServers from './setup/setupServers.js'
 import { orchestrator, conductorConfig, elChatDna } from './setup/tryorama'
-import { TIMEOUT, closeTestConductor, findIframe, waitLoad, waitZomeResult, findElementByText, isOnPage } from './setup/helpers'
+import { TIMEOUT, closeTestConductor, waitLoad, waitZomeResult, findElementByText, findChildByValue, isOnPage } from './setup/helpers'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
   const outstandingRequestIds = []
   let aliceChat, page, wsConnected, ports, close
+  const pu = selector => findAll(`${component} ${selector}`);
+
   beforeAll(async () => {
     // console.log('Settng up players on elemental chat...')
     // // Tryorama: instantiate player conductor
@@ -33,21 +35,8 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
     // Puppeteer: emulate avg desktop viewport
     await page.setViewport({ width: 1442, height: 1341 })
-    await page.goto(`http://localhost:${ports.ui}/dist/index.html`)
-
-    // Puppeteer: setup logs
-    const client = page._client
-    client.on('Network.webSocketFrameSent', ({ response }) => {
-      wsConnected = !!response
-      const callId = JSON.parse(response.payloadData).id
-      outstandingRequestIds.push(callId)
-    })
-    client.on('Network.webSocketFrameReceived', ({ response }) => {
-      const callId = JSON.parse(response.payloadData).id
-      _.remove(outstandingRequestIds, id => id === callId)
-    })
-
-    // // Tryorama: confirm blank starting slate
+    await page.goto(`http://localhost:${ports.ui}/dist/index.html`) 
+    
     // console.log('Confirming empty state at start')
     // let stats = await aliceChat.call('chat', 'stats', {category: "General"})
     // expect(stats).toEqual(stats, {agents: 0, active: 0, channels: 0, messages: 0})
@@ -63,51 +52,88 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
   describe('New Message Flow', () => {
     it('creates and displays new message', async () => {
+      console.log(' ----------------> 1')
       // *********
       // register nickname
       // *********
-      // wait for home page to load
-      await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
-
-      await waitLoad(() => wsConnected)
-      
       // verify page title
-      await wait(3000)
-      const headers = await page.$$('h1')
-      const title = headers[0]
-      const appTitle = await page.evaluate(title => title.innerHTML, title)
-      expect(appTitle).toBe('Elemental Chat')
+      const pageTitle = await page.title()
+      expect(pageTitle).toBe('Elemental Chat')
+      console.log(' ----------------> 2')
 
       // add agent nickname
-      await wait(3000)
       const webUserNick = 'Bobbo'
-      const addNickInput = await page.waitForSelector('.v-input #input-22')
-      await page.click(addNickInput)
-      await page.type(addNickInput, webUserNick, { delay: 10 })
-      // press 'Enter' to submit
-      await page.type(String.fromCharCode(13))
+      await page.focus('.v-dialog')
+      await page.keyboard.type(webUserNick, { delay: 100 })
+      const [submitButton] = await findElementByText('button', 'Go', page)
+      // console.log('submitButton : ', submitButton)
+      await submitButton.click()
+      console.log(' ----------------> 3')
+
+      // add new Channel
+      // const channelContainer = await page.$('.channels-container')
+      // console.log('channelContainer : ', channelContainer)
+      // await findChildByValue(channelContainer, page)
+
+      // const channelValue = await channelContainer.$$eval('.channels-container', el => el.innerHTML)
+      // console.log('channelValue : ', channelValue)
+
+      const newChannelName = 'Chat Room 2'
+      await page.type('#channel-name', newChannelName, { delay: 100 })
+        // press 'Enter' to submit
+      page.keyboard.press(String.fromCharCode(13))
+      console.log(' ----------------> 4 ')
+
+      // const channels = await page.$eval('.channels-container', el => el.children);
+      // console.log('channels : ', channels)
+
+      // for (let channel in channels) {
+      //   console.log('channel : ', channel)
+
+      //   // const imgSrc = await channel.$eval('div', el => el.innerHTML);
+      //   // console.log('imgSrc : ', imgSrc)
+      // }
+      
+      const [newChannel] = await findElementByText('text', newChannelName, page)
+      console.log('-----------------> ', newChannel)
+
+      // confirm that new channel name displays on page
+      // expect(!!findElementByText('div', newChannelName, page)).toBeTruthy()
+
+      // const [newChannel] = findElementByText('div', newChannelName, page)
+      // // confirm that new channel name displays on page
+      // expect(!!newChannel).toBeTruthy()
+      // const channelValue = await page.$eval(el => el.value, newChannel)
+      // console.log('CHANNEL VALUE (channel name?) :', channelValue)
 
       // *********
       // create channel (doing this at tryrama level to simulate channel created by another)
       // *********
       // const channelId = uuidv4()
       // const newChannel = {
-      //   name: 'Test Channel',
-      //   channel: { category: 'General', uuid: channelId }
-      // }
-
-      // alice creates channel
-      // const callCreateChannel = await aliceChat.call('chat', 'create_channel', newChannel)
-      // const channel = await waitZomeResult(callCreateChannel, 90000, 10000)
-      // console.log(' NEW CHANNEL : ', channel)
-
-      // *********
+        //   name: 'Test Channel',
+        //   channel: { category: 'General', uuid: channelId }
+        // }
+        
+        // alice creates channel
+        // const callCreateChannel = await aliceChat.call('chat', 'create_channel', newChannel)
+        // const channel = await waitZomeResult(callCreateChannel, 90000, 10000)
+        // console.log(' NEW CHANNEL : ', channel)
+        
+        // current web agent (bobbo) clicks on created channel
+        // await page.focus('.channels-container')
+        // const channelList = await page.$('div#Login_form')
+        // const [channelSubmitButton] = await findElementByText('button', Channel, channelList)
+        // await channelSubmitButton.click()
+        // console.log('page : ', page)
+ 
+        // *********
       // create new message
       // *********
       const newMessage = {
-        last_seen: { First: null },
-        channel: channel.channel,
-        chunk: 0,
+        // last_seen: { First: null },
+        // channel: channel.channel,
+        // chunk: 0,
         message: {
           uuid: uuidv4(),
           content: 'Hello from web user :)'
@@ -115,18 +141,15 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       }
       
       // current web agent (bobbo) sends a message
-
         // find channel alice made
-        const chatChannel = findElementByText('div', newChannel.name, page) // update to reference the returned channel
-        await page.click(chatChannel)
-
-        const newMessageInput = await page.waitForSelector('.v-text-field__slot > textarea')
-        await page.click(newMessageInput)
-        await page.type(newMessageInput, newMessage.message.content, { delay: 10 })
+        await page.focus('textarea')
+        await page.keyboard.type(newMessage.message.content, { delay: 100 })
         // press 'Enter' to submit
-        await page.type(String.fromCharCode(13))
+        page.keyboard.press(String.fromCharCode(13))
 
-      // verify new message is in list of messages
+        throw new Error('STOP HERE...')
+
+        // verify new message is in list of messages
       const callListMessages = await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: {start:0, end: 1} })
       const messages = await waitZomeResult(callListMessages, 90000, 10000)
       console.log(' LIST MESSAGES', messages)

@@ -7,9 +7,22 @@ export const HOSTED_AGENT = {
   password: '12344321'
 }
 
-export const findElementByText = async (element, text, page) => await page.$x(`//${element}[contains(., ${text})]`)
+export const findElementByText = async (element, text, page) => {
+  const matches = await page.$x(`//${element}[contains(., '${text}')]`)
+  if (matches.length > 0) {
+    console.log(' findElByText Matches >> ', matches);
+    return matches
+  }
+  else throw Error(`Failed to find a match for element (${element}) with text (${text}) on page (${page}).`)
+}
+export const findElementByTextAndClass = async (element, className, text, page) =>{
+  const matches = await page.$x(`//${element}[contains(@class='${className}', '${text}')]`)
+  if (matches.length > 0) return matches[0]
+  else throw Error(`Failed to find a match for element (${element}) with class (${className}) and text (${text}) on page (${page}).`)
+}
 
 export const toBeOnPage = (element, text, page) => !!findElementByText(element, text, page)
+export const reload = page => page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
 
 export const closeTestConductor = async (agent, testName) => {
   try {

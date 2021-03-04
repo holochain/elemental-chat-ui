@@ -1,0 +1,7 @@
+# HoloHosting App
+- dnas:
+  - ./dnas/elemental-chat.dna.gz
+  # NOTE: app_name should equate the INSTALLED_APP_ID in index.js
+  # ** defaults to elemental-chat:<dna version number>:<uuid> (appId format for holo self-hosted)
+  app_name: elemental-chat:alpha19:0001
+  app_port: 8888

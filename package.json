@@ -18,11 +18,13 @@
     "test-holo-host-env": "yarn run build-holo-host && yarn run test-integration-holo",
     "test-e2e": "vue-cli-service test-e2e",
     "fetch-dna": "mkdir -p dnas && sh ./scripts/fetch-dna.sh",
+    "run-dna": "holochain-run-dna -c ./tests/integration/setup/config.yml -a 4444",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "@babel/preset-env": "^7.13.8",
     "@holo-host/web-sdk": "Holo-Host/web-sdk#6d3fa2999042a0fa9ec7532650e91d5f05063239",
+    "@holochain-open-dev/holochain-run-dna": "^0.3.2",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@testing-library/jest-dom": "^5.11.9",
     "async-wait-until": "^1.2.6",
