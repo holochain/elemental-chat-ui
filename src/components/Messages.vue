@@ -1,6 +1,6 @@
 <template>
   <v-card flat>
-    <div id="container" class="chat-container rounded" @scroll="personScroll">
+    <div id="container" class="chat-container rounded" @scroll="onScroll">
       <ul class="pb-10 pl-0">
         <li
           v-for="message in messages"
@@ -29,7 +29,7 @@ export default {
   },
   data () {
     return {
-      personScrolling: false
+      userIsScrolling: false
     }
   },
   methods: {
@@ -40,18 +40,17 @@ export default {
         content
       })
     },
-    personScroll () {
+    onScroll () {
+      this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
-      container.onscroll = () => {
-        this.personScrolling = true
-        const height = container.offsetHeight + container.scrollTop
-        if (height === container.scrollHeight) {
-          this.personScrolling = false
-        }
+      const height = container.offsetHeight + container.scrollTop
+
+      if (height === container.scrollHeight) {
+        this.userIsScrolling = false
       }
     },
     scrollToEnd () {
-      if (this.personScrolling) return
+      if (this.userIsScrolling) return
       const container = this.$el.querySelector('#container')
       container.scrollTop = container.scrollHeight
     }
@@ -66,6 +65,9 @@ export default {
   watch: {
     channel () {
       this.scrollToEnd()
+    },
+    userIsScrolling (val) {
+      console.log('user is scrolling', val)
     }
   },
   mounted () {
