@@ -1,5 +1,4 @@
-import { takeSnapshot } from '../../test-utils'
-
+export const SCREENSHOT_PATH = "./snapshots";
 export const TIMEOUT = 300000
 export const POLLING_INTERVAL = 1000
 export const HOSTED_AGENT = {
@@ -7,8 +6,29 @@ export const HOSTED_AGENT = {
   password: '12344321'
 }
 
+
+// Puppeteer helpers
+export const takeSnapshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` });
+export const fetchPreformanceResults = async (page, console) => {
+  // Executes Navigation API within the page context
+  const metrics = await page.evaluate(() => JSON.stringify(window.performance));
+  // Parses the result to JSON
+  console.info(JSON.parse(metrics));
+}
+export const fetchAccesiblitySnapShot = async (page, console) => { // Captures the current state of the accessibility tree
+  const snapshot = await page.accessibility.snapshot();
+  console.info(snapshot);
+  return snapshot
+}
+
+const escapeXpathString = str => {
+  const splitedQuotes = str.replace(/'/g, `', "'", '`);
+  return `concat('${splitedQuotes}', '')`;
+}
+
 export const findElementByText = async (element, text, page) => {
-  const matches = await page.$x(`//${element}[contains(., '${text}')]`)
+  const cleanedText = escapeXpathString(text).trim();
+  const matches = await page.$x(`//${element}[contains(., ${cleanedText})]`)
   if (matches.length > 0) {
     console.log(' findElByText Matches >> ', matches);
     return matches
@@ -21,9 +41,25 @@ export const findElementByTextAndClass = async (element, className, text, page) 
   else throw Error(`Failed to find a match for element (${element}) with class (${className}) and text (${text}) on page (${page}).`)
 }
 
-export const toBeOnPage = (element, text, page) => !!findElementByText(element, text, page)
+export const toBeOnPage = async (container, text, page) => {
+  let match
+  try {
+    match = await page.waitForFunction(
+      text => document.querySelector(container).innerText.includes(text),
+      {},
+      text
+    );
+    console.log("Successfully found text: ", match);
+  } catch (e) {
+      console.error('Failed to find text on page. Error: ', e );
+      match = null
+  }
+  return match
+}
 export const reload = page => page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
 
+
+// Tryorama helpers
 export const closeTestConductor = async (agent, testName) => {
   try {
     await agent._player.shutdown()

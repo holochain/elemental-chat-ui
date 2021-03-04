@@ -3,13 +3,10 @@ import { v4 as uuidv4 } from 'uuid'
 import wait from 'waait'
 import httpServers from './setup/setupServers.js'
 import { orchestrator, conductorConfig, elChatDna } from './setup/tryorama'
-import { TIMEOUT, closeTestConductor, waitLoad, waitZomeResult, findElementByText, findChildByValue, isOnPage } from './setup/helpers'
+import { TIMEOUT, closeTestConductor, waitLoad, waitZomeResult, findElementByText } from './setup/helpers'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
-  const outstandingRequestIds = []
-  let aliceChat, page, wsConnected, ports, close
-  const pu = selector => findAll(`${component} ${selector}`);
-
+  let aliceChat, page, ports, close
   beforeAll(async () => {
     // console.log('Settng up players on elemental chat...')
     // // Tryorama: instantiate player conductor
@@ -33,6 +30,12 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     console.log(global.__BROWSER__);
     page = await global.__BROWSER__.newPage()
 
+    page.once('domcontentloaded', () => console.info('✅ DOM is ready'));
+    page.once('load', () => console.info('✅ Page is loaded'));
+    page.on('console', message => console[message.type()](`ℹ️  ${message.text()}`));
+    page.on('pageerror', error => console.error(`❌ ${error}`));
+    page.once('close', () => console.info('✅ Page is closed'))
+
     // Puppeteer: emulate avg desktop viewport
     await page.setViewport({ width: 1442, height: 1341 })
     await page.goto(`http://localhost:${ports.ui}/dist/index.html`) 
@@ -43,62 +46,76 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   }, TIMEOUT)
 
   afterAll(async () => {
-    console.log("Closing the UI server...");
+    console.log("👉 Closing the UI server...");
     await close();
+    console.log("✅ Closed the UI server...");
 
-    console.log('Shutting down tryorama player conductor(s)...')
+    // console.log('👉 Shutting down tryorama player conductor(s)...')
     // await closeTestConductor(aliceChat, 'Create new Message')
+    // console.log('✅ Closed tryorama player conductor(s)')
   })
 
   describe('New Message Flow', () => {
     it('creates and displays new message', async () => {
-      console.log(' ----------------> 1')
       // *********
       // register nickname
       // *********
       // verify page title
       const pageTitle = await page.title()
       expect(pageTitle).toBe('Elemental Chat')
-      console.log(' ----------------> 2')
-
       // add agent nickname
       const webUserNick = 'Bobbo'
       await page.focus('.v-dialog')
       await page.keyboard.type(webUserNick, { delay: 100 })
-      const [submitButton] = await findElementByText('button', 'Go', page)
-      // console.log('submitButton : ', submitButton)
+      const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
       await submitButton.click()
-      console.log(' ----------------> 3')
 
       // add new Channel
-      // const channelContainer = await page.$('.channels-container')
-      // console.log('channelContainer : ', channelContainer)
-      // await findChildByValue(channelContainer, page)
-
-      // const channelValue = await channelContainer.$$eval('.channels-container', el => el.innerHTML)
-      // console.log('channelValue : ', channelValue)
-
-      const newChannelName = 'Chat Room 2'
+      const newChannelName = 'Chat Room'
       await page.type('#channel-name', newChannelName, { delay: 100 })
-        // press 'Enter' to submit
+      // press 'Enter' to submit
       page.keyboard.press(String.fromCharCode(13))
-      console.log(' ----------------> 4 ')
-
-      // const channels = await page.$eval('.channels-container', el => el.children);
-      // console.log('channels : ', channels)
-
-      // for (let channel in channels) {
-      //   console.log('channel : ', channel)
-
-      //   // const imgSrc = await channel.$eval('div', el => el.innerHTML);
-      //   // console.log('imgSrc : ', imgSrc)
-      // }
       
-      const [newChannel] = await findElementByText('text', newChannelName, page)
-      console.log('-----------------> ', newChannel)
+      const channels = await page.$eval('.channels-container', el => el.children);
+      expect(Object.keys(channels).length).toBe(1)
 
-      // confirm that new channel name displays on page
-      // expect(!!findElementByText('div', newChannelName, page)).toBeTruthy()
+      // // confirm that new channel name displays on page
+      // // TODO: determine why have to reset page...
+      // // let newPage = page
+      // // const newChannel = await findElementByText('body', newChannelName, newPage)
+
+      // let newChannel
+      // try {
+      //   newChannel = await page.waitForFunction(
+      //     newChannelName => document.querySelector('body').innerText.includes(newChannelName),
+      //     {},
+      //     newChannelName
+      //   );
+      //   console.log(`Successfully found new Message (${newChannel}) on the page`);
+      // } catch (e) {
+      //   console.log(`The new message (${newChannel}) was not found on the page`);
+      //   newChannel = null
+      // }
+      // console.log('-----------------> ', newChannel)
+      // expect(newChannel).toBeTruthy()
+
+      console.log(' ----------------> 5 ')
+      await page.waitFor(5000)
+      
+      // TODO: determine why have to reset page...
+      const newPage = page
+      const [newChannel2] = await findElementByText('div', newChannelName, newPage)
+      expect(newChannel2).toBeTruthy()
+      
+      const element = await page.$(".v-list-item");
+      const chanText = await (
+        await element.getProperty("textContent")
+        ).jsonValue();
+      console.log('>>>>>>>>>>>>>>>>>>>', chanText)
+        
+      // // const note = await page.$eval(`#notes`, el => el.value)
+      // const newNote = await page.$eval((newChannel => newChannel.value), newChannel)
+      // console.log('new note -----------------> ', newNote)
 
       // const [newChannel] = findElementByText('div', newChannelName, page)
       // // confirm that new channel name displays on page
@@ -130,7 +147,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
         // *********
       // create new message
       // *********
-      const newMessage = {
+      const newMessageData = {
         // last_seen: { First: null },
         // channel: channel.channel,
         // chunk: 0,
@@ -143,22 +160,40 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // current web agent (bobbo) sends a message
         // find channel alice made
         await page.focus('textarea')
-        await page.keyboard.type(newMessage.message.content, { delay: 100 })
+        const newMessageContent = newMessageData.message.content;
+        await page.keyboard.type(newMessageContent, { delay: 100 })
         // press 'Enter' to submit
         page.keyboard.press(String.fromCharCode(13))
 
-        throw new Error('STOP HERE...')
+        console.log("Checking if channel name is displayed...");
+        let newMessage
+        try {
+          newMessage = await page.waitForFunction(
+            newMessageContent => document.querySelector("body").innerText.includes(newMessageContent),
+            {},
+            newMessageContent
+          );
+          console.log(`Successfully found new Message (${newMessage}) on the page`);
 
-        // verify new message is in list of messages
-      const callListMessages = await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: {start:0, end: 1} })
-      const messages = await waitZomeResult(callListMessages, 90000, 10000)
-      console.log(' LIST MESSAGES', messages)
-      expect(messages[0]).toEqual(newMessage)
+        } catch (e) {
+          console.log(`The new message (${newMessageContent}) was not found on the page`);
+          newMessage = null
+        }
+        
+        expect(newMessage).toBeTruthy();
 
-      // confirm that newMessage displays on page
-      expect(isOnPage('span', newMessage.message.content, page)).toBeTruthy()
-      // confirm the the web agent nickname displays on page
-      expect(isOnPage('span', webUserNick, page)).toBeTruthy()
+        // throw new Error('STOP HERE...')
+
+      //   // verify new message is in list of messages
+      // const callListMessages = await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: {start:0, end: 1} })
+      // const messages = await waitZomeResult(callListMessages, 90000, 10000)
+      // console.log(' LIST MESSAGES', messages)
+      // expect(messages[0]).toEqual(newMessage)
+
+      // // confirm that newMessage displays on page
+      // expect(isOnPage('span', newMessage.message.content, page)).toBeTruthy()
+      // // confirm the the web agent nickname displays on page
+      // expect(isOnPage('span', webUserNick, page)).toBeTruthy()
     })
   })
 })
