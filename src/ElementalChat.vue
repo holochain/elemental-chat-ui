@@ -76,54 +76,10 @@
     </v-card>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">
-        <v-col cols="5" md="3">
-          <v-toolbar dense dark tile class="mb-1">
-            <v-toolbar-title>Channels</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  id="add-channel"
-                  color="action"
-                  icon
-                  v-bind="attrs"
-                  v-on="on"
-                  @click="listChannels({ category: 'General' })"
-                  small
-                >
-                  <v-icon>mdi-refresh</v-icon>
-                </v-btn>
-              </template>
-              <span>Check for new channels</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  id="add-channel"
-                  color="action"
-                  icon
-                  v-bind="attrs"
-                  v-on="on"
-                  @click="showingAdd = true"
-                  small
-                >
-                  <v-icon>mdi-chat-plus-outline</v-icon>
-                </v-btn>
-              </template>
-              <span>Add a public Channel.</span>
-            </v-tooltip>
-          </v-toolbar>
-          <channels
-            :key="refreshKey"
-            :channels="channels"
-            :showingAdd="showingAdd"
-            @open-channel="openChannel"
-            @channel-added="channelAdded"
-          />
-        </v-col>
+        <Channels />
         <v-col cols="7" md="9">
           <v-card class="ma-0 pt-n1 pl-1" dark>
-            <messages :key="channel.entry.uuid" :channel="channel" />
+            <Messages :key="channel.entry.uuid" :channel="channel" />
           </v-card>
         </v-col>
       </v-row>
@@ -189,9 +145,7 @@ export default {
   },
   data () {
     return {
-      showingAdd: false,
-      showingStats: false,
-      refreshKey: 0
+      showingStats: false
     }
   },
   methods: {
@@ -201,12 +155,6 @@ export default {
       'getStats'
     ]),
     ...mapActions('holochain', ['holoLogout']),
-    openChannel () {
-      this.refreshKey += 1
-    },
-    channelAdded () {
-      this.showingAdd = false
-    },
     visitPocPage () {
       window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
     },
@@ -221,7 +169,6 @@ export default {
       'appInterface',
       'isHoloSignedIn']),
     ...mapState('elementalChat', [
-      'channels',
       'stats',
       'statsLoading'
     ]),

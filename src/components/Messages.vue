@@ -7,7 +7,7 @@
           :key="message.entry.uuid"
           class="message"
         >
-          <message
+          <Message
             :message="message"
             :key="message.entry.uuid"
           />
@@ -15,7 +15,7 @@
       </ul>
     </div>
     <v-card-actions class="pa-0 pt-1">
-      <message :handleCreateMessage="handleCreateMessage" />
+      <Message :handleCreateMessage="handleCreateMessage" />
     </v-card-actions>
   </v-card>
 </template>

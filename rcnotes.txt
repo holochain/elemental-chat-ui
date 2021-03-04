@@ -1,5 +1,4 @@
 TODO
-organization of Vue components
 test with holo
 unit tests for 
   Messages arriving before gossip, make sure that the signal message doesn't get lost in the list_messages result
