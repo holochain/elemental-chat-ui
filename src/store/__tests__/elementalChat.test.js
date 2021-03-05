@@ -9,7 +9,7 @@ const makeChannel = (uuid, name) => ({
     name,
     created_by: ''
   },
-  channel: { category: 'General', uuid },
+  entry: { category: 'General', uuid },
   messages: [],
   last_seen: {}
 })
@@ -29,9 +29,9 @@ describe('elementalChat store', () => {
 
     await store.dispatch('elementalChat/createChannel', makeChannel(channelId, 'Channel1'))
 
-    const storedChannel = store.state.elementalChat.channels[0]
+    const storedChannel = () => store.state.elementalChat.channels[0]
 
-    expect(storedChannel.messages.length).toEqual(0)
+    expect(storedChannel().messages.length).toEqual(0)
 
     const initialMessages = [
       makeMessage(11, '11'),
@@ -45,33 +45,27 @@ describe('elementalChat store', () => {
       messages: initialMessages
     })
 
-    expect(storedChannel.messages.length).toEqual(3)
+    expect(storedChannel().messages.length).toEqual(3)
 
     const signalMessage = makeMessage(14, '14')
 
     // simulate a message signal arriving
-    store.dispatch('elementalChat/handleMessageSignal', {
-      channelData: {
-        ...channel,
-        entry: channel.channel
-      },
+    await store.dispatch('elementalChat/handleMessageSignal', {
+      channelData: channel,
       messageData: signalMessage
     })
 
-    expect(storedChannel.messages.length).toEqual(4)
+    expect(storedChannel().messages.length).toEqual(4)
 
     const userMessageContent = 'user message'
 
     // simulate user creating a message
     await store.dispatch('elementalChat/createMessage', {
-      channel: {
-        ...channel,
-        entry: channel.channel
-      },
+      channel,
       content: userMessageContent
     })
 
-    expect(storedChannel.messages.length).toEqual(5)
+    expect(storedChannel().messages.length).toEqual(5)
 
     const newMessages = [
       makeMessage(15, '15'),
@@ -85,14 +79,14 @@ describe('elementalChat store', () => {
       messages: newMessages
     })
 
-    expect(storedChannel.messages.length).toEqual(8)
+    expect(storedChannel().messages.length).toEqual(8)
 
     const knownIds = [...initialMessages, signalMessage, ...newMessages].map(m => m.entry.uuid)
 
-    expect(storedChannel.messages.map(m => m.entry.uuid))
+    expect(storedChannel().messages.map(m => m.entry.uuid))
       .toEqual(expect.arrayContaining(knownIds))
 
-    const userCreatedMessage = storedChannel.messages.find(m => !(knownIds).includes(m.entry.uuid))
+    const userCreatedMessage = storedChannel().messages.find(m => !(knownIds).includes(m.entry.uuid))
 
     expect(userCreatedMessage.entry.content).toContain(userMessageContent)
   })

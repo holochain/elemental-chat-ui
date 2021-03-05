@@ -105,7 +105,7 @@ export default {
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       const holochainPayload = {
         name: payload.info.name,
-        channel: payload.channel
+        entry: payload.entry
       }
       callZome(
         dispatch,
@@ -155,16 +155,16 @@ export default {
       payload
     ) => {
       let lastSeen = payload.channel.last_seen
-      if (payload.channel.last_seen.Message) {
+      if (lastSeen.Message) {
         lastSeen = {
-          Message: toUint8Array(payload.channel.last_seen.Message)
+          Message: toUint8Array(lastSeen.Message)
         }
       }
 
       const holochainPayload = {
         last_seen: lastSeen,
         channel: payload.channel.entry,
-        message: {
+        entry: {
           uuid: uuidv4(),
           content: `${rootState.agentHandle}: ${payload.content}`
         },
@@ -221,7 +221,6 @@ export default {
         30000
       )
         .then(result => {
-          payload.channel.last_seen = { First: null }
           if (result.messages.length > 0) {
             const messageHash = toUint8Array(
               result.messages[result.messages.length - 1].entryHash
@@ -296,7 +295,14 @@ export default {
     },
     addChannels (state, newChannels) {
       const channels = state.channels
+
+      // order is important in this uniqBy because we want existing copy of the channel to win
       state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.entry.uuid))
+        .map(c => ({
+          last_seen: { First: null }, // and order is important in this object because we want existing values of c.last_seen to win
+          ...c
+        }))
+
       storeChannelCounts(state.channels)
     },
     setUnseen (state, payload) {

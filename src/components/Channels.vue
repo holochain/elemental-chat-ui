@@ -77,15 +77,17 @@
 import { mapState, mapGetters, mapActions } from 'vuex'
 import { v4 as uuidv4 } from 'uuid'
 
+const makeEmptyChannel = () => ({
+  info: { name: '' },
+  entry: { category: 'General', uuid: uuidv4() },
+  messages: []
+})
+
 export default {
   name: 'Channels',
   data () {
     return {
-      actionChannel: {
-        info: { name: '' },
-        channel: { category: 'General', uuid: uuidv4() },
-        messages: []
-      },
+      actionChannel: makeEmptyChannel(), 
       showingAdd: false,
       refreshKey: 0
     }
@@ -115,11 +117,7 @@ export default {
   },
   watch: {
     showingAdd () {
-      this.actionChannel = {
-        info: { name: '' },
-        channel: { category: 'General', uuid: uuidv4() },
-        messages: []
-      }
+      this.actionChannel = makeEmptyChannel()
     }
   }
 }

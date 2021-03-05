@@ -5,7 +5,6 @@ export const callZome = async (_, __, zomeName, fnName, payload) => {
     case 'create_channel':
       return {
         ...payload,
-        entry: payload.channel,
         info: {
           ...payload.info,
           createdAt: [0, 0]
@@ -14,7 +13,6 @@ export const callZome = async (_, __, zomeName, fnName, payload) => {
     case 'create_message':
       return {
         ...payload,
-        entry: payload.message,
         createdAt: [0, 0],
         entryHash: '',
         createdBy: ''
