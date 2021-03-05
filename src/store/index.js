@@ -148,7 +148,9 @@ const initializeAppHolo = async (commit, dispatch, state) => {
       await holoClient.signIn()
       commit('setIsHoloSignedIn', true)
       dispatch('elementalChat/refreshChatter')
+      dispatch('elementalChat/listChannels', { category: 'General' })
     } catch (e) {
+      console.error('failed to connect to holoport:', e)
       commit('setIsChaperoneDisconnected', true)
       return
     }
