@@ -7,5 +7,8 @@
     "port": 42233,
     "path": "\"/\""
   },
-  "mode": 2
+  "mode": 2,
+  "web_user_legend": {
+    "test@test.com": "hCAkYvNS0ilfyE7mSglM/V5q1U4pWO8Kzul287GR2yiRUexO0Pgb"
+  }
 }
