@@ -1,6 +1,0 @@
-{
-  "compilerOptions": {},
-  "files": ["./config/@types/files.d.ts"],
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
-}

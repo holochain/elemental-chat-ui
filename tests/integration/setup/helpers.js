@@ -7,7 +7,24 @@ export const HOSTED_AGENT = {
 }
 
 
-// Puppeteer helpers
+export const waitForState = async (stateChecker, desiredState, pollingInterval = 1000) => {
+  return new Promise(resolve => {
+    const poll = setInterval(() => {
+      const currentState = stateChecker()
+      if (currentState === desiredState) {
+        console.log('State polling complete...')
+        clearInterval(poll)
+        resolve(currentState)
+      }
+      console.log(`Polling again. Current State: ${stateChecker()} | Desired state: ${desiredState}`)
+    }, pollingInterval)
+  })
+}
+
+/// Puppeteer helpers:
+// --------------------
+export const reload = page => page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+
 export const takeSnapshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` });
 export const fetchPreformanceResults = async (page, console) => {
   // Executes Navigation API within the page context
@@ -21,26 +38,30 @@ export const fetchAccesiblitySnapShot = async (page, console) => { // Captures t
   return snapshot
 }
 
+export const getElementProperty = async (element, property) => {
+  return await (await element.getProperty(property)).jsonValue()
+}
+
 const escapeXpathString = str => {
   const splitedQuotes = str.replace(/'/g, `', "'", '`);
   return `concat('${splitedQuotes}', '')`;
 }
 
+// returns JS DOM Element
 export const findElementByText = async (element, text, page) => {
   const cleanedText = escapeXpathString(text).trim();
   const matches = await page.$x(`//${element}[contains(., ${cleanedText})]`)
-  if (matches.length > 0) {
-    console.log(' findElByText Matches >> ', matches);
-    return matches
-  }
+  if (matches.length > 0) return matches
   else throw Error(`Failed to find a match for element (${element}) with text (${text}) on page (${page}).`)
 }
-export const findElementByTextAndClass = async (element, className, text, page) =>{
-  const matches = await page.$x(`//${element}[contains(@class='${className}', '${text}')]`)
+
+export const findElementByClassandText = async (element, className, text, page) => {
+  const matches = await page.$x(`//${element}[contains(concat(' ', @class, ' '), ' ${className} ') and contains(., '${text}')]`)
   if (matches.length > 0) return matches[0]
   else throw Error(`Failed to find a match for element (${element}) with class (${className}) and text (${text}) on page (${page}).`)
 }
 
+// returns boolean
 export const toBeOnPage = async (container, text, page) => {
   let match
   try {
@@ -50,16 +71,28 @@ export const toBeOnPage = async (container, text, page) => {
       text
     );
     console.log("Successfully found text: ", match);
+    match = true
   } catch (e) {
       console.error('Failed to find text on page. Error: ', e );
-      match = null
+      match = false
   }
   return match
 }
-export const reload = page => page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
 
+export const findIframe = async (page, url, pollingInterval = 1000) => {
+  return new Promise(resolve => {
+    const poll = setInterval(() => {
+      const iFrame = page.frames().find(frame => frame.url().includes(url))
+      if (iFrame) {
+        clearInterval(poll)
+        resolve(iFrame)
+      }
+    }, pollingInterval)
+  })
+}
 
-// Tryorama helpers
+/// Tryorama helpers:
+// -------------------
 export const closeTestConductor = async (agent, testName) => {
   try {
     await agent._player.shutdown()
@@ -70,7 +103,7 @@ export const closeTestConductor = async (agent, testName) => {
   }
 }
 
-export const waitZomeResult = async (
+export const awaitZomeResult = async (
   asyncCall,
   timeout = TIMEOUT,
   pollingInterval = POLLING_INTERVAL
@@ -91,30 +124,8 @@ export const waitZomeResult = async (
   })
 }
 
-export const findIframe = async (page, url, pollingInterval = 1000) => {
-  return new Promise(resolve => {
-    const poll = setInterval(() => {
-      const iFrame = page.frames().find(frame => frame.url().includes(url))
-      if (iFrame) {
-        clearInterval(poll)
-        resolve(iFrame)
-      }
-    }, pollingInterval)
-  })
-}
-
-export const waitLoad = async (checkLoading, pollingInterval = 1000) => {
-  return new Promise(resolve => {
-    const poll = setInterval(() => {
-      const isLoaded = checkLoading()
-      if (isLoaded) {
-        clearInterval(poll)
-        resolve(isLoaded)
-      }
-    }, pollingInterval)
-  })
-}
-
+/// Holo Test helpers:
+// -------------------
 export const holoAuthenticateUser = async (page, frame, userEmail = '', userPassword = '', type = 'signup') => {
   console.log('INSIDE OF AUTH USER FUN ... ')
   const pascalType = type === 'signup' ? 'SignUp' : 'LogIn'
@@ -140,3 +151,9 @@ export const holoAuthenticateUser = async (page, frame, userEmail = '', userPass
 
   return { email, password, confirmation }
 }
+
+
+  // const amount = await page.$eval(`.v-list-item`, el => el.innerHTML)
+  // console.log('CHECK#1 >>>>>>>>>>>>>>>>>>>', amount)
+  // const note = await page.$eval(`.v-list-item`, el => el.value)
+  // console.log('CHECK#2 >>>>>>>>>>>>>>>>>>>', note)

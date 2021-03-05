@@ -12,7 +12,7 @@
     "serve-dev-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve-develop",
     "serve-develop": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
     "test-unit": "vue-cli-service test-unit",
-    "test-integration-hc": "nix-shell --command 'VUE_APP_CONTEXT='holochain' node scripts/test.js --config=./jest.hcintegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
+    "test-integration-hc": "nix-shell --command 'VUE_APP_CONTEXT='holochain' VUE_APP_WEB_LOGS='true' node scripts/test.js --config=./jest.hcintegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
     "test-integration-holo": "nix-shell --command 'VUE_APP_CONTEXT='holo-host' node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
     "test-holochain-env": "yarn run build-holochain && yarn run test-integration-hc",
     "test-holo-host-env": "yarn run build-holo-host && yarn run test-integration-holo",
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",
-    "@holochain/tryorama": "git://github.com/holochain/tryorama.git#8e32511fa56db1a3394bd88841ba05fc9f30ffbc",
+    "@holochain/tryorama": "0.4.0-dev.4",
     "@testing-library/vue": "^5.6.1",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-e2e-cypress": "~4.5.0",
