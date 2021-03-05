@@ -1086,14 +1086,13 @@
     winston "^3.2.1"
     winston-null "^2.0.0"
 
-"@holochain/tryorama@0.4.0-dev.4":
+"@holochain/tryorama@file:../../tryorama/tryorama":
   version "0.4.0-dev.4"
-  resolved "https://registry.yarnpkg.com/@holochain/tryorama/-/tryorama-0.4.0-dev.4.tgz#c88dec2e9351f77b6ddf247f658c88312a00c0f1"
-  integrity sha512-n5gVRGgy7yTBrynSJ3kt9zY50U8mE2gC+zn4bnGq98pw4r9twBZdyxOhh8Y+gRMhNYUXKRifP89VRy0/uSyCCw==
   dependencies:
-    "@holochain/conductor-api" "0.0.1-dev.14"
+    "@holochain/conductor-api" "0.0.1-dev.16"
     "@holochain/hachiko" "^0.5.2"
     "@iarna/toml" "^2.2.5"
+    "@msgpack/msgpack" "^2.1.0"
     async-mutex "^0.1.4"
     axios "^0.19.2"
     base-64 "^0.1.0"
@@ -1105,7 +1104,8 @@
     lodash "^4.17.20"
     memoizee "^0.4.14"
     ramda "^0.26.1"
-    uuid "^3.4.0"
+    rpc-websockets "^4.6.1"
+    uuid "^8.3.2"
     winston "^3.3.3"
     yaml "^1.10.0"
 
@@ -12632,7 +12632,7 @@ uuid@^3.3.2, uuid@^3.4.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
-uuid@^8.3.1:
+uuid@^8.3.1, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==

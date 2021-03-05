@@ -81,7 +81,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     // console.log('✅ Closed tryorama player conductor(s)')
   })
 
-  describe('New Message Flow', () => {
+  describe('New Channel Flow', () => {
     it.skip('creates and displays new message', async () => {
       // *********
       // register nickname
@@ -99,7 +99,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // *********
       // create channel
       // *********
-      const newChannelTitle = 'Chill Hangout Room'
+      const newChannelTitle = 'Our Awesome New Room'
       await page.type('#channel-name', newChannelTitle, { delay: 100 })
       // press 'Enter' to submit
       page.keyboard.press(String.fromCharCode(13))

@@ -9,6 +9,8 @@ import {
 
 const path = require('path')
 
+const appPort = process.env.VUE_APP_TEST_PORT || 8888
+
 // Note: this is a copy of the network config used in ec dna tests
 const network = {
   bootstrap_service: 'https://bootstrap.holo.host',
@@ -35,5 +37,5 @@ const network = {
 }
 
 export const orchestrator = new Orchestrator({ middleware: combine(localOnly) })
-export const conductorConfig = Config.gen({ network })
+export const conductorConfig = Config.gen({ network, appPort })
 export const elChatDna = path.join(__dirname, '../../../dnas/elemental-chat.dna.gz')

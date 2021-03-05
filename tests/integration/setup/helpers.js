@@ -6,7 +6,6 @@ export const HOSTED_AGENT = {
   password: '12344321'
 }
 
-
 export const waitForState = async (stateChecker, desiredState, pollingInterval = 1000) => {
   return new Promise(resolve => {
     const poll = setInterval(() => {
@@ -61,24 +60,6 @@ export const findElementByClassandText = async (element, className, text, page) 
   else throw Error(`Failed to find a match for element (${element}) with class (${className}) and text (${text}) on page (${page}).`)
 }
 
-// returns boolean
-export const toBeOnPage = async (container, text, page) => {
-  let match
-  try {
-    match = await page.waitForFunction(
-      text => document.querySelector(container).innerText.includes(text),
-      {},
-      text
-    );
-    console.log("Successfully found text: ", match);
-    match = true
-  } catch (e) {
-      console.error('Failed to find text on page. Error: ', e );
-      match = false
-  }
-  return match
-}
-
 export const findIframe = async (page, url, pollingInterval = 1000) => {
   return new Promise(resolve => {
     const poll = setInterval(() => {
@@ -108,12 +89,19 @@ export const awaitZomeResult = async (
   timeout = TIMEOUT,
   pollingInterval = POLLING_INTERVAL
 ) => {
+
+  console.log('ASYNC CALL : ', asyncCall)
+  console.log('------------------------> 3') 
+
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       reject(new Error(`Waited for ${timeout / 1000} seconds`, timeout))
     }, timeout)
     const poll = setInterval(async () => {
+      console.log('------------------------> 4') 
       const callResult = await asyncCall()
+      console.log('------------------------> 5') 
+
       console.log('callResult :', callResult)
       if (callResult) {
         clearInterval(poll)
