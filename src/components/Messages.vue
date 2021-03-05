@@ -73,7 +73,7 @@ export default {
   mounted () {
     this.scrollToEnd()
   }
-};
+}
 </script>
 <style>
 .chat-container {

@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64 } from '@/store/utils'
-import { callZome } from './holochain'
+import { callZome } from './callZome'
 
 function pollMessages (dispatch, activeChatter, channel) {
   dispatch('listMessages', {
@@ -142,7 +142,7 @@ export default {
         })
         .catch(error => log('listChannels zome error', error))
     },
-    handleMessageSignal: async ({ commit }, payload) => {
+    handleMessageSignal: ({ commit }, payload) => {
       log('adding signal message: ', payload)
       commit('addChannels', [payload.channelData])
       commit('addMessagesToChannel', {

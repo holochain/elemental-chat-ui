@@ -91,7 +91,7 @@
 <script>
 import { mapState, mapActions, mapMutations } from 'vuex'
 import { isHoloHosted } from '@/utils'
-import ElementalChat from '@/ElementalChat.vue'
+import ElementalChat from './ElementalChat.vue'
 
 export default {
   name: 'App',

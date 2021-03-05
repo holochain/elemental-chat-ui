@@ -5,7 +5,7 @@ import holochain from './holochain'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+export const storeRaw = {
   state: {
     needsHandle: false,
     agentHandle: '',
@@ -52,4 +52,6 @@ export default new Vuex.Store({
     holochain,
     elementalChat
   }
-})
+}
+
+export default new Vuex.Store(storeRaw)
