@@ -2,9 +2,8 @@ import { TIMEOUT, HOSTED_AGENT } from './setup/globals'
 import { findIframe, holoAuthenticateUser, takeSnapshot } from './setup/helpers'
 import wait from 'waait'
 
-const CHAPERONE_SERVER_URL = process.env.VUE_APP_CHAPERONE_SERVER_URL
+const CHAPERONE_URL_REGEX = /^https?:\/\/chaperone\w*\.holo\.host/
 
-// TODO: This test is on hold.
 describe('Authentication Flow', () => {
   let page
   beforeAll(async () => {
@@ -15,13 +14,7 @@ describe('Authentication Flow', () => {
     await page.goto(`http://localhost:${ports.ui}/dist/index.html`) 
   }, TIMEOUT)
 
-  it.skip('should locate the loading text', async () => {
-    const pageContent = await page.$eval('#root', el => el.innerHTML)
-    await takeSnapshot(page, 'loadingPage')
-    expect(pageContent).toContain('Connecting to the Holo network')
-  })
-
-  it.skip('should successfully sign up and sign out', async () => {
+  it.skip('should successfully sign up', async () => {
     // *********
     // Sign Up and Log Into hApp
     // *********
@@ -29,12 +22,12 @@ describe('Authentication Flow', () => {
     await wait(5000)
     await page.waitForSelector('iframe')
 
-    const iframe = await findIframe(page, CHAPERONE_SERVER_URL)
-    const modalData = await iframe.$eval('.modal-open', el => el.innerHTML)
-    expect(modalData).toContain('Login with Holo')
-    expect(modalData).toContain('Sign Up')
+    const iframe = await findIframe(page, CHAPERONE_URL_REGEX)
 
-    const { email, password, confirmation } = await holoAuthenticateUser(page, iframe, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
+    const chaperoneData = await iframe.$eval('.modal-open', el => el.innerHTML)
+    expect(chaperoneData).toContain('Elemental Chat Login')
+
+    const { email, password, confirmation } = await holoAuthenticateUser(chaperoneData, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
 
     expect(email).toBe(HOSTED_AGENT.email)
     expect(password).toBe(HOSTED_AGENT.password)
@@ -42,28 +35,14 @@ describe('Authentication Flow', () => {
 
     await takeSnapshot(page, 'afterSignupScreen')
 
-    // // *********
-    // // Evaluate Home Page
-    // // *********
-    // await wait(5000)
+    // *********
+    // Evaluate Home Page
+    // *********
+    await wait(2000)
 
-    // // verify page title
-    // const pageTitle = await page.title()
-    // expect(pageTitle).toBe('Elemental Chat')
-
-    // // *********
-    // // Sign Out
-    // // *********
-    // const button = await page.$$('button')
-    // const SignOutButton = button[1]
-    // SignOutButton.click()
-
-    // await wait(1000)
-    // await takeSnapshot(page, 'afterSignoutModal')
-
-    // const newIframe = await findIframe(page, CHAPERONE_SERVER_URL)
-    // const newModalData = await newIframe.$eval('.modal-open', el => el.innerHTML)
-    // expect(newModalData).toContain('Login with Holo')
+    // verify page title
+    const pageTitle = await page.title()
+    expect(pageTitle).toBe('Elemental Chat')
   })
 }, TIMEOUT)
 

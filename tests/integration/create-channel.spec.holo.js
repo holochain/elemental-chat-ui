@@ -30,11 +30,11 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     // Puppeteer: use pupeeteer to mock Holo Hosted Agent Actions
     page = await global.__BROWSER__.newPage()
 
-    page.once('domcontentloaded', () => console.info('✅ DOM is ready'));
-    page.once('load', () => console.info('✅ Page is loaded'));
+    page.once('domcontentloaded', () => console.info('✅ DOM is ready'))
+    page.once('load', () => console.info('✅ Page is loaded'))
     page.once('close', () => console.info('✅ Page is closed'))
     if (WEB_LOGGING) {
-      page.on('pageerror', error => console.error(`❌ ${error}`));
+      page.on('pageerror', error => console.error(`❌ ${error}`))
       page.on('console', message => {
         const consoleMessage = message.text();
         console[message.type()](`ℹ️  ${consoleMessage}`)
@@ -57,7 +57,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
           // if error, do nothing - message is not a logged call
           return
         }
-      });
+      })
     }
 
     // Puppeteer: emulate avg desktop viewport
@@ -66,9 +66,9 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   }, TIMEOUT)
 
   afterAll(async () => {
-    console.log("👉 Closing the UI server...");
-    await close();
-    console.log("✅ Closed the UI server...");
+    console.log("👉 Closing the UI server...")
+    await close()
+    console.log("✅ Closed the UI server...")
 
     console.log('👉 Shutting down tryorama player conductor(s)...')
     await closeTestConductor(aliceChat, 'Create new Message')

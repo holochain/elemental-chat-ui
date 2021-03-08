@@ -1,4 +1,6 @@
-import { TIMEOUT, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
+import { TIMEOUT, INSTALLED_APP_ID, WEB_LOGGING, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
+import { conductorConfig, elChatDna } from './tryorama'
+import httpServers from './setupServers'
 
 export const waitForState = async (stateChecker, desiredState, pollingInterval = 1000) => {
   return new Promise(resolve => {
@@ -54,10 +56,10 @@ export const findElementByClassandText = async (element, className, text, page) 
   else throw Error(`Failed to find a match for element (${element}) with class (${className}) and text (${text}) on page (${page}).`)
 }
 
-export const findIframe = async (page, url, pollingInterval = 1000) => {
+export const findIframe = async (page, urlRegex, pollingInterval = 1000) => {
   return new Promise(resolve => {
     const poll = setInterval(() => {
-      const iFrame = page.frames().find(frame => frame.url().includes(url))
+      const iFrame = page.frames().find(frame => urlRegex.test(frame.url()))
       if (iFrame) {
         clearInterval(poll)
         resolve(iFrame)
@@ -100,28 +102,101 @@ export const awaitZomeResult = async (
 
 /// Holo Test helpers:
 // -------------------
-export const holoAuthenticateUser = async (page, frame, userEmail = '', userPassword = '', type = 'signup') => {
-  console.log('INSIDE OF AUTH USER FUN ... ')
-  const pascalType = type === 'signup' ? 'SignUp' : 'LogIn'
-  await frame.click(`button[onclick="show${pascalType}()"]`)
-  await wait(100)
-  await frame.type(`#${type}-email`, userEmail, { delay: 100 })
-  await frame.type(`#${type}-password`, userPassword, { delay: 100 })
-  const email = await frame.$eval(`#${type}-email`, el => el.value)
-  const password = await frame.$eval(`#${type}-password`, el => el.value)
 
+export const holoAuthenticateUser = async (modalElement, email, password, type = 'signup') => {
+  const createCredentialsLink = await findElementByText('a', 'Create credentials', modalElement)
+  await createCredentialsLink.click()
+  const emailInput = await getVisibleInputByLabelText(modalElement, 'EMAIL:')
+  const passwordInput = await getVisibleInputByLabelText(
+    chaperoneModal,
+    'CREATE PASSWORD:'
+    )
+    
+    // const email = await frame.$eval(`#${type}-email`, el => el.value)
+    // const password = await frame.$eval(`#${type}-password`, el => el.value)
+    
   let confirmation
   if (type === 'signup') {
-    await frame.type(`#${type}-password-confirm`, userPassword, { delay: 100 })
-    confirmation = await frame.$eval(`#${type}-password-confirm`, el => el.value)
+    await passwordInput.type(password)
+    const passwordInput2 = await getVisibleInputByLabelText(
+      chaperoneModal,
+      'RE-ENTER PASSWORD:'
+    )
+    await passwordInput2.type(password)
+    // confirmation = await frame.$eval(`#${type}-password-confirm`, el => el.value)
   }
 
-  await takeSnapshot(page, `${type}Modal`)
-
-  const buttonTypeIndex = type === 'signup' ? 1 : 0
-  const submitButtons = await frame.$$('button[onclick="formSubmit()"]')
-  const SignUpButton = submitButtons[buttonTypeIndex]
-  SignUpButton.click()
+  const submitButton = await findElementByText('button', 'Submit', modalElement)
+  await submitButton.click()
+  await delay(500)
+  await modalElement.dispose()
 
   return { email, password, confirmation }
+}
+
+
+
+/// Test Setup helpers:
+// -------------------
+
+export const beforeAllSetup = async scenario => {
+  console.log('👉 Setting up players on elemental chat...')
+    // Tryorama: instantiate player conductor
+    const [alice] = await scenario.players([conductorConfig], false)
+    await alice.startup()
+    // Tryorama: install elemental chat on both player conductors
+    const [[aliceChatHapp]] = await alice.installAgentsHapps([[{ hAppId: INSTALLED_APP_ID, dnas: [elChatDna] }]]);
+    // Tryorama: grab chat cell from list of happ cells to use as the 'player'
+    ([aliceChat] = aliceChatHapp.cells);
+
+    // Tryorama: alice declares self as chatter
+    await aliceChat.call('chat', 'refresh_chatter', null);
+
+    console.log('Confirming empty state at start')
+    let stats = await aliceChat.call('chat', 'stats', {category: "General"})
+    console.log('starting stats : ', stats)
+    expect(stats).toEqual(stats, {agents: 0, active: 0, channels: 0, messages: 0})
+
+    // locally spin up ui server only (not holo env)
+    console.log('👉 Spinning up UI server');
+    const { ports, close: closeServer } = httpServers()
+
+    // Puppeteer: use pupeeteer to mock Holo Hosted Agent Actions
+    page = await global.__BROWSER__.newPage()
+
+    page.once('domcontentloaded', () => console.info('✅ DOM is ready'))
+    page.once('load', () => console.info('✅ Page is loaded'))
+    page.once('close', () => console.info('✅ Page is closed'))
+    if (WEB_LOGGING) {
+      page.on('pageerror', error => console.error(`❌ ${error}`))
+      page.on('console', message => {
+        const consoleMessage = message.text();
+        console[message.type()](`ℹ️  ${consoleMessage}`)
+        const messageArray = consoleMessage.split(' ')
+        try {
+          // determine if message is a registered api call
+          if (parseInt(messageArray[0])) {
+            messageArray.shift()
+            const callDesc = messageArray.join(' ')
+            const callAction = messageArray.pop()
+            const isCallAction = callAction === 'start' || callAction === 'done'
+            if (isCallAction) {
+              if (messageArray.length > 1 && !callDesc.includes('zome')) return
+              const callName = messageArray[0]
+              // set the call with most current action state
+              callRegistry[callName] = callAction
+            }
+          }
+        } catch (error) {
+          // if error, do nothing - message is not a logged call
+          return
+        }
+      })
+    }
+
+    // Puppeteer: emulate avg desktop viewport
+    await page.setViewport({ width: 952, height: 968 })
+    await page.goto(`http://localhost:${ports.ui}/dist/index.html`)
+  
+    return { aliceChat, page, closeServer }
 }
