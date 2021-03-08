@@ -7,6 +7,8 @@
     "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
+    "build-dev": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holohost.dev/' vue-cli-service build",
+    "build-scale-test": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-scaletest.holohost.dev/' vue-cli-service build",
     "build-self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service build",
     "hc:agent-1": "holochain-run-dna -p 8888 -i elemental-chat-1 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/165.22.32.11/p/5778/-- ../elemental-chat/elemental-chat.dna.gz",
     "hc:agent-2": "holochain-run-dna -p 9999 -i elemental-chat-2 -u kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/165.22.32.11/p/5778/-- ../elemental-chat/elemental-chat.dna.gz",
