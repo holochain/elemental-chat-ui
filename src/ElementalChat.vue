@@ -79,7 +79,7 @@
         <Channels />
         <v-col cols="7" md="9">
           <v-card class="ma-0 pt-n1 pl-1" dark>
-            <Messages :key="channel.entry.uuid" :channel="channel" />
+            <Messages :key="channel.channel.uuid" :channel="channel" />
           </v-card>
         </v-col>
       </v-row>

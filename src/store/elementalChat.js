@@ -20,7 +20,7 @@ function sortChannels (val) {
 function storeChannelCounts (channels) {
   const currentChannelCounts = JSON.parse(window.localStorage.getItem('channelCounts') || '{}')
   window.localStorage.setItem('channelCounts', JSON.stringify(channels.reduce((acc, channel) => {
-    const id = channel.entry.uuid
+    const id = channel.channel.uuid
     const messagesLength = (channel.messages || []).length
     acc[id] = Math.max(messagesLength, currentChannelCounts[id])
     return acc
@@ -105,7 +105,7 @@ export default {
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       const holochainPayload = {
         name: payload.info.name,
-        entry: payload.entry
+        channel: payload.channel
       }
       callZome(
         dispatch,
@@ -118,7 +118,7 @@ export default {
         .then(committedChannel => {
           committedChannel.last_seen = { First: null }
           commit('addChannels', [{ ...committedChannel, messages: [] }])
-          dispatch('joinChannel', committedChannel.entry.uuid)
+          dispatch('joinChannel', committedChannel.channel.uuid)
         })
         .catch(error => log('createChannel zome error', error))
     },
@@ -131,7 +131,7 @@ export default {
             newChannels = result.channels
 
             if (getters.channel.info.name === '' && result.channels.length > 0) {
-              dispatch('joinChannel', result.channels[0].entry.uuid)
+              dispatch('joinChannel', result.channels[0].channel.uuid)
             }
 
             // Get messages for the newChannels without active_chatter
@@ -146,7 +146,7 @@ export default {
       log('adding signal message: ', payload)
       commit('addChannels', [payload.channelData])
       commit('addMessagesToChannel', {
-        channelId: payload.channelData.entry.uuid,
+        channelId: payload.channelData.channel.uuid,
         messages: [payload.messageData]
       })
     },
@@ -163,8 +163,8 @@ export default {
 
       const holochainPayload = {
         last_seen: lastSeen,
-        channel: payload.channel.entry,
-        entry: {
+        channel: payload.channel.channel,
+        message: {
           uuid: uuidv4(),
           content: `${rootState.agentHandle}: ${payload.content}`
         },
@@ -185,29 +185,25 @@ export default {
         return
       }
 
-      commit('addMessagesToChannel', { channelId: payload.channel.entry.uuid, messages: [message] })
+      commit('addMessagesToChannel', { channelId: payload.channel.channel.uuid, messages: [message] })
 
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
       channel.info.created_by = toUint8Array(channel.info.created_by)
 
-      dispatch('signalSpecificChatters', {
-        signal_message_data: {
-          messageData: message,
-          channelData: channel
-        },
-        chatters: payload.channel.activeChatters,
-        include_active_chatters: true
+      dispatch('signalChatters', {
+        messageData: message,
+        channelData: channel
       })
     },
-    signalSpecificChatters: async ({ rootState, dispatch }, payload) => {
-      callZome(dispatch, rootState, 'chat', 'signal_specific_chatters', payload, 60000)
-        .catch(error => log('signalSpecificChatters zome error:', error))
+    signalChatters: async ({ rootState, dispatch }, payload) => {
+      callZome(dispatch, rootState, 'chat', 'signal_chatters', payload, 60000)
+        .catch(error => log('signalChatters zome error:', error))
     },
     async listMessages ({ commit, rootState, dispatch }, payload) {
       const holochainPayload = {
-        channel: payload.channel.entry,
+        channel: payload.channel.channel,
         chunk: payload.chunk,
         active_chatter: payload.active_chatter
       }
@@ -235,7 +231,7 @@ export default {
           messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
 
           commit('addMessagesToChannel', {
-            channelId: payload.channel.entry.uuid,
+            channelId: payload.channel.channel.uuid,
             messages
           })
         })
@@ -255,7 +251,7 @@ export default {
 
       // verify channel (within which the message belongs) exists
       const channel = state.channels.find(
-        c => c.entry.uuid === channelId
+        c => c.channel.uuid === channelId
       )
       if (!channel) return
 
@@ -263,11 +259,11 @@ export default {
         channel.messages = []
       }
 
-      channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
+      channel.messages = uniqBy([...channel.messages, ...messages], message => message.message.uuid)
         .sort((a, b) => a.createdAt[0] - b.createdAt[0])
 
       state.channels = state.channels.map(c => {
-        if (c.entry.uuid === channel.entry.uuid) {
+        if (c.channel.uuid === channel.channel.uuid) {
           return channel
         } else {
           return c
@@ -275,8 +271,8 @@ export default {
       })
 
       // Set the updated channel to unseen if it's not the current channel
-      if (state.currentChannelId !== channel.entry.uuid) {
-        _setUnseen(state, channel.entry.uuid)
+      if (state.currentChannelId !== channel.channel.uuid) {
+        _setUnseen(state, channel.channel.uuid)
       }
 
       // Update stats. This is a relatively expensive thing to do. There are definitely more effecient ways of updating.
@@ -287,7 +283,7 @@ export default {
       state.currentChannelId = uuid
       window.localStorage.setItem('currentChannelId', uuid)
 
-      const channel = state.channels.find(channel => channel.entry.uuid === uuid)
+      const channel = state.channels.find(channel => channel.channel.uuid === uuid)
 
       if (channel) {
         channel.unseen = false
@@ -297,7 +293,7 @@ export default {
       const channels = state.channels
 
       // order is important in this uniqBy because we want existing copy of the channel to win
-      state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.entry.uuid))
+      state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.channel.uuid))
         .map(c => ({
           last_seen: { First: null }, // and order is important in this object because we want existing values of c.last_seen to win
           ...c
@@ -323,7 +319,7 @@ export default {
     channel: state => {
       const emptyChannel = {
         info: { name: '' },
-        entry: { category: 'General', uuid: '' },
+        channel: { category: 'General', uuid: '' },
         messages: [],
         activeChatters: [],
         unseen: false
@@ -331,7 +327,7 @@ export default {
 
       if (state.currentChannelId === null) return emptyChannel
 
-      const channel = state.channels.find(channel => channel.entry.uuid === state.currentChannelId)
+      const channel = state.channels.find(channel => channel.channel.uuid === state.currentChannelId)
 
       if (!channel) {
         console.log(`Couldn't find channel with uuid: ${state.currentChannelId}`)
@@ -350,7 +346,7 @@ export default {
 
 function _setUnseen (state, uuid) {
   // find channel by uuid and update unseen when found
-  const channel = state.channels.find(channel => channel.entry.uuid === uuid)
+  const channel = state.channels.find(channel => channel.channel.uuid === uuid)
 
   if (channel) {
     channel.unseen = true
