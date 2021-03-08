@@ -69,6 +69,10 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     }
   }
 
+  const appInfo = await holoClient.appInfo()
+  const cellId = appInfo.cell_data[0][0]
+  commit('setDnaHash', 'u' + Buffer.from(cellId[0]).toString('base64'))
+
   isInitializingHolo = false
 }
 
@@ -92,6 +96,11 @@ const initializeClientLocal = async (commit, dispatch, _) => {
       cellId,
       appVersion: APP_VERSION
     })
+
+    const dnaHash = 'u' + Buffer.from(cellId[0]).toString('base64')
+    console.log('dnaHash : ', dnaHash)
+    commit('setDnaHash', dnaHash)
+
     commit('setHolochainClient', holochainClient)
     dispatch('elementalChat/refreshChatter', null, { root: true })
 
@@ -142,6 +151,7 @@ export default {
     conductorDisconnected: true,
     reconnectingIn: 0,
     appInterface: null,
+    dnaHash: null,
     firstConnect: false
   },
   actions: {
@@ -179,6 +189,9 @@ export default {
     },
     setAppInterface (state, payload) {
       state.appInterface = payload
+    },
+    setDnaHash (state, payload) {
+      state.dnaHash = payload
     },
     setReconnecting (state, payload) {
       state.firstConnect = false

@@ -58,7 +58,7 @@
             </v-btn>
           </template>
           <div v-if="!dnaHash">Loading Version Info...</div>
-          <div v-if="dnaHash">UI: {{ APP_VERSION }}</div>
+          <div v-if="dnaHash">UI: {{ appVersion }}</div>
           <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
         </v-tooltip>
       </v-toolbar-title>
@@ -167,7 +167,8 @@ export default {
     ...mapState('holochain', [
       'conductorDisconnected',
       'appInterface',
-      'isHoloSignedIn']),
+      'isHoloSignedIn',
+      'dnaHash']),
     ...mapState('elementalChat', [
       'stats',
       'statsLoading'
@@ -177,15 +178,15 @@ export default {
     ]),
     statsAreLoading () {
       return this.statsLoading
+    },
+    appVersion () {
+      return process.env.VUE_APP_UI_VERSION
     }
   },
   watch: {
     conductorDisconnected (val) {
       if (!val) this.listChannels({ category: 'General' })
     }
-  },
-  created () {
-    this.APP_VERSION = process.env.VUE_APP_UI_VERSION
   }
 }
 </script>
