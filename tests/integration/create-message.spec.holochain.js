@@ -1,23 +1,26 @@
 import 'regenerator-runtime/runtime.js'
 import { v4 as uuidv4 } from 'uuid'
 import wait from 'waait'
-// import httpServers from './setup/setupServers.js'
 import { orchestrator } from './setup/tryorama'
 import { closeTestConductor, waitForState, awaitZomeResult, findElementByText, getElementProperty, beforeAllSetup } from './setup/helpers'
-import { TIMEOUT } from './setup/globals' // , INSTALLED_APP_ID, WEB_LOGGING
+import { TIMEOUT } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
   let aliceChat, page, closeServer
   const callRegistry = {}
-  beforeAll(async () => ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario)), TIMEOUT)
+  beforeAll(async () => {
+    const createPage = async() => await global.__BROWSER__.newPage();
+    // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
+    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))  
+  }, TIMEOUT)
   afterAll(async () => {
-    console.log("👉 Closing the UI server...")
-    await closeServer()
-    console.log("✅ Closed the UI server...")
-
     console.log('👉 Shutting down tryorama player conductor(s)...')
     await closeTestConductor(aliceChat, 'Create new Message')
     console.log('✅ Closed tryorama player conductor(s)')
+    
+    console.log("👉 Closing the UI server...")
+    await closeServer()
+    console.log("✅ Closed the UI server...")
   })
 
   describe('New Message Flow', () => {
@@ -46,15 +49,16 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
         // alice creates channel
         const callCreateChannel = async () => await aliceChat.call('chat', 'create_channel', newChannel)
         const channel = await awaitZomeResult(callCreateChannel, 90000, 10000)
-        // alice checks stats
+        // alice checks stats 
+        console.log('stats after channel creation : ', stats)
         let stats = await aliceChat.call('chat', 'stats', {category: "General"})
-        console.log('stats after first channel creation : ', stats)
+        expect(stats).toEqual({agents: 1, active: 1, channels: 1, messages: 0})
         
         // current web agent (bobbo) refreshes channel list
         const newChannelButton = await page.$('#add-channel')
         await newChannelButton.click()
 
-        await wait(5000)
+        await wait(2000)
 
         // makes sure the channel exists first
         const channels = await page.$eval('.channels-container', el => el.children);
@@ -103,6 +107,11 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
       const checkNewMessageState = () => callRegistry.addMessageToChannel
       await waitForState(checkNewMessageState, 'done')
+
+      // alice checks stats after message
+      stats = await aliceChat.call('chat', 'stats', {category: "General"})
+      console.log('stats after message creation : ', stats)
+      expect(stats).toEqual({agents: 1, active: 1, channels: 1, messages: 1})
 
       // check for new message content is on page
       const newPage = page
