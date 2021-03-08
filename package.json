@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",
-    "@holochain/tryorama": "holochain/tryorama/#ac167f592ab3f4c6dc8dbee19f2cbda64c14064b",
+    "@holochain/tryorama": "file:/home/lisa/Documents/gitrepos/holochain/holochain-new/tryorama/tryorama",
     "@testing-library/vue": "^5.6.1",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-e2e-cypress": "~4.5.0",

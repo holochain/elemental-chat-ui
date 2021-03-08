@@ -7,24 +7,27 @@ const WEB_LOGGING = process.env.VUE_APP_WEB_LOGS === 'true'
   ? true
   : false
 
+const INSTALLED_APP_ID = 'elemental-chat:alpha19:0001'
+
 orchestrator.registerScenario('New Message Scenario', async scenario => {
   let aliceChat, page, ports, close
   const callRegistry = {}
   beforeAll(async () => {
-    // console.log('Settng up players on elemental chat...')
-    // // Tryorama: instantiate player conductor
-    // const [alice] = await scenario.players([conductorConfig], false)
-    // await alice.startup()
-    // // Tryorama: install elemental chat on both player conductors
-    // const [[aliceChatHapp]] = await alice.installAgentsHapps([[[elChatDna]]]);
-    // // Tryorama: grab chat cell from list of happ cells to use as the 'player'
-    // ([aliceChat] = aliceChatHapp.cells);
+    console.log('Settng up players on elemental chat...')
+    // Tryorama: instantiate player conductor
+    const [alice] = await scenario.players([conductorConfig], false)
+    await alice.startup()
+    // Tryorama: install elemental chat on both player conductors
+    const [[aliceChatHapp]] = await alice.installAgentsHapps([[{ hAppId: INSTALLED_APP_ID, dnas: [elChatDna] }]]);
+    // Tryorama: grab chat cell from list of happ cells to use as the 'player'
+    ([aliceChat] = aliceChatHapp.cells)
 
-    // console.log('Sharing nodes')
-    // await scenario.shareAllNodes([alice])
+    // Tryorama: alice declares self as chatter
+    await aliceChat.call('chat', 'refresh_chatter', null)
 
-    // // Tryorama: alice declares self as chatter
-    // await aliceChat.call('chat', 'refresh_chatter', null);
+    console.log('Confirming empty state at start')
+    let stats = await aliceChat.call('chat', 'stats', {category: "General"})
+    expect(stats).toEqual(stats, {agents: 0, active: 0, channels: 0, messages: 0});
 
     // locally spin up ui server only (not holo env)
     ({ ports, close } = httpServers())
@@ -63,12 +66,8 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     }
 
     // Puppeteer: emulate avg desktop viewport
-    await page.setViewport({ width: 1442, height: 1341 })
+    await page.setViewport({ width: 952, height: 968 })
     await page.goto(`http://localhost:${ports.ui}/dist/index.html`) 
-    
-    // console.log('Confirming empty state at start')
-    // let stats = await aliceChat.call('chat', 'stats', {category: "General"})
-    // expect(stats).toEqual(stats, {agents: 0, active: 0, channels: 0, messages: 0})
   }, TIMEOUT)
 
   afterAll(async () => {
@@ -76,13 +75,13 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     await close();
     console.log("✅ Closed the UI server...");
 
-    // console.log('👉 Shutting down tryorama player conductor(s)...')
-    // await closeTestConductor(aliceChat, 'Create new Message')
-    // console.log('✅ Closed tryorama player conductor(s)')
+    console.log('👉 Shutting down tryorama player conductor(s)...')
+    await closeTestConductor(aliceChat, 'Create new Message')
+    console.log('✅ Closed tryorama player conductor(s)')
   })
 
   describe('New Channel Flow', () => {
-    it.skip('creates and displays new message', async () => {
+    it('creates and displays new message', async () => {
       // *********
       // register nickname
       // *********

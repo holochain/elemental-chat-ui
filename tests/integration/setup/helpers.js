@@ -89,20 +89,12 @@ export const awaitZomeResult = async (
   timeout = TIMEOUT,
   pollingInterval = POLLING_INTERVAL
 ) => {
-
-  console.log('ASYNC CALL : ', asyncCall)
-  console.log('------------------------> 3') 
-
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       reject(new Error(`Waited for ${timeout / 1000} seconds`, timeout))
     }, timeout)
     const poll = setInterval(async () => {
-      console.log('------------------------> 4') 
       const callResult = await asyncCall()
-      console.log('------------------------> 5') 
-
-      console.log('callResult :', callResult)
       if (callResult) {
         clearInterval(poll)
         clearTimeout(timeoutId)
@@ -139,9 +131,3 @@ export const holoAuthenticateUser = async (page, frame, userEmail = '', userPass
 
   return { email, password, confirmation }
 }
-
-
-  // const amount = await page.$eval(`.v-list-item`, el => el.innerHTML)
-  // console.log('CHECK#1 >>>>>>>>>>>>>>>>>>>', amount)
-  // const note = await page.$eval(`.v-list-item`, el => el.value)
-  // console.log('CHECK#2 >>>>>>>>>>>>>>>>>>>', note)

@@ -9,7 +9,7 @@ import {
 
 const path = require('path')
 
-const appPort = process.env.VUE_APP_TEST_PORT || 8888
+const appPort = 8888
 
 // Note: this is a copy of the network config used in ec dna tests
 const network = {
