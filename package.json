@@ -27,6 +27,7 @@
     "@holochain-open-dev/holochain-run-dna": "^0.3.2",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@testing-library/jest-dom": "^5.11.9",
+    "@whi/stdlog": "^0.3.4",
     "async-wait-until": "^1.2.6",
     "babel-plugin-module-resolver": "^4.1.0",
     "core-js": "^3.6.5",
