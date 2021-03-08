@@ -57,9 +57,9 @@
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
           </template>
-          <div v-if="!appInterface">Loading Version Info...</div>
-          <div v-if="appInterface">UI: {{ appInterface.appVersion }}</div>
-          <div v-if="appInterface">DNA: {{ appInterface.appId }}</div>
+          <div v-if="!dnaHash">Loading Version Info...</div>
+          <div v-if="dnaHash">UI: {{ APP_VERSION }}</div>
+          <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
@@ -183,6 +183,9 @@ export default {
     conductorDisconnected (val) {
       if (!val) this.listChannels({ category: 'General' })
     }
+  },
+  created () {
+    this.APP_VERSION = process.env.VUE_APP_UI_VERSION
   }
 }
 </script>

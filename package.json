@@ -17,7 +17,7 @@
     "test": "yarn jest --watch"
   },
   "dependencies": {
-    "@holo-host/web-sdk": "Holo-Host/web-sdk#eb0acf3470ac449af90b82a8dcc52462de7c364b",
+    "@holo-host/web-sdk": "^0.4.0",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@vue/test-utils": "^1.1.3",
     "async-wait-until": "^1.2.6",
