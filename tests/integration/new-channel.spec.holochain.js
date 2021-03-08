@@ -1,13 +1,8 @@
 import 'regenerator-runtime/runtime.js'
 import httpServers from './setup/setupServers.js'
 import { orchestrator, conductorConfig, elChatDna } from './setup/tryorama'
-import { TIMEOUT, closeTestConductor, waitForState, findElementByText, findElementByClassandText, getElementProperty, toBeOnPage } from './setup/helpers'
-
-const WEB_LOGGING = process.env.VUE_APP_WEB_LOGS === 'true'
-  ? true
-  : false
-
-const INSTALLED_APP_ID = 'elemental-chat:alpha19:0001'
+import { closeTestConductor, waitForState, findElementByText, findElementByClassandText, getElementProperty } from './setup/helpers'
+import { TIMEOUT, INSTALLED_APP_ID, WEB_LOGGING } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
   let aliceChat, page, ports, close

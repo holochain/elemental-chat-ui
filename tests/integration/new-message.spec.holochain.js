@@ -3,13 +3,8 @@ import { v4 as uuidv4 } from 'uuid'
 import wait from 'waait'
 import httpServers from './setup/setupServers.js'
 import { orchestrator, conductorConfig, elChatDna } from './setup/tryorama'
-import { TIMEOUT, closeTestConductor, waitForState, awaitZomeResult, findElementByText, findElementByClassandText, getElementProperty } from './setup/helpers'
-
-const WEB_LOGGING = process.env.VUE_APP_WEB_LOGS === 'true'
-  ? true
-  : false
-
-const INSTALLED_APP_ID = 'elemental-chat:alpha19:0001'
+import { closeTestConductor, waitForState, awaitZomeResult, findElementByText, getElementProperty } from './setup/helpers'
+import { TIMEOUT, INSTALLED_APP_ID, WEB_LOGGING } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
   let aliceChat, page, ports, closeServer
@@ -72,8 +67,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     // Puppeteer: emulate avg desktop viewport
     await page.setViewport({ width: 952, height: 968 })
     await page.goto(`http://localhost:${ports.ui}/dist/index.html`) 
-    
-  })
+  }, TIMEOUT)
 
   afterAll(async () => {
     console.log("👉 Closing the UI server...");
@@ -139,13 +133,6 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
           newChannelText = null
         }
         expect(newChannelText).toBeTruthy()
-        // console.log('------------------------> 5')
-        // let newPage = page
-        // const newChannelElement = await findElementByClassandText('div', 'v-list-item', newChannelTitle, newPage)
-        // console.log('NEW CHANNEL ELEMENT : ', newChannelElement)
-        // const newChannelHTML = await getElementProperty(newChannelElement,'innerHTML')
-        // console.log('------------------------> 6')
-        // expect(newChannelHTML).toEqual(newChannelTitle)
  
       // *********
       // create new message

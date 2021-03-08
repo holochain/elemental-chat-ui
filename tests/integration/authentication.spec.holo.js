@@ -1,4 +1,5 @@
-import { TIMEOUT, HOSTED_AGENT, findIframe, holoAuthenticateUser, takeSnapshot  } from './setup/helpers'
+import { TIMEOUT, HOSTED_AGENT } from './setup/globals'
+import { findIframe, holoAuthenticateUser, takeSnapshot } from './setup/helpers'
 import wait from 'waait'
 
 const CHAPERONE_SERVER_URL = process.env.VUE_APP_CHAPERONE_SERVER_URL

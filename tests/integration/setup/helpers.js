@@ -1,10 +1,4 @@
-export const SCREENSHOT_PATH = "./snapshots";
-export const TIMEOUT = 300000
-export const POLLING_INTERVAL = 1000
-export const HOSTED_AGENT = {
-  email: 'alice@holo.host',
-  password: '12344321'
-}
+import { TIMEOUT, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
 
 export const waitForState = async (stateChecker, desiredState, pollingInterval = 1000) => {
   return new Promise(resolve => {
