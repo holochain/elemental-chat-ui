@@ -26,7 +26,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
   describe('New Channel Flow', () => {
     let channel
-    const webUserNick = 'Bobbo'
+    const webUserNick = 'Alice Online'
 
     const newMessage = {
       last_seen: { First: null },
@@ -64,8 +64,6 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       const checkNewChannelState = () => callRegistry.createChannel
       await waitForState(checkNewChannelState, 'done')
 
-      // Tryorama: alice declares self as chatter
-      await aliceChat.call('chat', 'refresh_chatter', null)
       // alice checks stats
       const startingStats = await aliceChat.call('chat', 'stats', { category: 'General' })
       console.log('stats after channel creation : ', startingStats)
@@ -89,8 +87,8 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       }
       const signalResult = await aliceChat.call('chat', 'signal_chatters', signalMessageData)
       console.log('>>>>>>>>>>>> signal result', signalResult)
-      // expect(signalResult.sent.total).toEqual(1)
-      // expect(signalResult.sent.length).toEqual(1)
+      expect(signalResult.sent.total).toEqual(1)
+      expect(signalResult.sent.length).toEqual(1)
 
       await wait(3000)
       // verify new message is in list of messages from the dht
@@ -113,14 +111,14 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     })
 
     it.skip('displays messages after calling listMessage', async () => {
-      // alice creates (tryorama) new message on channel
+      // alice (tryorama) creates new message on channel
       newMessage.message.content = 'Message #2'
       const createMessage = async () => await aliceChat.call('chat', 'create_message', newMessage)
       const messageResponse = await awaitZomeResult(createMessage, 90000, 10000)
       console.log('>>>>>>>>>>>> message response', messageResponse)
       expect(messageResponse.message).toEqual(newMessage.message)
 
-      // current web agent (bobbo) refreshes channel list to check new messages (this calls list_messages)
+      // alice (web) refreshes channel list to check new messages (this calls list_messages)
       const refreshChannelButton = await page.$('#add-channel')
       await refreshChannelButton.click()
 
