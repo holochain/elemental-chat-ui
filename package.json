@@ -16,6 +16,8 @@
     "test-integration-holo": "nix-shell --command 'VUE_APP_CONTEXT='holo-host' VUE_APP_WEB_LOGS='true' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
     "test-holochain-env": "yarn fetch-dna && yarn build-holochain && yarn test-integration-hc",
     "test-holo-host-env": "yarn build-holo-host && yarn test-integration-holo",
+    "test-ci-holochain": "yarn test-holochain-env CI=1",
+    "test-ci-holo": "yarn test-holo-host-env CI=1",
     "fetch-dna": "mkdir -p dnas && sh ./scripts/fetch-dna.sh",
     "run-dna": "holochain-run-dna -c ./tests/integration/setup/config.yml -a 4444",
     "run-chaperone": "yarn chaperone-server --config ./chaperone.json",

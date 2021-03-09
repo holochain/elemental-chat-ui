@@ -1,6 +1,7 @@
 import { TIMEOUT, INSTALLED_APP_ID, WEB_LOGGING, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
 import { conductorConfig, elChatDna } from './tryorama'
 import httpServers from './setupServers'
+import wait from 'waait'
 
 export const waitForState = async (stateChecker, desiredState, pollingInterval = 1000) => {
   return new Promise(resolve => {
@@ -124,6 +125,7 @@ export const holoAuthenticateUser = async (frame, modalElement, email, password,
 /// Test Setup helpers:
 // -------------------
 export const registerNickname = async (page, webUserNick) => {
+  await wait(2000)
   // verify page title
   const pageTitle = await page.title()
   expect(pageTitle).toBe('Elemental Chat')
