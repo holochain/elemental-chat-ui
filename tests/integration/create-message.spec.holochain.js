@@ -27,7 +27,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   describe('New Message Flow', () => {
     it('creates and displays new message', async () => {
       const webUserNick = 'Alice'
-      // let newPage = page
+      let newPage = page
       await registerNickname(page, webUserNick)
 
       // *********
@@ -102,7 +102,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await waitForState(checkNewMessageState, 'done')
 
       // check for new message content is on page
-      const newPage = page
+      newPage = page
       const [newMessageElement] = await findElementByText('li', newMessageContent, newPage)
       expect(newMessageElement).toBeTruthy();
       const newMessageHTML = await getElementProperty(newMessageElement, 'innerHTML')

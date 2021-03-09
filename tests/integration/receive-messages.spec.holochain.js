@@ -41,7 +41,8 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     const newMessageContent = newMessage.message.content
 
     it('displays signal message', async () => {
-      await registerNickname(page, webUserNick)
+      let newPage = page
+      await registerNickname(newPage, webUserNick)
 
       // *********
       // create channel
@@ -92,7 +93,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       expect(messages[0].message.content).toContain(newMessageContent)
 
       // alice (web) checks for new message content on page
-      const newPage = page
+      newPage = page
       const [newMessageElement] = await findElementByText('li', newMessageContent, newPage)
       expect(newMessageElement).toBeTruthy()
       const newMessageHTML = await getElementProperty(newMessageElement, 'innerHTML')
