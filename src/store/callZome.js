@@ -45,7 +45,7 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     }
     return result
   } catch (e) {
-    log('ERROR: callZome threw error', e)
+    log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
     if (e === 'Error: Socket is not open') {
       return dispatch('resetConnectionState', null, { root: true })
     }
