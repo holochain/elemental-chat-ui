@@ -20,16 +20,16 @@ export const waitForState = async (stateChecker, desiredState, pollingInterval =
 // --------------------
 export const reload = page => page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
 
-export const takeSnapshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` });
+export const takeSnapshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` })
 export const fetchPreformanceResults = async (page, console) => {
   // Executes Navigation API within the page context
-  const metrics = await page.evaluate(() => JSON.stringify(window.performance));
+  const metrics = await page.evaluate(() => JSON.stringify(window.performance))
   // Parses the result to JSON
-  console.info(JSON.parse(metrics));
+  console.info(JSON.parse(metrics))
 }
 export const fetchAccesiblitySnapShot = async (page, console) => { // Captures the current state of the accessibility tree
-  const snapshot = await page.accessibility.snapshot();
-  console.info(snapshot);
+  const snapshot = await page.accessibility.snapshot()
+  console.info(snapshot)
   return snapshot
 }
 
@@ -38,13 +38,13 @@ export const getElementProperty = async (element, property) => {
 }
 
 const escapeXpathString = str => {
-  const splitedQuotes = str.replace(/'/g, `', "'", '`);
-  return `concat('${splitedQuotes}', '')`;
+  const splitedQuotes = str.replace(/'/g, `', "'", '`)
+  return `concat('${splitedQuotes}', '')`
 }
 
 // returns JS DOM Element
 export const findElementByText = async (element, text, page) => {
-  const cleanedText = escapeXpathString(text).trim();
+  const cleanedText = escapeXpathString(text).trim()
   const matches = await page.$x(`//${element}[contains(., ${cleanedText})]`)
   if (matches.length > 0) return matches
   else throw Error(`Failed to find a match for element (${element}) with text (${text}) on page (${page}).`)
@@ -126,14 +126,18 @@ export const holoAuthenticateUser = async (frame, modalElement, email, password,
 export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   // Tryorama: instantiate player conductor
   console.log('Settng up players on elemental chat...')
-  const [alice] = await scenario.players([conductorConfig], false)
-  await alice.startup()
-  
+  const [conductor] = await scenario.players([conductorConfig], false)
+  await conductor.startup()
+
   // Tryorama: install elemental chat on both player conductors
-  const [[aliceChatHapp]] = await alice.installAgentsHapps([[{ hAppId: INSTALLED_APP_ID, dnas: [elChatDna] }]]);
+  const [[aliceChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: INSTALLED_APP_ID, dnas: [elChatDna] }]])
+  const [[bobboChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: 'second_agent', dnas: [elChatDna] }]])
   // Tryorama: grab chat cell from list of happ cells to use as the 'player'
-  let aliceChat;
-  ([aliceChat] = aliceChatHapp.cells);
+  const [aliceChat] = aliceChatHapp.cells
+  const[bobboChat] = bobboChatHapp.cells
+
+  // Tryorama: alice declares self as chatter
+  await aliceChat.call('chat', 'refresh_chatter', null);
 
   // locally spin up ui server only (not holo env)
   console.log('👉 Spinning up UI server');
@@ -175,5 +179,5 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   await page.setViewport({ width: 952, height: 968 })
   await page.goto(`http://localhost:${ports.ui}/dist/index.html`)
 
-  return { aliceChat, page, closeServer }
+  return { aliceChat, bobboChat, page, closeServer }
 }

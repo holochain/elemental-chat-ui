@@ -31,7 +31,7 @@
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
-              id="update-handle"
+              id="get-stats"
               color="action"
               icon
               v-bind="attrs"
@@ -47,7 +47,7 @@
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
-              id="update-handle"
+              id="version"
               color="action"
               icon
               v-bind="attrs"
