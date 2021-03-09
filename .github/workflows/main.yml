@@ -37,3 +37,5 @@ jobs:
       run: yarn install
     - name: Run holochain-environment integration tests
       run: nix-shell --run 'yarn test-holochain-env"'
+    - name: Run holo-environment authentication test
+      run: nix-shell --run 'yarn test-holo-host-env"'
