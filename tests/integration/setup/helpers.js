@@ -123,21 +123,36 @@ export const holoAuthenticateUser = async (frame, modalElement, email, password,
 
 /// Test Setup helpers:
 // -------------------
+export const registerNickname = async (page, webUserNick) => {
+  // verify page title
+  const pageTitle = await page.title()
+  expect(pageTitle).toBe('Elemental Chat')
+  // add agent nickname
+  await page.focus('.v-dialog')
+  await page.keyboard.type(webUserNick, { delay: 100 })
+  const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
+  await submitButton.click()
+}
+
 export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   // Tryorama: instantiate player conductor
   console.log('Settng up players on elemental chat...')
   const [conductor] = await scenario.players([conductorConfig], false)
   await conductor.startup()
 
+  conductor.setSignalHandler((_) => {
+    console.log("Conductor Received Signal:",_)
+  })
+
   // Tryorama: install elemental chat on both player conductors
   const [[aliceChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: INSTALLED_APP_ID, dnas: [elChatDna] }]])
   const [[bobboChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: 'second_agent', dnas: [elChatDna] }]])
   // Tryorama: grab chat cell from list of happ cells to use as the 'player'
   const [aliceChat] = aliceChatHapp.cells
-  const[bobboChat] = bobboChatHapp.cells
+  const [bobboChat] = bobboChatHapp.cells
 
   // Tryorama: alice declares self as chatter
-  await aliceChat.call('chat', 'refresh_chatter', null);
+  await aliceChat.call('chat', 'refresh_chatter', null)
 
   // locally spin up ui server only (not holo env)
   console.log('👉 Spinning up UI server');

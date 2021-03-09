@@ -1,6 +1,6 @@
 import 'regenerator-runtime/runtime.js'
 import { orchestrator } from './setup/tryorama'
-import { closeTestConductor, findElementByText, beforeAllSetup } from './setup/helpers'
+import { closeTestConductor, findElementByText, beforeAllSetup, registerNickname } from './setup/helpers'
 import { TIMEOUT } from './setup/globals'
 import wait from 'waait'
 
@@ -13,34 +13,25 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     ({ aliceChat, bobboChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
   afterAll(async () => {
+    console.log('👉 Shutting down tryorama player conductor(s)...')
+    await closeTestConductor(aliceChat, 'Create new Message - Alice')
+    await closeTestConductor(bobboChat, 'Create new Message - Bob')
+    console.log('✅ Closed tryorama player conductor(s)')
+
     console.log('👉 Closing the UI server...')
     await closeServer()
     console.log('✅ Closed the UI server...')
-
-    console.log('👉 Shutting down tryorama player conductor(s)...')
-    await closeTestConductor(aliceChat, 'Create new Message')
-    console.log('✅ Closed tryorama player conductor(s)')
   })
 
   describe('New Channel Flow', () => {
     it('creates and displays new message', async () => {
-      // *********
-      // register nickname
-      // *********
-      // verify page title
-      const pageTitle = await page.title()
-      expect(pageTitle).toBe('Elemental Chat')
-      // add agent nickname
-      const webUserNick = 'Bob'
-      await page.focus('.v-dialog')
-      await page.keyboard.type(webUserNick, { delay: 100 })
-      const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
-      await submitButton.click()
+      const newPage = page
+      await registerNickname(newPage, webUserNick)
 
       // *********
       // check stats
       // *********
-      //// click on get stats // get-stats
+      //// alice (web) clicks on get-stats
       await page.click('#get-stats')
       await wait(5000)
       let element = await page.$$('.display-1')
@@ -55,7 +46,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
         }
       }
 
-      console.log('All the text: ', texts)
+      console.log('Stats prior to second agent: ', texts)
 
       // assert that we find the right stats
       expect(texts[1]).toContain('1')
@@ -65,16 +56,15 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
       const [closeButton] = await findElementByText('button', 'Close', page)
       await closeButton.click()
-      // Tryorama: alice declares self as chatter
+
+      // bobbo (tryorama node) declares self as chatter
       await bobboChat.call('chat', 'refresh_chatter', null)
+      
       await wait(5000)
 
       // *********
       // refresh chatters by second agent
       // *********
-      //// refresh page
-      //// click on get stats
-      ////... and compare against previous (should not be the same)
       await page.click('#get-stats')
       await wait(5000)
       element = await page.$$('.display-1')
@@ -88,8 +78,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
           continue
         }
       }
-
-      console.log('All the text: ', texts)
+      console.log('Stats after second agent: ', texts)
 
       // assert that we find the right stats
       expect(texts[1]).toContain('2')
