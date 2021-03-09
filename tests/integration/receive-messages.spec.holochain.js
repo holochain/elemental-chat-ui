@@ -9,15 +9,15 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   let aliceChat, page, closeServer
   const callRegistry = {}
   beforeAll(async () => {
-    const createPage = async() => await global.__BROWSER__.newPage();
+    const createPage = async () => await global.__BROWSER__.newPage();
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
-    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))  
+    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
 
   afterAll(async () => {
-    console.log("👉 Closing the UI server...")
+    console.log('👉 Closing the UI server...')
     await closeServer()
-    console.log("✅ Closed the UI server...")
+    console.log('✅ Closed the UI server...')
 
     console.log('👉 Shutting down tryorama player conductor(s)...')
     await closeTestConductor(aliceChat, 'Create new Message')
@@ -37,7 +37,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await page.focus('.v-dialog')
       await page.keyboard.type(webUserNick, { delay: 100 })
       const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
-      await submitButton.click()      
+      await submitButton.click()
 
       // *********
       // create channel
@@ -51,39 +51,39 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       const checkNewChannelState = () => callRegistry.createChannel
       await waitForState(checkNewChannelState, 'done')
 
-      const { channels } = await aliceChat.call('chat', 'list_channels', { category: "General" })
-      console.log('>>>>>>>>>>>> channel list', channels); 
+      const { channels } = await aliceChat.call('chat', 'list_channels', { category: 'General' })
+      console.log('>>>>>>>>>>>> channel list', channels)
 
       const channel = channels.find(channel => channel.info.name === newChannelTitle)
 
-        // alice creates new message on channel
+      // alice creates new message on channel
       const newMessage = {
         last_seen: { First: null },
         channel: channel.channel,
         chunk: 0,
         message: {
-            uuid: uuidv4(),
-            content: 'Hello from Alice, the tryorama node :)'
+          uuid: uuidv4(),
+          content: 'Hello from Alice, the tryorama node :)'
         }
       }
-      const newMessageContent = newMessage.message.content;
-      
-      const messageResponse = await aliceChat.call('chat', 'create_message', newMessage);
-      expect(messageResponse.message).toEqual(newMessage.message);
-      console.log('>>>>>>>>>>>> message response', messageResponse); 
+      const newMessageContent = newMessage.message.content
+
+      const messageResponse = await aliceChat.call('chat', 'create_message', newMessage)
+      expect(messageResponse.message).toEqual(newMessage.message)
+      console.log('>>>>>>>>>>>> message response', messageResponse)
       await wait(3000)
 
       // alice sends signal
       const signalMessageData = {
         messageData: messageResponse,
-        channelData: channel,
-      };
+        channelData: channel
+      }
       const signalResult = await aliceChat.call('chat', 'signal_chatters', signalMessageData)
-      console.log('>>>>>>>>>>>> signal result', signalResult);
+      console.log('>>>>>>>>>>>> signal result', signalResult)
 
       await wait(2000)
       // verify new message is in list of messages from the dht
-      const callListMessages = async () => await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: {start:0, end: 1} })
+      const callListMessages = async () => await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: { start: 0, end: 1 }})
       const { messages } = await awaitZomeResult(callListMessages, 90000, 10000)
       expect(messages[0].message.content).toContain(newMessageContent)
 
@@ -96,7 +96,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       expect(newMessageHTML).toContain(webUserNick.toUpperCase())
 
       // alice checks stats
-      let stats = await aliceChat.call('chat', 'stats', {category: "General"})
+      const stats = await aliceChat.call('chat', 'stats', { category: 'General' })
       console.log('stats signal sent : ', stats)
     })
 

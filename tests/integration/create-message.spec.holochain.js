@@ -9,9 +9,9 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   let aliceChat, page, closeServer
   const callRegistry = {}
   beforeAll(async () => {
-    const createPage = async() => await global.__BROWSER__.newPage();
+    const createPage = async () => await global.__BROWSER__.newPage();
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
-    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))  
+    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
   afterAll(async () => {
     console.log('👉 Shutting down tryorama player conductor(s)...')
@@ -49,11 +49,11 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // alice creates channel
       const callCreateChannel = async () => await aliceChat.call('chat', 'create_channel', newChannel)
       const channel = await awaitZomeResult(callCreateChannel, 90000, 10000)
-      // alice checks stats 
+      // alice checks stats
+      let stats = await aliceChat.call('chat', 'stats', { category: 'General' })
       console.log('stats after channel creation : ', stats)
-      let stats = await aliceChat.call('chat', 'stats', {category: 'General'})
-      expect(stats).toEqual({agents: 1, active: 1, channels: 1, messages: 0})
-      
+      expect(stats).toEqual({ agents: 1, active: 1, channels: 1, messages: 0 })
+
       // current web agent (bobbo) refreshes channel list
       const newChannelButton = await page.$('#add-channel')
       await newChannelButton.click()
@@ -101,7 +101,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await wait(2000)
 
       // verify new message is in list of messages from the dht
-      const callListMessages = async () => await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: {start:0, end: 1} })
+      const callListMessages = async () => await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: { start: 0, end: 1 } })
       const { messages } = await awaitZomeResult(callListMessages, 90000, 10000)
       expect(messages[0].message.content).toContain(newMessageContent)
 
@@ -109,9 +109,9 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await waitForState(checkNewMessageState, 'done')
 
       // alice checks stats after message
-      stats = await aliceChat.call('chat', 'stats', {category: 'General'})
+      stats = await aliceChat.call('chat', 'stats', { category: 'General' })
       console.log('stats after message creation : ', stats)
-      expect(stats).toEqual({agents: 1, active: 1, channels: 1, messages: 1})
+      expect(stats).toEqual({ agents: 1, active: 1, channels: 1, messages: 1 })
 
       // check for new message content is on page
       const newPage = page

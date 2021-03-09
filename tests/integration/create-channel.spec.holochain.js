@@ -7,15 +7,15 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   let aliceChat, page, closeServer
   const callRegistry = {}
   beforeAll(async () => {
-    const createPage = async() => await global.__BROWSER__.newPage();
+    const createPage = async () => await global.__BROWSER__.newPage();
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
-    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))  
+    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
 
   afterAll(async () => {
-    console.log("👉 Closing the UI server...")
+    console.log('👉 Closing the UI server...')
     await closeServer()
-    console.log("✅ Closed the UI server...")
+    console.log('✅ Closed the UI server...')
 
     console.log('👉 Shutting down tryorama player conductor(s)...')
     await closeTestConductor(aliceChat, 'Create new Message')
@@ -48,9 +48,9 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // wait for create call response / load
       const checkNewChannelState = () => callRegistry.createChannel
       await waitForState(checkNewChannelState, 'done')
-      
+
       // check for new channel title on page
-      const channels = await page.$eval('.channels-container', el => el.children);
+      const channels = await page.$eval('.channels-container', el => el.children)
       expect(Object.keys(channels).length).toBe(1)
       let newPage = page
       const newChannelElement = await findElementByClassandText('div', 'v-list-item', newChannelTitle, newPage)
