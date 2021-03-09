@@ -52,6 +52,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // alice checks stats
       let stats = await aliceChat.call('chat', 'stats', { category: 'General' })
       console.log('stats after channel creation : ', stats)
+
       expect(stats).toEqual({ agents: 1, active: 1, channels: 1, messages: 0 })
 
       // current web agent (bobbo) refreshes channel list
@@ -61,7 +62,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await wait(2000)
 
       // makes sure the channel exists first
-      const channels = await page.$eval('.channels-container', el => el.children);
+      const channels = await page.$eval('.channels-container', el => el.children)
       expect(Object.keys(channels).length).toBe(1)
       const newChannelTitle = newChannel.name
       let newChannelText
@@ -70,7 +71,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
           newChannelTitle => document.querySelector('body').innerText.includes(newChannelTitle),
           {},
           newChannelTitle
-        );
+        )
         console.log(`Successfully found new Channel (${newChannelTitle}) on the page`);
       } catch (e) {
         console.log(`The new Channel (${newChannelTitle}) was not found on the page`);

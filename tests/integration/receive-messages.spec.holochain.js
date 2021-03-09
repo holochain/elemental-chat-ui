@@ -25,6 +25,20 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   })
 
   describe('New Channel Flow', () => {
+    let channel
+    const webUserNick = 'Bobbo'
+
+    const newMessage = {
+      last_seen: { First: null },
+      channel: channel.channel,
+      chunk: 0,
+      message: {
+        uuid: uuidv4(),
+        content: 'Hello from Alice, the tryorama node :)'
+      }
+    }
+    const newMessageContent = newMessage.message.content
+
     it.skip('displays signal message', async () => {
       // *********
       // register nickname
@@ -33,7 +47,6 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       const pageTitle = await page.title()
       expect(pageTitle).toBe('Elemental Chat')
       // add agent nickname
-      const webUserNick = 'Bobbo'
       await page.focus('.v-dialog')
       await page.keyboard.type(webUserNick, { delay: 100 })
       const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
@@ -51,23 +64,19 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       const checkNewChannelState = () => callRegistry.createChannel
       await waitForState(checkNewChannelState, 'done')
 
-      const { channels } = await aliceChat.call('chat', 'list_channels', { category: 'General' })
+      // Tryorama: alice declares self as chatter
+      await aliceChat.call('chat', 'refresh_chatter', null)
+      // alice checks stats
+      const startingStats = await aliceChat.call('chat', 'stats', { category: 'General' })
+      console.log('stats after channel creation : ', startingStats)
+
+      // alice creates channel
+      const callListChannels = async () => await aliceChat.call('chat', 'list_channels', { category: 'General' })
+      const { channels } = await awaitZomeResult(callListChannels, 90000, 10000)
       console.log('>>>>>>>>>>>> channel list', channels)
+      channel = channels.find(channel => channel.info.name === newChannelTitle)
 
-      const channel = channels.find(channel => channel.info.name === newChannelTitle)
-
-      // alice creates new message on channel
-      const newMessage = {
-        last_seen: { First: null },
-        channel: channel.channel,
-        chunk: 0,
-        message: {
-          uuid: uuidv4(),
-          content: 'Hello from Alice, the tryorama node :)'
-        }
-      }
-      const newMessageContent = newMessage.message.content
-
+      // alice creates (tryorama) new message on channel
       const messageResponse = await aliceChat.call('chat', 'create_message', newMessage)
       expect(messageResponse.message).toEqual(newMessage.message)
       console.log('>>>>>>>>>>>> message response', messageResponse)
@@ -80,28 +89,52 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       }
       const signalResult = await aliceChat.call('chat', 'signal_chatters', signalMessageData)
       console.log('>>>>>>>>>>>> signal result', signalResult)
+      // expect(signalResult.sent.total).toEqual(1)
+      // expect(signalResult.sent.length).toEqual(1)
 
-      await wait(2000)
+      await wait(3000)
       // verify new message is in list of messages from the dht
       const callListMessages = async () => await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: { start: 0, end: 1 }})
       const { messages } = await awaitZomeResult(callListMessages, 90000, 10000)
       expect(messages[0].message.content).toContain(newMessageContent)
 
+      console.log('>>>>>>> message 1. > about to search page')
       // check for new message content is on page
-      newPage = page
+      const newPage = page
       const [newMessageElement] = await findElementByText('li', newMessageContent, newPage)
-      expect(newMessageElement).toBeTruthy();
+      expect(newMessageElement).toBeTruthy()
       const newMessageHTML = await getElementProperty(newMessageElement, 'innerHTML')
       expect(newMessageHTML).toContain(newMessageContent)
       expect(newMessageHTML).toContain(webUserNick.toUpperCase())
 
       // alice checks stats
-      const stats = await aliceChat.call('chat', 'stats', { category: 'General' })
-      console.log('stats signal sent : ', stats)
+      const newStats = await aliceChat.call('chat', 'stats', { category: 'General' })
+      console.log('stats signal sent : ', newStats)
     })
 
     it.skip('displays messages after calling listMessage', async () => {
-      //
+      // alice creates (tryorama) new message on channel
+      newMessage.message.content = 'Message #2'
+      const createMessage = async () => await aliceChat.call('chat', 'create_message', newMessage)
+      const messageResponse = await awaitZomeResult(createMessage, 90000, 10000)
+      console.log('>>>>>>>>>>>> message response', messageResponse)
+      expect(messageResponse.message).toEqual(newMessage.message)
+
+      // current web agent (bobbo) refreshes channel list to check new messages (this calls list_messages)
+      const refreshChannelButton = await page.$('#add-channel')
+      await refreshChannelButton.click()
+
+      await wait(2000)
+
+      // verify new message is visible on page
+      console.log('>>>>>>> message 2. >> about to search page')
+      const newPage = page
+      const [_, newMessageElement2] = await findElementByText('li', newMessageContent, newPage)
+      expect(newMessageElement2).toBeTruthy()
+      const newMessage2HTML = await getElementProperty(newMessageElement2, 'innerHTML')
+      expect(newMessage2HTML).toContain(newMessageContent)
+      expect(newMessage2HTML).toContain(webUserNick.toUpperCase())
+      await wait(3000)
     })
   })
 })

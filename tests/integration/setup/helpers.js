@@ -135,9 +135,6 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   let aliceChat;
   ([aliceChat] = aliceChatHapp.cells);
 
-  // Tryorama: alice declares self as chatter
-  await aliceChat.call('chat', 'refresh_chatter', null);
-
   // locally spin up ui server only (not holo env)
   console.log('👉 Spinning up UI server');
   const { ports, close: closeServer } = httpServers()
