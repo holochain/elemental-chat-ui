@@ -26,6 +26,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
   describe('New Message Flow', () => {
     it('creates and displays new message', async () => {
+      const webUserNick = 'Alice'
       // let newPage = page
       await registerNickname(page, webUserNick)
 

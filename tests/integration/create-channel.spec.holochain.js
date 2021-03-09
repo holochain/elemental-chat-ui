@@ -24,8 +24,8 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
   describe('New Channel Flow', () => {
     it('creates and displays new message', async () => {
-      let newPage = page
-      await registerNickname(page, webUserNick)
+      // let newPage = page
+      await registerNickname(page, 'Alice')
 
       // *********
       // create channel
@@ -43,7 +43,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // check for new channel title on page
       const channels = await page.$eval('.channels-container', el => el.children)
       expect(Object.keys(channels).length).toBe(1)
-      newPage = page
+      let newPage = page
       const newChannelElement = await findElementByClassandText('div', 'v-list-item', newChannelTitle, newPage)
       const newChannelHTML = await getElementProperty(newChannelElement, 'innerHTML')
       expect(newChannelElement).toBeTruthy()
