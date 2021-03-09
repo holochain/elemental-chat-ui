@@ -17,10 +17,10 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     console.log('👉 Shutting down tryorama player conductor(s)...')
     await closeTestConductor(aliceChat, 'Create new Message')
     console.log('✅ Closed tryorama player conductor(s)')
-    
-    console.log("👉 Closing the UI server...")
+
+    console.log('👉 Closing the UI server...')
     await closeServer()
-    console.log("✅ Closed the UI server...")
+    console.log('✅ Closed the UI server...')
   })
 
   describe('New Message Flow', () => {
@@ -37,47 +37,47 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await page.keyboard.type(webUserNick, { delay: 100 })
       const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
       await submitButton.click()
-  
+
       // *********
       // create channel (doing this at tryrama level to simulate channel created by another)
       // *********
       const channelId = uuidv4()
       const newChannel = {
-          name: 'Test Channel',
-          channel: { category: 'General', uuid: channelId }
-        }
-        // alice creates channel
-        const callCreateChannel = async () => await aliceChat.call('chat', 'create_channel', newChannel)
-        const channel = await awaitZomeResult(callCreateChannel, 90000, 10000)
-        // alice checks stats 
-        console.log('stats after channel creation : ', stats)
-        let stats = await aliceChat.call('chat', 'stats', {category: "General"})
-        expect(stats).toEqual({agents: 1, active: 1, channels: 1, messages: 0})
-        
-        // current web agent (bobbo) refreshes channel list
-        const newChannelButton = await page.$('#add-channel')
-        await newChannelButton.click()
+        name: 'Test Channel',
+        channel: { category: 'General', uuid: channelId }
+      }
+      // alice creates channel
+      const callCreateChannel = async () => await aliceChat.call('chat', 'create_channel', newChannel)
+      const channel = await awaitZomeResult(callCreateChannel, 90000, 10000)
+      // alice checks stats 
+      console.log('stats after channel creation : ', stats)
+      let stats = await aliceChat.call('chat', 'stats', {category: 'General'})
+      expect(stats).toEqual({agents: 1, active: 1, channels: 1, messages: 0})
+      
+      // current web agent (bobbo) refreshes channel list
+      const newChannelButton = await page.$('#add-channel')
+      await newChannelButton.click()
 
-        await wait(2000)
+      await wait(2000)
 
-        // makes sure the channel exists first
-        const channels = await page.$eval('.channels-container', el => el.children);
-        expect(Object.keys(channels).length).toBe(1)
-        const newChannelTitle = newChannel.name
-        let newChannelText
-        try {
-          newChannelText = await page.waitForFunction(
-            newChannelTitle => document.querySelector("body").innerText.includes(newChannelTitle),
-            {},
-            newChannelTitle
-          );
-          console.log(`Successfully found new Channel (${newChannelTitle}) on the page`);
-        } catch (e) {
-          console.log(`The new Channel (${newChannelTitle}) was not found on the page`);
-          newChannelText = null
-        }
-        expect(newChannelText).toBeTruthy()
- 
+      // makes sure the channel exists first
+      const channels = await page.$eval('.channels-container', el => el.children);
+      expect(Object.keys(channels).length).toBe(1)
+      const newChannelTitle = newChannel.name
+      let newChannelText
+      try {
+        newChannelText = await page.waitForFunction(
+          newChannelTitle => document.querySelector('body').innerText.includes(newChannelTitle),
+          {},
+          newChannelTitle
+        );
+        console.log(`Successfully found new Channel (${newChannelTitle}) on the page`);
+      } catch (e) {
+        console.log(`The new Channel (${newChannelTitle}) was not found on the page`);
+        newChannelText = null
+      }
+      expect(newChannelText).toBeTruthy()
+
       // *********
       // create new message
       // *********
@@ -109,7 +109,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await waitForState(checkNewMessageState, 'done')
 
       // alice checks stats after message
-      stats = await aliceChat.call('chat', 'stats', {category: "General"})
+      stats = await aliceChat.call('chat', 'stats', {category: 'General'})
       console.log('stats after message creation : ', stats)
       expect(stats).toEqual({agents: 1, active: 1, channels: 1, messages: 1})
 

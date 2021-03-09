@@ -1,39 +1,85 @@
-import { TIMEOUT, HOSTED_AGENT } from './setup/globals'
-import { findIframe, holoAuthenticateUser, takeSnapshot } from './setup/helpers'
+import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, WEB_LOGGING } from './setup/globals'
+import { findIframe, holoAuthenticateUser, getElementProperty, findElementByText } from './setup/helpers'
+import httpServers from './setup/setupServers'
 import wait from 'waait'
 
-const CHAPERONE_URL_REGEX = /^https?:\/\/chaperone\w*\.holo\.host/
+const chaperoneUrlCheck = {
+  production: CHAPERONE_URL_REGEX,
+  develop: CHAPERONE_URL_REGEX_DEV
+}
 
 describe('Authentication Flow', () => {
-  let page
+  let page, mainFrame, closeServer
   beforeAll(async () => {
+    console.log('👉 Spinning up UI server')
+    const { ports, close } = httpServers()
+    closeServer = close
     page = await global.__BROWSER__.newPage()
+    mainFrame = page.mainFrame()
+
+    page.once('domcontentloaded', () => console.info('✅ DOM is ready'))
+    page.once('load', () => console.info('✅ Page is loaded'))
+    page.once('close', () => console.info('✅ Page is closed'))
+    if (WEB_LOGGING) {
+      page.on('pageerror', error => console.error(`❌ ${error}`))
+      page.on('console', message => {
+        try {
+          console[message.type()](`ℹ️ ${message.text()}`)
+        } catch (error) {
+          console.info(`ℹ️ ${message}`)
+        }
+      })
+    }
 
     // Puppeteer: emulate avg desktop viewport
-    await page.setViewport({ width: 1442, height: 1341 })
-    await page.goto(`http://localhost:${ports.ui}/dist/index.html`) 
+    await page.setViewport({ width: 952, height: 968 })
+    await page.goto(`http://localhost:${ports.ui}/dist/index.html`)
   }, TIMEOUT)
 
-  it.skip('should successfully sign up', async () => {
+  afterAll(async () => {
+    console.log('👉 Closing the UI server...')
+    await closeServer()
+    console.log('✅ Closed the UI server...')
+  })
+
+  it('should successfully sign up', async () => {
     // *********
     // Sign Up and Log Into hApp
     // *********
     // wait for the modal to load
-    await wait(5000)
     await page.waitForSelector('iframe')
 
-    const iframe = await findIframe(page, CHAPERONE_URL_REGEX)
+    console.log('------------> 1')
 
-    const chaperoneData = await iframe.$eval('.modal-open', el => el.innerHTML)
-    expect(chaperoneData).toContain('Elemental Chat Login')
+    const iframe = await findIframe(page, chaperoneUrlCheck.production)
 
-    const { email, password, confirmation } = await holoAuthenticateUser(chaperoneData, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
+    console.log('------------> 2')
+
+    const chaperoneModal = await iframe.evaluateHandle(() => document)
+    console.log('------------> 3')
+
+    const modalTitle = 'Elemental Chat Login'
+    const modal = await page.waitForFunction(
+      (modalTitle, chaperoneModal) => document.querySelector(chaperoneModal).innerText.includes(modalTitle),
+      {},
+      modalTitle,
+      chaperoneModal
+    )
+    expect(modal).toContain('Elemental Chat Login')
+
+    const createCredentialsLink = await findElementByText('a', 'Create credentials', chaperoneModal)
+    console.log('------------> 4')
+    await createCredentialsLink.click()
+
+    const { emailInput, passwordInput, confirmationInput } = await holoAuthenticateUser(chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
+
+    const email = await getElementProperty(emailInput, 'value')
+    const password = await getElementProperty(passwordInput, 'value')
+    const confirmation = await getElementProperty(confirmationInput, 'value')
 
     expect(email).toBe(HOSTED_AGENT.email)
     expect(password).toBe(HOSTED_AGENT.password)
     expect(confirmation).toEqual(password)
-
-    await takeSnapshot(page, 'afterSignupScreen')
 
     // *********
     // Evaluate Home Page
@@ -45,4 +91,3 @@ describe('Authentication Flow', () => {
     expect(pageTitle).toBe('Elemental Chat')
   })
 }, TIMEOUT)
-

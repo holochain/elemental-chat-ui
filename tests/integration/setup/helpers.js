@@ -68,6 +68,32 @@ export const findIframe = async (page, urlRegex, pollingInterval = 1000) => {
   })
 }
 
+
+// the below is copied from helper created in hosted-scalability-tests
+// note: team to consider making module out of helper fns
+const getVisibleInputByLabelText = async (frame, desiredLabelText) => {
+  const labels = (await frame.$$('label'))
+  for (const label of labels) {
+    if ((await label.boundingBox()) === null) {
+      console.log('skipping label')
+      continue
+    }
+    const labelText = await getText(label)
+    console.log(`label text: ${labelText}`)
+    if (labelText === desiredLabelText) {
+      const labelForText = await label.evaluate(label =>
+        CSS.escape(label.htmlFor)
+      )
+      console.log(`waiting for "input#${labelForText}"`)
+      const input = (await frame.waitForSelector(`input#${labelForText}`, {
+        visible: true
+      }))
+      return input
+    }
+  }
+}
+
+
 /// Tryorama helpers:
 // -------------------
 export const closeTestConductor = async (agent, testName) => {
@@ -105,24 +131,16 @@ export const awaitZomeResult = async (
 export const holoAuthenticateUser = async (modalElement, email, password, type = 'signup') => {
   const createCredentialsLink = await findElementByText('a', 'Create credentials', modalElement)
   await createCredentialsLink.click()
+
   const emailInput = await getVisibleInputByLabelText(modalElement, 'EMAIL:')
-  const passwordInput = await getVisibleInputByLabelText(
-    chaperoneModal,
-    'CREATE PASSWORD:'
-    )
-    
-    // const email = await frame.$eval(`#${type}-email`, el => el.value)
-    // const password = await frame.$eval(`#${type}-password`, el => el.value)
-    
-  let confirmation
+  await emailInput.type(email)
+
+  const passwordInput = await getVisibleInputByLabelText(chaperoneModal, 'CREATE PASSWORD:')
+  await passwordInput.type(password)    
+  let confirmationInput
   if (type === 'signup') {
-    await passwordInput.type(password)
-    const passwordInput2 = await getVisibleInputByLabelText(
-      chaperoneModal,
-      'RE-ENTER PASSWORD:'
-    )
-    await passwordInput2.type(password)
-    // confirmation = await frame.$eval(`#${type}-password-confirm`, el => el.value)
+    const confirmationInput = await getVisibleInputByLabelText(chaperoneModal, 'RE-ENTER PASSWORD:')
+    await confirmationInput.type(password)
   }
 
   const submitButton = await findElementByText('button', 'Submit', modalElement)
@@ -130,7 +148,7 @@ export const holoAuthenticateUser = async (modalElement, email, password, type =
   await delay(500)
   await modalElement.dispose()
 
-  return { email, password, confirmation }
+  return { emailInput, passwordInput, confirmationInput }
 }
 
 /// Test Setup helpers:
