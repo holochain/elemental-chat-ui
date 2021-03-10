@@ -17,7 +17,7 @@ export const callZome = async (_, __, zomeName, fnName, payload) => {
         entryHash: '',
         createdBy: ''
       }
-    case 'signal_specific_chatters':
+    case 'signal_chatters':
       return null
     default:
       throw new Error(`mock callZome called with unknown fnName: ${fnName}`)
