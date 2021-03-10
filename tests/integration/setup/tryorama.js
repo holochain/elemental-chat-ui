@@ -21,7 +21,7 @@ const network = {
       proxy_config: {
         type: ProxyConfigType.RemoteProxyClient,
         proxy_url:
-          'kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/proxy.holochain.org/p/5778/--'
+          'kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/165.22.32.11/p/5778/--'
       }
     }
   ],

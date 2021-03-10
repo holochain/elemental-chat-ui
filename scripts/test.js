@@ -46,6 +46,15 @@ if (
   const hasSourceControl = isInGitRepository() || isInMercurialRepository()
   argv.push(hasSourceControl ? '--watch' : '--watchAll')
 }
+if (process.env.CI) {
+  argv.push('--forceExit')
+  argv.push('--watchAll=false')
+  // replace existing 'watch' flag from true to false
+  if (argv.includes('--watch')) {
+    const index = argv.findIndex((arg) => arg === '--watch')
+    argv[index] = '--watch=false'
+  }
+}
 
 jest.run(argv)
   .then((success) => {
