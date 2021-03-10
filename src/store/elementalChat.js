@@ -17,18 +17,40 @@ function sortChannels (val) {
   return val
 }
 
-function storeChannelCounts (channels) {
-  const currentChannelCounts = JSON.parse(window.localStorage.getItem('channelCounts') || '{}')
-  window.localStorage.setItem('channelCounts', JSON.stringify(channels.reduce((acc, channel) => {
+function storeChannels (channels) {
+  const storedChannels = JSON.parse(window.localStorage.getItem('channels') || '{}')
+  window.localStorage.setItem('channels', JSON.stringify(channels.reduce((acc, channel) => {
     const id = channel.channel.uuid
+    const storedChannel = storedChannels[id] || {
+      messageCount: 0,
+      unseen: false
+    }
     const messagesLength = (channel.messages || []).length
-    acc[id] = Math.max(messagesLength, currentChannelCounts[id])
+    const currentMessageCount = storedChannel.messageCount
+    const messageCount = Math.max(messagesLength, currentMessageCount)
+
+    acc[id] = {
+      ...storedChannel,
+      messageCount,
+      unseen: channel.unseen || storedChannel.unseen // overwrites with stored value because if unseen isn't set, we just did a page load
+    }
     return acc
   }, {})))
 }
 
+function storeChannelUnseen (id, unseen) {
+  const currentChannelCounts = JSON.parse(window.localStorage.getItem('channels') || '{}')
+  window.localStorage.setItem('channels', JSON.stringify({
+    ...currentChannelCounts,
+    [id]: {
+      ...currentChannelCounts[id],
+      unseen
+    }
+  }))
+}
+
 function getStoredStats () {
-  const channelCountsString = window.localStorage.getItem('channelCounts')
+  const channelCountsString = window.localStorage.getItem('channels')
 
   const zeroStats = {
     channelCount: 0,
@@ -37,13 +59,26 @@ function getStoredStats () {
 
   if (channelCountsString) {
     const channelCounts = JSON.parse(channelCountsString)
-    return Object.entries(channelCounts).reduce((acc, [_, messageCount]) => {
+    return Object.entries(channelCounts).reduce((acc, [_, { messageCount }]) => {
       acc.channelCount++
       acc.messageCount += messageCount
       return acc
     }, zeroStats)
   } else {
     return zeroStats
+  }
+}
+
+function getStoredChannel (id) {
+  const channels = JSON.parse(window.localStorage.getItem('channels') || '{}')
+  if (channels[id]) {
+    return channels[id]
+  } else {
+    console.error(`tried to find message count for unknown channel ${id}`)
+    return {
+      unseen: false,
+      messageCount: 0
+    }
   }
 }
 
@@ -255,8 +290,12 @@ export default {
       )
       if (!channel) return
 
+      const storedChannel = getStoredChannel(channelId)
+
       if (channel.messages === undefined) {
         channel.messages = []
+        // if this channel doesn't have any messages yet, we restore the unseen status
+        channel.unseen = storedChannel.unseen
       }
 
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.message.uuid)
@@ -270,14 +309,16 @@ export default {
         }
       })
 
-      // Set the updated channel to unseen if it's not the current channel
-      if (state.currentChannelId !== channel.channel.uuid) {
+      // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
+      if (state.currentChannelId !== channel.entry.uuid &&
+        channel.messages.length > storedChannel.messageCount
+      ) {
         _setUnseen(state, channel.channel.uuid)
       }
 
       // Update stats. This is a relatively expensive thing to do. There are definitely more effecient ways of updating.
       // If the UI seems sluggish, look here for possible optimizations.
-      storeChannelCounts(state.channels)
+      storeChannels(state.channels)
     },
     setCurrentChannelId (state, uuid) {
       state.currentChannelId = uuid
@@ -287,6 +328,7 @@ export default {
 
       if (channel) {
         channel.unseen = false
+        storeChannelUnseen(uuid, false)
       }
     },
     addChannels (state, newChannels) {
@@ -299,7 +341,7 @@ export default {
           ...c
         }))
 
-      storeChannelCounts(state.channels)
+      storeChannels(state.channels)
     },
     setUnseen (state, payload) {
       _setUnseen(state, payload)
@@ -350,5 +392,6 @@ function _setUnseen (state, uuid) {
 
   if (channel) {
     channel.unseen = true
+    storeChannelUnseen(uuid)
   }
 }

@@ -19,7 +19,9 @@ const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) =>
   },
   timeout)
 
-const LOG_ZOME_CALLS = true
+const LOG_ZOME_CALLS = (typeof process.env.VUE_APP_LOG_ZOME_CALLS === 'string')
+  ? process.env.VUE_APP_LOG_ZOME_CALLS.toLowerCase() === 'true'
+  : true
 
 export const callZome = async (dispatch, rootState, zomeName, fnName, payload, timeout) => {
   if (LOG_ZOME_CALLS) {
