@@ -231,7 +231,7 @@ export default {
       state.reconnectingIn = RECONNECT_SECONDS
       state.appInterface = null
     },
-    // this currently only track the function name. For a dna with multiple zomes the function names should be nested inside zome names  
+    // this currently only track the function name. For a dna with multiple zomes the function names should be nested inside zome names
     updateIsLoading (state, { fnName, value }) {
       state.isLoading = {
         ...state.isLoading,
