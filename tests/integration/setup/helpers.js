@@ -199,10 +199,7 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
       page.goto(`http://localhost:${ports.ui}/dist/index.html`),
       page.waitForNavigation({ waitUntil: 'networkidle0' }),
   ]);
-  await Promise.all([
-      page.goto(`http://localhost:${ports.ui}/dist/index.html`),
-      page.waitForNavigation({ waitUntil: 'networkidle0' }),
-  ]);
+  reload(page)
   console.log('page loaded')
   return { aliceChat, bobboChat, page, closeServer, conductor }
 }

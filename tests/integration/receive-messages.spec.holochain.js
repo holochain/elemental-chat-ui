@@ -17,8 +17,6 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
   afterAll(async () => {
     console.log('👉 Shutting down tryorama player conductor(s)...')
     await conductor.shutdown()
-    // await closeTestConductor(aliceChat, 'Create new Message - Alice')
-    // await closeTestConductor(bobboChat, 'Create new Message - Bob')
     console.log('✅ Closed tryorama player conductor(s)')
 
     console.log('👉 Closing the UI server...')
