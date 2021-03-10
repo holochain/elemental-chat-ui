@@ -4,19 +4,21 @@ import { closeTestConductor, waitForState, findElementByClassandText, getElement
 import { TIMEOUT } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
-  let aliceChat, page, closeServer
+  let aliceChat, bobboChat, page, closeServer, conductor
   const callRegistry = {}
   beforeAll(async () => {
     const createPage = async () => await global.__BROWSER__.newPage();
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
-    ({ aliceChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))
+    ({ aliceChat, bobboChat, page, closeServer, conductor } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
 
   afterAll(async () => {
     console.log('👉 Shutting down tryorama player conductor(s)...')
-    await closeTestConductor(aliceChat, 'Create new Message - Alice')
+    await conductor.shutdown()
+    // await closeTestConductor(aliceChat, 'Create new Message - Alice')
+    // await closeTestConductor(bobboChat, 'Create new Message - Bob')
     console.log('✅ Closed tryorama player conductor(s)')
-    
+
     console.log('👉 Closing the UI server...')
     await closeServer()
     console.log('✅ Closed the UI server...')

@@ -75,9 +75,10 @@ export const closeTestConductor = async (agent, testName) => {
   try {
     await agent._player.shutdown()
   } catch (err) {
-    throw new Error(
-      `Error when killing ${agent} conductor for the ${testName} test : ${err}`
-    )
+    return
+    // throw new Error(
+    //   `Error when killing ${agent} conductor for the ${testName} test : ${err}`
+    // )
   }
 }
 
@@ -112,7 +113,7 @@ export const holoAuthenticateUser = async (frame, modalElement, email, password,
 
   let confirmationInput
   if (type === 'signup') {
-    await frame.type(`#${type}-password-confirm`, password, { delay: 100 })  
+    await frame.type(`#${type}-password-confirm`, password, { delay: 100 })
     confirmationInput = await frame.$eval(`#${type}-password-confirm`, el => el.value)
   }
 
@@ -168,10 +169,10 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   if (WEB_LOGGING) {
     page.on('pageerror', error => console.error(`❌ ${error}`))
     page.on('console', message => {
+      try {
       const consoleMessage = message.text();
       console[message.type()](`ℹ️  ${consoleMessage}`)
       const messageArray = consoleMessage.split(' ')
-      try {
         // determine if message is a registered api call
         if (parseInt(messageArray[0])) {
           messageArray.shift()
@@ -194,7 +195,14 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
 
   // Puppeteer: emulate avg desktop viewport
   await page.setViewport({ width: 952, height: 968 })
-  await page.goto(`http://localhost:${ports.ui}/dist/index.html`)
-
-  return { aliceChat, bobboChat, page, closeServer }
+  await Promise.all([
+      page.goto(`http://localhost:${ports.ui}/dist/index.html`),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }),
+  ]);
+  await Promise.all([
+      page.goto(`http://localhost:${ports.ui}/dist/index.html`),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }),
+  ]);
+  console.log('page loaded')
+  return { aliceChat, bobboChat, page, closeServer, conductor }
 }

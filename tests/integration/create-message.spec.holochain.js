@@ -6,17 +6,18 @@ import { closeTestConductor, waitForState, awaitZomeResult, findElementByText, g
 import { TIMEOUT } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
-  let aliceChat, bobboChat, page, closeServer
+  let aliceChat, bobboChat, page, closeServer, conductor
   const callRegistry = {}
   beforeAll(async () => {
     const createPage = async () => await global.__BROWSER__.newPage();
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
-    ({ aliceChat, bobboChat, page, closeServer } = await beforeAllSetup(scenario, createPage, callRegistry))
+    ({ aliceChat, bobboChat, page, closeServer, conductor } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
   afterAll(async () => {
     console.log('👉 Shutting down tryorama player conductor(s)...')
-    await closeTestConductor(aliceChat, 'Create new Message - alice')
-    await closeTestConductor(bobboChat, 'Create new Message - bobbo')
+    await conductor.shutdown()
+    // await closeTestConductor(aliceChat, 'Create new Message - alice')
+    // await closeTestConductor(bobboChat, 'Create new Message - bobbo')
     console.log('✅ Closed tryorama player conductor(s)')
 
     console.log('👉 Closing the UI server...')
@@ -39,7 +40,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
         channel: { category: 'General', uuid: channelId }
       }
       // bobbo (tryorama node) creates channel
-      await bobboChat.call('chat', 'refresh_chatter', null)      
+      await bobboChat.call('chat', 'refresh_chatter', null)
       const callCreateChannel = async () => await bobboChat.call('chat', 'create_channel', newChannel)
       const channel = await awaitZomeResult(callCreateChannel, 90000, 10000)
       // bobbo checks stats
