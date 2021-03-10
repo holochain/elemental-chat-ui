@@ -1,44 +1,51 @@
 <template>
-  <v-card v-if="isDisplayMode" dark outlined class="pa-1 mb-1">
-    <v-card-text class="pl-0">
+  <v-card v-if="isDisplayMode" dark outlined :class="['pa-1', 'mb-1', {'my-message': isMine}]">
+    <v-card-text class="content">
+      <span :class="['handle', {'my-handle': isMine}]">{{ handle }}</span>
+      {{ body }}
       <v-tooltip left>
         <template v-slot:activator="{ on, attrs }">
-          <v-icon v-bind="attrs" v-on="on" style="font-size:90%"
+          <v-icon v-bind="attrs" v-on="on" class='calendar-icon'
             >mdi-calendar-clock
           </v-icon>
         </template>
         <span>{{ createdAt }}</span>
       </v-tooltip>
-      {{ content }}
     </v-card-text>
   </v-card>
-  <v-textarea
-    v-else-if="this.channels.length > 0"
-    class="ml-0 mr-0"
-    v-model="content"
-    label="Send a message"
-    maxlength="1000"
-    dense
-    dark
-    outlined
-    hide-details
-    full-width
-    rows="3"
-    @keydown.enter="createMessage"
-    append-icon="mdi-send"
-    @click:append="createMessage"
-  />
+  <div v-else-if="this.channels.length > 0" class='input-wraper'>
+    <v-textarea
+      class="ml-0 mr-0"
+      v-model="content"
+      label="Send a message"
+      maxlength="1000"
+      dense
+      dark
+      outlined
+      hide-details
+      full-width
+      rows="3"
+      @keydown.enter="createMessage"
+      :append-icon="createMessageLoading ? '' : 'mdi-send'"
+      @click:append="createMessage"
+    />
+    <Spinner v-if='createMessageLoading' size='22px' class='spinner' />
+  </div>
 </template>
 <script>
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapMutations, mapGetters } from 'vuex'
+import Spinner from './Spinner.vue'
 
 export default {
   name: 'Message',
-  components: {},
+  components: {
+    Spinner
+  },
   props: {
     message: Object,
     mode: String,
-    handleCreateMessage: Function
+    handleCreateMessage: Function,
+    isMine: Boolean
   },
   data () {
     return {
@@ -49,8 +56,26 @@ export default {
   },
   computed: {
     ...mapState('elementalChat', ['channels']),
+    ...mapGetters('elementalChat', ['createMessageLoading']),
     isDisplayMode () {
       return !!this.message
+    },
+    handle () {
+      const split = this.content.split(':')
+      console.log('handle', split)
+      if (split.length > 1) {
+        return split[0] + ':'
+      } else {
+        return ''
+      }
+    },
+    body () {
+      const split = this.content.split(':')
+      if (split.length > 1) {
+        return split.slice(1).join(':')
+      } else {
+        return this.content
+      }
     }
   },
   methods: {
@@ -77,3 +102,34 @@ export default {
   }
 }
 </script>
+<style scoped>
+.input-wraper {
+  max-width: 100%;
+  display: flex;
+  flex: 1 1 auto;
+  position: relative
+}
+.spinner {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+}
+.my-message {
+  border-color: #999;
+}
+.handle {
+  margin-right: 10px;
+}
+.my-handle {
+  font-weight: bold;
+}
+.content {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px 8px 8px;
+}
+.calendar-icon {
+  font-size: 90%;
+  margin-left: auto;
+}
+</style>

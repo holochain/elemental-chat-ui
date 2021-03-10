@@ -12,6 +12,7 @@
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
+        <v-toolbar-title class="handle">{{ agentHandle }}</v-toolbar-title>
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -136,7 +137,7 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex'
+import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
 export default {
   name: 'ElementalChat',
   components: {
@@ -149,7 +150,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['editHandle']),
+    ...mapMutations(['editHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
       'getStats'
@@ -164,6 +165,7 @@ export default {
     }
   },
   computed: {
+    ...mapState(['agentHandle']),
     ...mapState('holochain', [
       'conductorDisconnected',
       'appInterface',
@@ -212,10 +214,13 @@ export default {
   display: flex;
   align-items: center;
 }
-
 .title-logo {
   width: 30px;
   margin-right: 5px;
+}
+.handle {
+  font-size: 14px;
+  margin-right: 10px;
 }
 .link-text {
   color: #5c007a !important;

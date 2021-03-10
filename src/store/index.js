@@ -12,8 +12,8 @@ export const storeRaw = {
     errorMessage: ''
   },
   mutations: {
-    editHandle: async ({ rootState }) => {
-      rootState.needsHandle = true
+    editHandle: async (state) => {
+      state.needsHandle = true
     },
     needsHandle (state, payload) {
       state.needsHandle = payload

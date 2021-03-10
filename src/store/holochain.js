@@ -89,6 +89,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     const cellId = appInfo.cell_data[0][0]
     const agentId = cellId[1]
     console.log('agent key', arrayBufferToBase64(agentId))
+    console.log('agent key2', agentId.toString('base64'))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {
       port: WEB_CLIENT_PORT,
@@ -152,7 +153,9 @@ export default {
     reconnectingIn: 0,
     appInterface: null,
     dnaHash: null,
-    firstConnect: false
+    agentKey: null,
+    firstConnect: false,
+    isLoading: {}
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
@@ -181,6 +184,12 @@ export default {
       commit('clearAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
       dispatch('initializeAgent', null, { root: true })
+    },
+    callIsLoading ({ commit }, payload) {
+      commit('updateIsLoading', { fnName: payload, value: true })
+    },
+    callIsNotLoading ({ commit }, payload) {
+      commit('updateIsLoading', { fnName: payload, value: false })
     }
   },
   mutations: {
@@ -221,6 +230,13 @@ export default {
       state.conductorDisconnected = true
       state.reconnectingIn = RECONNECT_SECONDS
       state.appInterface = null
+    },
+    // this currently only track the function name. For a dna with multiple zomes the function names should be nested inside zome names  
+    updateIsLoading (state, { fnName, value }) {
+      state.isLoading = {
+        ...state.isLoading,
+        [fnName]: value
+      }
     }
   }
 }

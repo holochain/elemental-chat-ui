@@ -33,6 +33,8 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     return
   }
 
+  dispatch('holochain/callIsLoading', fnName, { root: true })
+
   try {
     const result = isHoloHosted()
       ? await callZomeHolo(dispatch, state, zomeName, fnName, payload, timeout)
@@ -47,5 +49,7 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     if (e === 'Error: Socket is not open') {
       return dispatch('resetConnectionState', null, { root: true })
     }
+  } finally {
+    dispatch('holochain/callIsNotLoading', fnName, { root: true })
   }
 }

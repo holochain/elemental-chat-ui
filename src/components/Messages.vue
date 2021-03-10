@@ -10,6 +10,7 @@
           <Message
             :message="message"
             :key="message.entry.uuid"
+            :isMine="isMyMessage(message)"
           />
         </li>
       </ul>
@@ -21,6 +22,7 @@
 </template>
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex'
+import { arrayBufferToBase64 } from '@/store/utils'
 
 export default {
   name: 'Messages',
@@ -53,10 +55,13 @@ export default {
       if (this.userIsScrolling) return
       const container = this.$el.querySelector('#container')
       container.scrollTop = container.scrollHeight
+    },
+    isMyMessage (message) {
+      return arrayBufferToBase64(message.createdBy) === arrayBufferToBase64(this.agentKey)
     }
   },
   computed: {
-    ...mapState('holochain', ['conductorDisconnected']),
+    ...mapState('holochain', ['conductorDisconnected', 'agentKey']),
     ...mapGetters('elementalChat', ['channel']),
     messages () {
       return this.channel.messages
@@ -66,8 +71,9 @@ export default {
     channel () {
       this.scrollToEnd()
     },
-    userIsScrolling (val) {
-      console.log('user is scrolling', val)
+    messages (val) {
+      console.log('agentKey', arrayBufferToBase64(this.agentKey))
+      console.log('messages', val.map(m => arrayBufferToBase64(m.createdBy)))
     }
   },
   mounted () {
@@ -80,6 +86,9 @@ export default {
   box-sizing: border-box;
   overflow-y: auto;
   height: calc(100vh - 218px);
+}
+.my-message {
+  background-color: red;
 }
 ul {
   list-style-type: none;
