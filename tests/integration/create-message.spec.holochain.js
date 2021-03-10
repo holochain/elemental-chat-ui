@@ -1,8 +1,9 @@
+/* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
 import { v4 as uuidv4 } from 'uuid'
 import wait from 'waait'
 import { orchestrator } from './setup/tryorama'
-import { closeTestConductor, waitForState, awaitZomeResult, findElementByText, getElementProperty, beforeAllSetup, registerNickname } from './setup/helpers'
+import { waitForState, awaitZomeResult, findElementByText, getElementProperty, beforeAllSetup, registerNickname } from './setup/helpers'
 import { TIMEOUT } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {

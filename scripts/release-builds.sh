@@ -1,7 +1,7 @@
 #!/bin/bash
 build () {
-    sed -i "s/const DNA_UUID = \".*\"/const DNA_UUID = \"$1\"/" src/store/index.js
-    yarn run build-self-hosted
+    sed -i "s/const DNA_UUID = \".*\"/const DNA_UUID = \"$1\"/" src/consts.js
+    npm run build-self-hosted
     cd dist
     rm service-worker.js
     zip -r elemental-chat.zip .
@@ -10,5 +10,5 @@ build () {
     mv dist/elemental-chat.zip elemental-chat-for-dna-alpha19-$1.zip
 }
 build 0002
-build develop
-build 0001
+#build develop
+#build 0001

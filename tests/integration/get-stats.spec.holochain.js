@@ -1,6 +1,7 @@
+/* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
 import { orchestrator } from './setup/tryorama'
-import { closeTestConductor, findElementByText, beforeAllSetup, registerNickname } from './setup/helpers'
+import { findElementByText, beforeAllSetup, registerNickname } from './setup/helpers'
 import { TIMEOUT } from './setup/globals'
 import wait from 'waait'
 

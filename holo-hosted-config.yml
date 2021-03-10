@@ -1,0 +1,5 @@
+# Holo Hosted Env
+- dnas:
+  - ./dnas/elemental-chat.dna.gz
+  app_name: "uhCkkmrkoAHPVf_eufG7eC5fm6QKrW5pPMoktvG5LOC0SnJ4vV1Uv"
+  app_port: 42233

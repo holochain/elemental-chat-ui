@@ -1,4 +1,4 @@
-# HoloHosting App
+# Self-Hosted Holochain Env
 - dnas:
   - ./dnas/elemental-chat.dna.gz
   # NOTE: app_name should equate the INSTALLED_APP_ID in index.js

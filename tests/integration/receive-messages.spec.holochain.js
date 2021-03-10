@@ -1,8 +1,9 @@
+/* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
 import wait from 'waait'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
-import { closeTestConductor, waitForState, awaitZomeResult, findElementByText, getElementProperty, registerNickname, beforeAllSetup } from './setup/helpers'
+import { waitForState, awaitZomeResult, findElementByText, getElementProperty, registerNickname, beforeAllSetup } from './setup/helpers'
 import { TIMEOUT } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
@@ -103,7 +104,6 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       console.log('stats after channel creation : ', finalStats)
       expect(finalStats).toEqual({ agents: 2, active: 2, channels: 1, messages: 1 })
       await wait(3000)
-
     })
 
     it('displays messages after calling listMessage', async () => {

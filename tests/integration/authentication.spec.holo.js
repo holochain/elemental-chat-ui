@@ -1,4 +1,4 @@
-// import { queries } from 'pptr-testing-library'
+/* global it, describe, expect, beforeAll, afterAll */
 import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, WEB_LOGGING } from './setup/globals'
 import { findIframe, holoAuthenticateUser, findElementByText } from './setup/helpers'
 import httpServers from './setup/setupServers'
