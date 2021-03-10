@@ -136,7 +136,7 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex'
+import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 export default {
   name: 'ElementalChat',
   components: {
@@ -149,7 +149,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['editHandle']),
+    ...mapMutations(['editHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
       'getStats'
