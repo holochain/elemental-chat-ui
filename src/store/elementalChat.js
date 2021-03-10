@@ -310,7 +310,7 @@ export default {
       })
 
       // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
-      if (state.currentChannelId !== channel.entry.uuid &&
+      if (state.currentChannelId !== channel.channel.uuid &&
         channel.messages.length > storedChannel.messageCount
       ) {
         _setUnseen(state, channel.channel.uuid)
