@@ -60,6 +60,7 @@
           <div v-if="!dnaHash">Loading Version Info...</div>
           <div v-if="dnaHash">UI: {{ appVersion }}</div>
           <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
+          <div v-if="dnaHash">DNA_UUID: {{ dnaUuid }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
@@ -137,6 +138,8 @@
 
 <script>
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+import { DNA_UUID } from '@/consts'
+
 export default {
   name: 'ElementalChat',
   components: {
@@ -181,6 +184,9 @@ export default {
     },
     appVersion () {
       return process.env.VUE_APP_UI_VERSION
+    },
+    dnaUuid () {
+      return DNA_UUID
     }
   },
   watch: {
