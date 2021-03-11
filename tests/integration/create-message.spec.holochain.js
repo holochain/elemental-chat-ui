@@ -3,7 +3,7 @@ import 'regenerator-runtime/runtime.js'
 import { v4 as uuidv4 } from 'uuid'
 import wait from 'waait'
 import { orchestrator } from './setup/tryorama'
-import { waitForState, awaitZomeResult, findElementByText, getElementProperty, beforeAllSetup, registerNickname } from './setup/helpers'
+import { waitForState, awaitZomeResult, findElementByText, getElementProperty, beforeAllSetup, afterAllSetup, registerNickname } from './setup/helpers'
 import { TIMEOUT } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
@@ -15,13 +15,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     ({ bobboChat, page, closeServer, conductor } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
   afterAll(async () => {
-    console.log('👉 Shutting down tryorama player conductor(s)...')
-    await conductor.shutdown()
-    console.log('✅ Closed tryorama player conductor(s)')
-
-    console.log('👉 Closing the UI server...')
-    await closeServer()
-    console.log('✅ Closed the UI server...')
+    await afterAllSetup(conductor, closeServer)
   })
 
   describe('New Message Flow', () => {
@@ -98,16 +92,16 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       const { messages } = await awaitZomeResult(callListMessages, 90000, 10000)
       expect(messages[0].message.content).toContain(newMessageContent)
 
-      const checkNewMessageState = () => callRegistry.addMessageToChannel
+      const checkNewMessageState = () => callRegistry.create_message
       await waitForState(checkNewMessageState, 'done')
 
       // check for new message content is on page
       newPage = page
       const [newMessageElement] = await findElementByText('li', newMessageContent, newPage)
-      expect(newMessageElement).toBeTruthy();
+      expect(newMessageElement).toBeTruthy()
       const newMessageHTML = await getElementProperty(newMessageElement, 'innerHTML')
       expect(newMessageHTML).toContain(newMessageContent)
-      expect(newMessageHTML).toContain(webUserNick.toUpperCase())
+      expect(newMessageHTML).toContain(webUserNick)
 
       // bobbo checks stats after message
       stats = await bobboChat.call('chat', 'stats', { category: 'General' })

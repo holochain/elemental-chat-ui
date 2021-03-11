@@ -1,4 +1,3 @@
-export const INSTALLED_APP_ID = 'elemental-chat:alpha19:0001'
 export const TIMEOUT = 300000
 export const SCREENSHOT_PATH = './snapshots'
 export const POLLING_INTERVAL = 1000

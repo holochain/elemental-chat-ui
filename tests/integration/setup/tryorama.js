@@ -1,3 +1,4 @@
+import { WEB_CLIENT_PORT } from '@/consts'
 import {
   Orchestrator,
   Config,
@@ -9,7 +10,7 @@ import {
 
 const path = require('path')
 
-const appPort = 8888
+const appPort = WEB_CLIENT_PORT
 
 // Note: this is a copy of the network config used in ec dna tests
 const network = {

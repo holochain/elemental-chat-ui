@@ -1,4 +1,6 @@
-import { TIMEOUT, INSTALLED_APP_ID, WEB_LOGGING, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
+/* global expect */
+import { TIMEOUT, WEB_LOGGING, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
+import { INSTALLED_APP_ID } from '@/consts'
 import { conductorConfig, elChatDna } from './tryorama'
 import httpServers from './setupServers'
 import wait from 'waait'
@@ -11,6 +13,9 @@ export const waitForState = async (stateChecker, desiredState, pollingInterval =
         console.log('State polling complete...')
         clearInterval(poll)
         resolve(currentState)
+      }
+      if (stateChecker() === undefined) {
+        console.log('Current state is undefined. Verify that the zomeCall fn name is accurate and check to see that the call logs are still being output to the console.')
       }
       console.log(`Polling again. Current State: ${stateChecker()} | Desired state: ${desiredState}`)
     }, pollingInterval)
@@ -71,17 +76,6 @@ export const findIframe = async (page, urlRegex, pollingInterval = 1000) => {
 
 /// Tryorama helpers:
 // -------------------
-export const closeTestConductor = async (agent, testName) => {
-  try {
-    await agent._player.shutdown()
-  } catch (err) {
-    return
-    // throw new Error(
-    //   `Error when killing ${agent} conductor for the ${testName} test : ${err}`
-    // )
-  }
-}
-
 export const awaitZomeResult = async (
   asyncCall,
   timeout = TIMEOUT,
@@ -144,7 +138,7 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   await conductor.startup()
 
   conductor.setSignalHandler((_) => {
-    console.log("Conductor Received Signal:",_)
+    console.log('Conductor Received Signal:', _)
   })
 
   // Tryorama: install elemental chat on both player conductors
@@ -158,7 +152,7 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   await aliceChat.call('chat', 'refresh_chatter', null)
 
   // locally spin up ui server only (not holo env)
-  console.log('👉 Spinning up UI server');
+  console.log('👉 Spinning up UI server')
   const { ports, close: closeServer } = httpServers()
 
   const page = await createPage()
@@ -168,38 +162,49 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   page.once('close', () => console.info('✅ Page is closed'))
   if (WEB_LOGGING) {
     page.on('pageerror', error => console.error(`❌ ${error}`))
-    page.on('console', message => {
-      try {
-      const consoleMessage = message.text();
-      console[message.type()](`ℹ️  ${consoleMessage}`)
-      const messageArray = consoleMessage.split(' ')
-        // determine if message is a registered api call
-        if (parseInt(messageArray[0])) {
-          messageArray.shift()
-          const callDesc = messageArray.join(' ')
-          const callAction = messageArray.pop()
-          const isCallAction = callAction === 'start' || callAction === 'done'
-          if (isCallAction) {
-            if (messageArray.length > 1 && !callDesc.includes('zome')) return
-            const callName = messageArray[0]
-            // set the call with most current action state
-            callRegistry[callName] = callAction
-          }
-        }
-      } catch (error) {
-        // if error, do nothing - message is not a logged call
-        return
-      }
-    })
   }
+  page.on('console', message => {
+    if (WEB_LOGGING) {
+      console[message.type()](`ℹ️  ${message.text()}`)
+    }
+    try {
+      const messageArray = message.text().split(' ')
+      // determine if message is a registered api call
+      if (parseInt(messageArray[0])) {
+        messageArray.shift()
+        const callDesc = messageArray.join(' ')
+        const callAction = messageArray.pop()
+        const isCallAction = callAction === 'start' || callAction === 'done'
+        if (isCallAction) {
+          if (messageArray.length > 1 && !callDesc.includes('zomeCall')) return
+          const callName = messageArray[0]
+          // set the call with most current action state
+          callRegistry[callName] = callAction
+        }
+      }
+    } catch (error) {
+      // if error, do nothing - message is not a logged call
+      return
+    }
+  })
 
   // Puppeteer: emulate avg desktop viewport
   await page.setViewport({ width: 952, height: 968 })
   await Promise.all([
-      page.goto(`http://localhost:${ports.ui}/dist/index.html`),
-      page.waitForNavigation({ waitUntil: 'networkidle0' }),
-  ]);
+    page.goto(`http://localhost:${ports.ui}/dist/index.html`),
+    page.waitForNavigation({ waitUntil: 'networkidle0' })
+  ])
   reload(page)
   console.log('page loaded')
   return { aliceChat, bobboChat, page, closeServer, conductor }
+}
+
+export const afterAllSetup = async (conductor, closeServer) => {
+  console.log('👉 Shutting down tryorama player conductor(s)...')
+  await conductor.shutdown()
+  console.log('✅ Closed tryorama player conductor(s)')
+
+  console.log('👉 Closing the UI server...')
+  await closeServer()
+  console.log('✅ Closed the UI server...')
 }

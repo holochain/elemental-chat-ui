@@ -1,7 +1,7 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
 import { orchestrator } from './setup/tryorama'
-import { findElementByText, beforeAllSetup, registerNickname } from './setup/helpers'
+import { findElementByText, beforeAllSetup, afterAllSetup, registerNickname } from './setup/helpers'
 import { TIMEOUT } from './setup/globals'
 import wait from 'waait'
 
@@ -14,13 +14,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     ({ bobboChat, page, closeServer, conductor } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
   afterAll(async () => {
-    console.log('👉 Shutting down tryorama player conductor(s)...')
-    await conductor.shutdown()
-    console.log('✅ Closed tryorama player conductor(s)')
-
-    console.log('👉 Closing the UI server...')
-    await closeServer()
-    console.log('✅ Closed the UI server...')
+    await afterAllSetup(conductor, closeServer)
   })
 
   describe('New Channel Flow', () => {
@@ -31,7 +25,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // *********
       // check stats
       // *********
-      //// alice (web) clicks on get-stats
+      // alice (web) clicks on get-stats
       await page.click('#get-stats')
       await wait(5000)
       let element = await page.$$('.display-1')

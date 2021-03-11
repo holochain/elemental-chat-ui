@@ -1,5 +1,6 @@
 import { isHoloHosted, log } from '@/utils'
 import { HOLO_DNA_ALIAS } from '@/consts'
+import { logZomeCall, actionType } from '@/store/utils'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) =>
   state.holoClient.zomeCall(
@@ -34,6 +35,8 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
   }
 
   try {
+    // Note: Do not remove this log. See /store/utils fore more info.
+    logZomeCall(fnName, actionType.START)
     const result = isHoloHosted()
       ? await callZomeHolo(dispatch, state, zomeName, fnName, payload, timeout)
       : await callZomeLocal(dispatch, state, zomeName, fnName, payload, timeout)
@@ -41,6 +44,8 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     if (LOG_ZOME_CALLS) {
       log(`${zomeName}.${fnName} zome result`, result)
     }
+    // Note: Do not remove this log. See /store/utils fore more info.
+    logZomeCall(fnName, actionType.DONE)
     return result
   } catch (e) {
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)

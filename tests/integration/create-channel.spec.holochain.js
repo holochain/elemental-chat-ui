@@ -1,7 +1,7 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
 import { orchestrator } from './setup/tryorama'
-import { waitForState, findElementByClassandText, getElementProperty, beforeAllSetup, registerNickname } from './setup/helpers'
+import { waitForState, findElementByClassandText, getElementProperty, beforeAllSetup, afterAllSetup, registerNickname } from './setup/helpers'
 import { TIMEOUT } from './setup/globals'
 
 orchestrator.registerScenario('New Message Scenario', async scenario => {
@@ -12,15 +12,8 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
     ({ page, closeServer, conductor } = await beforeAllSetup(scenario, createPage, callRegistry))
   }, TIMEOUT)
-
   afterAll(async () => {
-    console.log('👉 Shutting down tryorama player conductor(s)...')
-    await conductor.shutdown()
-    console.log('✅ Closed tryorama player conductor(s)')
-
-    console.log('👉 Closing the UI server...')
-    await closeServer()
-    console.log('✅ Closed the UI server...')
+    await afterAllSetup(conductor, closeServer)
   })
 
   describe('New Channel Flow', () => {
@@ -38,7 +31,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       page.keyboard.press(String.fromCharCode(13))
 
       // wait for create call response / load
-      const checkNewChannelState = () => callRegistry.createChannel
+      const checkNewChannelState = () => callRegistry.create_channel
       await waitForState(checkNewChannelState, 'done')
 
       // check for new channel title on page
