@@ -86,7 +86,7 @@ export default function renderIcon (opts, canvas) {
   const cc = canvas.getContext('2d')
   cc.fillStyle = backgroundColor
   cc.fillRect(0, 0, canvas.width, canvas.height)
-  const numDiscs = 3 + (rand() * 10)
+  const numDiscs = 1 + (rand() * 2)
   const centers = []
   for (let i = 0; i < numDiscs; i++) {
     centers.push({
@@ -98,27 +98,70 @@ export default function renderIcon (opts, canvas) {
   cc.lineWidth = 0.5
   cc.strokeStyle = strokeColor
 
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 2; j++) {
-      cc.strokeStyle = encodeColor(createColor())
+  // for (let i = 0; i < 4; i++) {
+  //   for (let j = 0; j < 2; j++) {
+  //     cc.strokeStyle = encodeColor(createColor())
 
-      const start = centers[Math.floor(centers.length * rand())]
-      const end = centers[Math.floor(centers.length * rand())]
-      cc.beginPath()
-      cc.moveTo(start.x, start.y)
-      cc.lineTo(end.x, end.y)
-      cc.stroke()
-    }
-  }
+  //     const start = centers[Math.floor(centers.length * rand())]
+  //     const end = centers[Math.floor(centers.length * rand())]
+  //     cc.beginPath()
+  //     cc.moveTo(start.x, start.y)
+  //     cc.lineTo(end.x, end.y)
+  //     cc.stroke()
+  //   }
+  // }
+
+  console.log('numDiscs', numDiscs)
 
   for (let i = 0; i < numDiscs; i++) {
     const { x, y } = centers[i]
     cc.fillStyle = encodeColor(createColor())
-    cc.beginPath()
-    const radius = 3 + (rand() * size * 0.1)
-    cc.arc(x, y, radius, 0, 2 * Math.PI)
-    cc.fill()
+    const shape = Math.floor(rand() * 3)
+
+    const radius = 3 + (rand() * size * 0.25)
+
+    switch (shape) {
+      case 0:
+        cc.beginPath()
+        cc.arc(x, y, radius, 0, 2 * Math.PI)
+        cc.fill()
+        break
+      case 1:
+        cc.fillRect(x, y, radius * 2, radius * 2)
+        break
+      case 2:
+        drawTriangle(cc, radius * 2, centers[i])
+        break
+      default:
+        throw new Error('shape is greater than 2, this should never happen')
+    }
   }
 
   return canvas
+}
+
+function drawTriangle (cc, radius, center) {
+  const a1 = rand() * 2 * Math.PI
+  const dx1 = radius * Math.cos(a1)
+  const dy1 = radius * Math.sin(a1)
+  const x1 = center.x + dx1
+  const y1 = center.x + dy1
+
+  const a2 = a1 + (2 * Math.PI * 0.3)
+  const dx2 = radius * Math.cos(a2)
+  const dy2 = radius * Math.sin(a2)
+  const x2 = center.x + dx2
+  const y2 = center.x + dy2
+
+  const a3 = a2 + (2 * Math.PI * 0.3)
+  const dx3 = radius * Math.cos(a3)
+  const dy3 = radius * Math.sin(a3)
+  const x3 = center.x + dx3
+  const y3 = center.x + dy3
+
+  cc.beginPath()
+  cc.moveTo(x1, y1)
+  cc.lineTo(x2, y2)
+  cc.lineTo(x3, y3)
+  cc.fill()
 }

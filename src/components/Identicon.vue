@@ -20,7 +20,6 @@ export default {
   },
   methods: {
     renderIcon () {
-      console.log('calling render icon with', this.opts)
       renderIcon(this.opts, this.$refs.canvas)
     }
   },

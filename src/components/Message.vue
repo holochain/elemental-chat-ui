@@ -1,7 +1,7 @@
 <template>
   <v-card v-if="isDisplayMode" dark outlined :class="['pa-1', 'mb-1', {'my-message': isMine}]">
     <v-card-text class="content">
-      <Identicon size="32" :holoHash="message.createdBy" />
+      <Identicon size="28" :holoHash="message.createdBy" />
       <span :class="['handle', {'my-handle': isMine}]">{{ handle }}</span>
       {{ body }}
       <v-tooltip left>
