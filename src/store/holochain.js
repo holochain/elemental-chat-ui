@@ -76,8 +76,10 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
   const appInfo = await holoClient.appInfo()
   const cellId = appInfo.cell_data[0][0]
+  const agentId = cellId[1]
+  console.log('agent key', arrayBufferToBase64(agentId))
+  commit('setAgentKey', agentId)
   commit('setDnaHash', 'u' + Buffer.from(cellId[0]).toString('base64'))
-
   isInitializingHolo = false
 }
 
@@ -94,7 +96,6 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     const cellId = appInfo.cell_data[0][0]
     const agentId = cellId[1]
     console.log('agent key', arrayBufferToBase64(agentId))
-    console.log('agent key2', agentId.toString('base64'))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {
       port: WEB_CLIENT_PORT,

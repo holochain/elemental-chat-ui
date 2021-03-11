@@ -61,7 +61,7 @@
           <div v-if="!dnaHash">Loading Version Info...</div>
           <div v-if="dnaHash">UI: {{ appVersion }}</div>
           <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
-          <div v-if="dnaHash">Host: {{ hostUrl }}</div>
+          <div v-if="dnaHash && isHoloHosted()">Host: {{ hostUrl }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
@@ -139,6 +139,8 @@
 
 <script>
 import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
+import { isHoloHosted } from '@/utils'
+
 export default {
   name: 'ElementalChat',
   components: {
@@ -163,6 +165,9 @@ export default {
     handleShowStats () {
       this.getStats()
       this.showingStats = true
+    },
+    isHoloHosted () {
+      return isHoloHosted()
     }
   },
   computed: {
