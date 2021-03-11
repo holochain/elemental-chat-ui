@@ -1,5 +1,12 @@
 module.exports = {
   root: true,
+  globals: {
+    expect: 'readonly',
+    it: 'readonly',
+    describe: 'readonly',
+    before: 'readonly',
+    after: 'readonly'
+  },
   env: {
     node: true
   },
@@ -18,6 +25,15 @@ module.exports = {
       ],
       env: {
         mocha: true
+      }
+    },
+    {
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/tests/unit/**/*.spec.{j,t}s?(x)'
+      ],
+      env: {
+        jest: true
       }
     }
   ]

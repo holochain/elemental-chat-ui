@@ -20,7 +20,7 @@
               icon
               v-bind="attrs"
               v-on="on"
-              @click="updateHandle()"
+              @click="editHandle()"
               small
             >
               <v-icon>mdi-account-cog</v-icon>
@@ -36,7 +36,7 @@
               icon
               v-bind="attrs"
               v-on="on"
-              @click="getStats()"
+              @click="handleShowStats"
               small
             >
               <v-icon>mdi-chart-line</v-icon>
@@ -58,7 +58,7 @@
             </v-btn>
           </template>
           <div v-if="!dnaHash">Loading Version Info...</div>
-          <div v-if="dnaHash">UI: {{ APP_VERSION }}</div>
+          <div v-if="dnaHash">UI: {{ appVersion }}</div>
           <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
         </v-tooltip>
       </v-toolbar-title>
@@ -76,58 +76,15 @@
     </v-card>
     <v-card width="100%" class="fill-height pl-1 pt-1 pr-1">
       <v-row no-gutters height="100%">
-        <v-col cols="5" md="3">
-          <v-toolbar dense dark tile class="mb-1">
-            <v-toolbar-title>Channels</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  id="add-channel"
-                  color="action"
-                  icon
-                  v-bind="attrs"
-                  v-on="on"
-                  @click="listChannels({ category: 'General' })"
-                  small
-                >
-                  <v-icon>mdi-refresh</v-icon>
-                </v-btn>
-              </template>
-              <span>Check for new channels</span>
-            </v-tooltip>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  id="add-channel"
-                  color="action"
-                  icon
-                  v-bind="attrs"
-                  v-on="on"
-                  @click="showAdd = true"
-                  small
-                >
-                  <v-icon>mdi-chat-plus-outline</v-icon>
-                </v-btn>
-              </template>
-              <span>Add a public Channel.</span>
-            </v-tooltip>
-          </v-toolbar>
-          <channels
-            :channels="channels"
-            :showAdd="showAdd"
-            @open-channel="openChannel"
-            @channel-added="channelAdded"
-          />
-        </v-col>
+        <Channels />
         <v-col cols="7" md="9">
           <v-card class="ma-0 pt-n1 pl-1" dark>
-            <messages :key="channel.channel.uuid" :channel="channel" />
+            <Messages :key="channel.entry.uuid" :channel="channel" />
           </v-card>
         </v-col>
       </v-row>
     </v-card>
-    <v-dialog v-model="shouldDisplayStats" persistent max-width="660">
+    <v-dialog v-model="showingStats" persistent max-width="660">
       <v-card>
         <v-card-title class="headline">
           Stats
@@ -139,7 +96,7 @@
               Total peers:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.agents == undefined ? "--" : stats.agents }} 👤
+              {{ stats.agentCount === undefined ? "--" : stats.agentCount }} 👤
             </v-col>
           </v-row>
           <v-row align="center">
@@ -147,7 +104,7 @@
               Active peers:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.active == undefined ? "--" : stats.active }} 👤
+              {{ stats.activeCount === undefined ? "--" : stats.activeCount }} 👤
             </v-col>
           </v-row>
           <v-row align="center">
@@ -155,7 +112,7 @@
               Channels:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.channels == undefined ? "--" : stats.channels }} 🗨️
+              {{ stats.channelCount === undefined ? "--" : stats.channelCount }} 🗨️
             </v-col>
           </v-row>
           <v-row align="center">
@@ -163,13 +120,13 @@
               Messages:
             </v-col>
             <v-col class="display-1" cols="6">
-              {{ stats.messages == undefined ? "--" : stats.messages }} 🗨️
+              {{ stats.messageCount === undefined ? "--" : stats.messageCount }} 🗨️
             </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="resetStats">
+          <v-btn text @click="showingStats = false">
             Close
           </v-btn>
         </v-card-actions>
@@ -179,63 +136,57 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 export default {
   name: 'ElementalChat',
   components: {
-    Channels: () => import('../components/Channels.vue'),
-    Messages: () => import('../components/Messages.vue')
+    Channels: () => import('./components/Channels.vue'),
+    Messages: () => import('./components/Messages.vue')
   },
   data () {
     return {
-      showAdd: false,
-      refreshKey: 0
+      showingStats: false
     }
   },
   methods: {
+    ...mapMutations(['editHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
-      'updateHandle',
-      'getStats',
-      'resetStats'
+      'getStats'
     ]),
-    ...mapActions(['holoLogout']),
-    openChannel () {
-      this.refreshKey += 1
-    },
-    channelAdded () {
-      this.showAdd = false
-    },
+    ...mapActions('holochain', ['holoLogout']),
     visitPocPage () {
       window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
+    },
+    handleShowStats () {
+      this.getStats()
+      this.showingStats = true
     }
   },
   computed: {
-    ...mapState(['conductorDisconnected']),
-    ...mapState(['appInterface']),
-    ...mapState(['dnaHash']),
+    ...mapState('holochain', [
+      'conductorDisconnected',
+      'appInterface',
+      'isHoloSignedIn',
+      'dnaHash']),
     ...mapState('elementalChat', [
-      'channels',
-      'channel',
       'stats',
-      'showStats',
       'statsLoading'
     ]),
-    ...mapState(['isHoloSignedIn']),
-    shouldDisplayStats () {
-      return this.showStats
-    },
+    ...mapGetters('elementalChat', [
+      'channel'
+    ]),
     statsAreLoading () {
       return this.statsLoading
+    },
+    appVersion () {
+      return process.env.VUE_APP_UI_VERSION
     }
   },
   watch: {
     conductorDisconnected (val) {
       if (!val) this.listChannels({ category: 'General' })
     }
-  },
-  created () {
-    this.APP_VERSION = process.env.VUE_APP_UI_VERSION
   }
 }
 </script>
