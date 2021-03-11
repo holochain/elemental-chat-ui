@@ -67,9 +67,11 @@ function buildOpts (opts) {
   newOpts.scale = opts.scale || opts.size / opts.gridSize || 4
   newOpts.size = opts.size || newOpts.gridSize * newOpts.scale
 
+  console.log('createCior', encodeColor(createColor()))
+
   return {
-    backgroundColor: '#FFFFFF',
-    strokeColor: '#000000',
+    backgroundColor: encodeColor(createColor()),
+    strokeColor: encodeColor(createColor()),
     ...opts,
     ...newOpts
   }
@@ -98,7 +100,8 @@ export default function renderIcon (opts, canvas) {
 
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 2; j++) {
-      console.log('centers', centers)
+      cc.strokeStyle = encodeColor(createColor())
+
       const start = centers[Math.floor(centers.length * rand())]
       const end = centers[Math.floor(centers.length * rand())]
       cc.beginPath()

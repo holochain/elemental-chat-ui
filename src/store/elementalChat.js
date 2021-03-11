@@ -8,9 +8,18 @@ function pollMessages (dispatch, activeChatter, channel) {
   dispatch('listMessages', {
     channel: channel,
     chunk: { start: 0, end: 0 },
-    active_chatter: activeChatter
+    active_chatter: activeChatter,
   })
 }
+
+const mockMessages = Array.apply(null, Array(50)).map(() => ({
+  entry: {
+    uuid: uuidv4(),
+    content: 'uuidv4()'
+  },
+  createdAt: [0, 0],
+  createdBy: new Uint8Array(Array.apply(null, Array(39)).map(() => Math.floor(Math.random() * 256)))
+}))
 
 function sortChannels (val) {
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1))
@@ -265,7 +274,7 @@ export default {
             }
           }
 
-          const messages = [...result.messages]
+          const messages = [...result.messages, ...mockMessages]
 
           messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
 
