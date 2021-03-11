@@ -29,7 +29,7 @@
     "@babel/preset-env": "^7.13.8",
     "@holo-host/web-sdk": "^0.4.0",
     "@holochain-open-dev/holochain-run-dna": "^0.3.2",
-    "@holochain/conductor-api": "0.0.1-dev.14",
+    "@holochain/conductor-api": "holochain/holochain-conductor-api#abf192f25a34229ad28fa97ddfec3360ff551b4a",
     "@testing-library/jest-dom": "^5.11.9",
     "@whi/stdlog": "^0.3.4",
     "async-wait-until": "^1.2.6",
@@ -53,7 +53,7 @@
   "devDependencies": {
     "@babel/core": "^7.13.1",
     "@holo-host/chaperone": "^2.0.0",
-    "@holochain/tryorama": "file:/home/lisa/Documents/gitrepos/holochain/holochain-new/tryorama/tryorama",
+    "@holochain/tryorama": "holochain/tryorama#3b84f41aaa6a4059b4c49fe00dbe7aef02a77d1f",
     "@testing-library/vue": "^5.6.1",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
