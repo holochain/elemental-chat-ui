@@ -1,6 +1,7 @@
 <template>
   <v-card v-if="isDisplayMode" dark outlined :class="['pa-1', 'mb-1', {'my-message': isMine}]">
     <v-card-text class="content">
+      <Identicon size="32" :holoHash="message.createdBy" />
       <span :class="['handle', {'my-handle': isMine}]">{{ handle }}</span>
       {{ body }}
       <v-tooltip left>
@@ -35,11 +36,13 @@
 <script>
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import Spinner from './Spinner.vue'
+import Identicon from './Identicon.vue'
 
 export default {
   name: 'Message',
   components: {
-    Spinner
+    Spinner,
+    Identicon
   },
   props: {
     message: Object,
@@ -119,6 +122,7 @@ export default {
 }
 .handle {
   margin-right: 10px;
+  margin-left: 10px;
 }
 .my-handle {
   font-weight: bold;

@@ -1,23 +1,16 @@
-const randseed = new Array(4) // Xorshift: [x, y, z, w] 32 bit values
+let bytes = [0]
+let byteIndex = 0
 
-export function seedrand (seed) {
-  randseed.fill(0)
-
-  for (let i = 0; i < seed.length; i++) {
-    randseed[i % 4] = ((randseed[i % 4] << 5) - randseed[i % 4]) + seed.charCodeAt(i)
-  }
+export function seedrand (hash) {
+  console.log('hash', hash)
+  bytes = hash
+  byteIndex = 0
 }
 
 export function rand () {
-  // based on Java's String.hashCode(), expanded to 4 32bit values
-  const t = randseed[0] ^ (randseed[0] << 11)
-
-  randseed[0] = randseed[1]
-  randseed[1] = randseed[2]
-  randseed[2] = randseed[3]
-  randseed[3] = (randseed[3] ^ (randseed[3] >> 19) ^ t ^ (t >> 8))
-
-  return (randseed[3] >>> 0) / ((1 << 31) >>> 0)
+  const result = bytes[byteIndex] / 256.0
+  byteIndex = (byteIndex + 1) % bytes.length
+  return result
 }
 
 export function createColor () {
@@ -74,18 +67,22 @@ function buildOpts (opts) {
   newOpts.scale = opts.scale || opts.size / opts.gridSize || 4
   newOpts.size = opts.size || newOpts.gridSize * newOpts.scale
 
-  return newOpts
+  return {
+    backgroundColor: '#FFFFFF',
+    strokeColor: '#000000',
+    ...opts,
+    ...newOpts
+  }
 }
 
 export default function renderIcon (opts, canvas) {
   opts = buildOpts(opts || {})
-  const { size } = opts
+  const { size, backgroundColor, strokeColor } = opts
 
   canvas.width = canvas.height = size
 
   const cc = canvas.getContext('2d')
-  const gray = 100 * rand()
-  cc.fillStyle = encodeColor({ h: 0, s: 0, l: gray })
+  cc.fillStyle = backgroundColor
   cc.fillRect(0, 0, canvas.width, canvas.height)
   const numDiscs = 3 + (rand() * 10)
   const centers = []
@@ -97,14 +94,11 @@ export default function renderIcon (opts, canvas) {
   }
 
   cc.lineWidth = 0.5
-  if (gray < 50) {
-    cc.strokeStyle = '#FFFFFF'
-  } else {
-    cc.strokeStyle = '#000000'
-  }
+  cc.strokeStyle = strokeColor
 
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 2; j++) {
+      console.log('centers', centers)
       const start = centers[Math.floor(centers.length * rand())]
       const end = centers[Math.floor(centers.length * rand())]
       cc.beginPath()

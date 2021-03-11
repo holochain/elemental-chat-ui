@@ -5,7 +5,6 @@
         <img src="@/assets/chat.png" class="title-logo" />
         Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
-      <Identicon size="32" :holoHash="agentKey" />
       <v-spacer></v-spacer>
 
       <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout">
@@ -13,6 +12,7 @@
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
+        <Identicon size="32" :holoHash="agentKey" />
         <v-toolbar-title class="handle">{{ agentHandle }}</v-toolbar-title>
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
@@ -147,7 +147,7 @@ export default {
   components: {
     Channels: () => import('./components/Channels.vue'),
     Messages: () => import('./components/Messages.vue'),
-    Identicon: () => import('./components/Identicon.vue')    
+    Identicon: () => import('./components/Identicon.vue')
   },
   data () {
     return {
@@ -195,9 +195,15 @@ export default {
       return process.env.VUE_APP_UI_VERSION
     }
   },
+  created () {
+    console.log('agentKey started as', this.agentKey)
+  },
   watch: {
     conductorDisconnected (val) {
       if (!val) this.listChannels({ category: 'General' })
+    },
+    agentKey (val) {
+      console.log('agentKey changed', val)
     }
   }
 }
@@ -227,8 +233,9 @@ export default {
   width: 30px;
   margin-right: 5px;
 }
-.handle {
+.handle {  
   font-size: 14px;
+  margin-left: 12px;
   margin-right: 10px;
 }
 .link-text {

@@ -8,7 +8,7 @@ import renderIcon from '@/identicon'
 export default {
   name: 'Identicon',
   props: {
-    holoHash: String,
+    holoHash: Uint8Array,
     size: String
   },
   data () {
