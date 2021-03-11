@@ -61,6 +61,7 @@
           <div v-if="!dnaHash">Loading Version Info...</div>
           <div v-if="dnaHash">UI: {{ appVersion }}</div>
           <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
+          <div v-if="dnaHash">Host: {{ hostUrl }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
@@ -170,7 +171,8 @@ export default {
       'conductorDisconnected',
       'appInterface',
       'isHoloSignedIn',
-      'dnaHash']),
+      'dnaHash',
+      'hostUrl']),
     ...mapState('elementalChat', [
       'stats',
       'statsLoading'
@@ -196,7 +198,6 @@ export default {
 .logout {
   font-size: 14px;
   margin-right: 10px;
-  margin-top: 5px;
   cursor: pointer;
 }
 .no-wrap {

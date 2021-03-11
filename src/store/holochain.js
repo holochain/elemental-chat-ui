@@ -25,7 +25,8 @@ function createHoloClient (webSdkConnection) {
     signOut: (...args) => webSdkConnection.signOut(...args),
     appInfo: (...args) => webSdkConnection.appInfo(...args),
     ready: (...args) => webSdkConnection.ready(...args),
-    zomeCall: (...args) => webSdkConnection.zomeCall(...args)
+    zomeCall: (...args) => webSdkConnection.zomeCall(...args),
+    holoInfo: (...args) => webSdkConnection.holoInfo(...args)
   }
 }
 
@@ -55,6 +56,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   try {
     await holoClient.ready()
   } catch (e) {
+    console.error(e)
     commit('setIsChaperoneDisconnected', true)
     return
   }
@@ -67,6 +69,9 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
+
+    const { url } = await holoClient.holoInfo()
+    commit('setHostUrl', url)
   }
 
   const appInfo = await holoClient.appInfo()
@@ -155,7 +160,8 @@ export default {
     dnaHash: null,
     agentKey: null,
     firstConnect: false,
-    isLoading: {}
+    isLoading: {},
+    hostUrl: ''
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
@@ -237,6 +243,9 @@ export default {
         ...state.isLoading,
         [fnName]: value
       }
+    },
+    setHostUrl (state, payload) {
+      state.hostUrl = payload
     }
   }
 }
