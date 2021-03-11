@@ -2,8 +2,8 @@
 import { render } from '@testing-library/vue'
 import Vuetify from 'vuetify'
 import Vue from 'vue'
-import ElementalChat from '../ElementalChat.vue'
-import { storeRaw as store } from '../store'
+import ElementalChat from '@/ElementalChat.vue'
+import { storeRaw as store } from '@/store'
 
 Vue.use(Vuetify)
 

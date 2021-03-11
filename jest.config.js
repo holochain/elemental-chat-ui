@@ -14,6 +14,6 @@ module.exports = {
     ...baseConfig.moduleNameMapper,
     '@/utils/(.*)$': '<rootDir>/utils/$1'
   },
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**']
 }

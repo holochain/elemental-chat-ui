@@ -194,6 +194,8 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
     page.goto(`http://localhost:${ports.ui}/dist/index.html`),
     page.waitForNavigation({ waitUntil: 'networkidle0' })
   ])
+  // NOTE: We are intentionally loading the page twice to avoid puppeteer issue with page reload vs modal reload
+  // TODO: Once we remove modal as first point of reference, remove reload
   reload(page)
   console.log('page loaded')
   return { aliceChat, bobboChat, page, closeServer, conductor }
