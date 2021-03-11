@@ -5,6 +5,7 @@
         <img src="@/assets/chat.png" class="title-logo" />
         Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
       </v-toolbar-title>
+      <Identicon size="32" :holoHash="agentKey" />
       <v-spacer></v-spacer>
 
       <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout">
@@ -145,7 +146,8 @@ export default {
   name: 'ElementalChat',
   components: {
     Channels: () => import('./components/Channels.vue'),
-    Messages: () => import('./components/Messages.vue')
+    Messages: () => import('./components/Messages.vue'),
+    Identicon: () => import('./components/Identicon.vue')    
   },
   data () {
     return {
@@ -177,7 +179,8 @@ export default {
       'appInterface',
       'isHoloSignedIn',
       'dnaHash',
-      'hostUrl']),
+      'hostUrl',
+      'agentKey']),
     ...mapState('elementalChat', [
       'stats',
       'statsLoading'

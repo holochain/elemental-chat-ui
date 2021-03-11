@@ -6,7 +6,7 @@
 import { Circle2 } from 'vue-loading-spinner'
 
 export default {
-  name: 'Message',
+  name: 'Spinner',
   components: {
     Circle2
   },
