@@ -6,8 +6,7 @@ import {
   APP_VERSION,
   INSTALLED_APP_ID,
   WEB_CLIENT_PORT,
-  WEB_CLIENT_URI,
-  HOLO_DNA_ALIAS
+  WEB_CLIENT_URI
 } from '@/consts'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
@@ -15,7 +14,6 @@ import { handleSignal } from './elementalChat'
 console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
 console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
-console.log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
