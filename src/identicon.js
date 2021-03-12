@@ -93,7 +93,7 @@ export default function renderIcon (opts, canvas) {
   cc.fillStyle = backgroundColor
   cc.fillRect(0, 0, canvas.width, canvas.height)
   const numShapes = value() < 0.5 ? 2 : 3
-  const shapes = new Array(numShapes).fill().map((_, i) => {
+  const shapes = Array.apply(null, Array(numShapes)).map((_, i) => {
     // gaurantees one bright shape and one dark shape, hopefully helpful for color blind users
     const lightness = i === 0
       ? 5 + (value() * 25)
