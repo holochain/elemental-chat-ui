@@ -1,5 +1,5 @@
 <template>
-  <canvas ref='canvas' :style="style" width="1" height="1" />
+  <canvas ref='canvas' width="1" height="1" :style="style" />
 </template>
 
 <script>
@@ -9,14 +9,9 @@ export default {
   name: 'Identicon',
   props: {
     holoHash: Uint8Array,
-    size: String
-  },
-  data () {
-    return {
-      style: {
-        borderRadius: '50%'
-      }
-    }
+    size: String,
+    backgroundColor: String,
+    styleProp: Object
   },
   methods: {
     renderIcon () {
@@ -28,12 +23,20 @@ export default {
       return {
         hash: this.holoHash,
         size: this.size,
+        backgroundColor: this.backgroundColor,
         gridSize: 8
+      }
+    },
+    style () {
+      return {
+        'border-radius': '50%',
+        ...this.styleProp
       }
     }
   },
   mounted () {
     this.renderIcon()
+    console.log('this.styleProp', this.styleProp)
   },
   watch: {
     holoHash () {
@@ -41,7 +44,11 @@ export default {
     },
     size () {
       this.renderIcon()
+    },
+    backgroundColor () {
+      this.renderIcon()
     }
+    // is there a better way?
   }
 }
 </script>
