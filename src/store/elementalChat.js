@@ -12,15 +12,6 @@ function pollMessages (dispatch, activeChatter, channel) {
   })
 }
 
-// const mockMessages = Array.apply(null, Array(50)).map(() => ({
-//   entry: {
-//     uuid: uuidv4(),
-//     content: 'uuidv4()'
-//   },
-//   createdAt: [0, 0],
-//   createdBy: new Uint8Array(Array.apply(null, Array(39)).map(() => Math.floor(Math.random() * 256)))
-// }))
-
 function sortChannels (val) {
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1))
   return val
