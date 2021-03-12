@@ -151,6 +151,7 @@ export default {
     reconnectingIn: 0,
     appInterface: null,
     dnaHash: null,
+    dnaAlias: null,
     firstConnect: false,
     agentKey: null
   },
@@ -204,6 +205,7 @@ export default {
       state.firstConnect = false
     },
     setHoloClientAndDnaAlias (state, holoClient, dnaAlias) {
+      state.dnaAlias = dnaAlias
       state.holoClient = holoClient
       state.conductorDisconnected = false
       state.reconnectingIn = -1
