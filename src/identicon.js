@@ -1,19 +1,19 @@
 let bytes = [0]
 let byteIndex = 0
 
-export function setBytes (hash) {
+function setBytes (hash) {
   bytes = hash
   byteIndex = hash[hash.length - 1] % hash.length // set the starting point
 }
 
 // returns a value from 0 to 1, determined by the next byte in the hash
-export function value () {
+function value () {
   const result = bytes[byteIndex] / 256.0
   byteIndex = (byteIndex + 1) % bytes.length
   return result
 }
 
-export function createColor (lightness) {
+function createColor (lightness) {
   // hue is the whole color spectrum
   const h = Math.floor(value() * 360)
   // saturation goes from 40 to 100, it avoids greyish colors
@@ -28,24 +28,8 @@ export function createColor (lightness) {
   return { h, s, l }
 }
 
-export function mixColors (a, b, amt) {
-  return {
-    h: (a.h * (1 - amt)) + (b.h * amt),
-    s: (a.s * (1 - amt)) + (b.s * amt),
-    l: (a.l * (1 - amt)) + (b.l * amt)
-  }
-}
-
-export function encodeColor ({ h, s, l }) {
+function encodeColor ({ h, s, l }) {
   return `hsl(${h}, ${s}%, ${l}%)`
-}
-
-export function stringToBits (string) {
-  return Array
-    .from(string)
-    .reduce((acc, char) => acc.concat(char.charCodeAt().toString(2)), [])
-    .map(bin => '0'.repeat(8 - bin.length) + bin)
-    .join('')
 }
 
 function drawTriangle (cc, radius, center) {
