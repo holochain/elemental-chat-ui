@@ -3,14 +3,19 @@ let byteIndex = 0
 
 function setBytes (hash) {
   bytes = hash
-  byteIndex = hash[hash.length - 1] % hash.length // set the starting point
+  // byteIndex = hash[hash.length - 1] % hash.length // set the starting point
+  byteIndex = 0
 }
 
 // returns a value from 0 to 1, determined by the next byte in the hash
 function value () {
-  const result = bytes[byteIndex] / 256.0
-  byteIndex = (byteIndex + 1) % bytes.length
-  return result
+  const getByte = () => {
+    const result = bytes[byteIndex]
+    byteIndex = (byteIndex + 1) % bytes.length
+    return result
+  }
+
+  return (getByte() + getByte()) / 512 // use 2 bytes per value to make sure we're using all of the hash
 }
 
 function createColor (lightness) {
@@ -88,7 +93,7 @@ export default function renderIcon (opts, canvas) {
   cc.fillStyle = backgroundColor
   cc.fillRect(0, 0, canvas.width, canvas.height)
   const numShapes = value() < 0.5 ? 2 : 3
-  const shapes = Array.apply(null, Array(numShapes)).map((_, i) => {
+  const shapes = new Array(numShapes).fill().map((_, i) => {
     // gaurantees one bright shape and one dark shape, hopefully helpful for color blind users
     const lightness = i === 0
       ? 5 + (value() * 25)

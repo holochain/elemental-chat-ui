@@ -14,7 +14,7 @@
       </v-tooltip>
     </v-card-text>
   </v-card>
-  <div v-else-if="this.channels.length > 0" class='input-wraper'>
+  <div v-else-if="this.channels.length > 0" class='input-wrapper'>
     <v-textarea
       class="ml-0 mr-0"
       v-model="content"
@@ -64,17 +64,18 @@ export default {
       return !!this.message
     },
     handle () {
-      const split = this.content.split(':')
-      if (split.length > 1) {
-        return split[0] + ':'
+      const colonIndex = this.content.indexOf(':')
+      if (colonIndex !== -1) {
+        // Include the colon
+        return this.content.slice(0, colonIndex + 1)
       } else {
         return ''
       }
     },
     body () {
-      const split = this.content.split(':')
-      if (split.length > 1) {
-        return split.slice(1).join(':')
+      const colonIndex = this.content.indexOf(':')
+      if (colonIndex !== -1) {
+        return this.content.slice(colonIndex + 1)
       } else {
         return this.content
       }
@@ -105,7 +106,7 @@ export default {
 }
 </script>
 <style scoped>
-.input-wraper {
+.input-wrapper {
   max-width: 100%;
   display: flex;
   flex: 1 1 auto;
