@@ -44,6 +44,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
         info_link: 'https://holo.host/faq-tag/elemental-chat'
       }
     )
+    window.webSdkConnection = webSdkConnection
     holoClient = createHoloClient(webSdkConnection)
   } else {
     holoClient = state.holoClient
