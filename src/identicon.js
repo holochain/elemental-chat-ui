@@ -75,32 +75,20 @@ function drawTriangle (cc, radius, center) {
 }
 
 function buildOpts (opts) {
-  const newOpts = {}
-
-  newOpts.hash = opts.hash || [0]
-
-  setBytes(newOpts.hash)
-
-  if (opts.size && opts.gridSize && opts.scale) {
-    throw new Error("Don't specify size, gridSize *and* scale. Choose two.")
-  }
-
-  newOpts.gridSize = opts.gridSize || opts.size / opts.scale || 8
-  newOpts.scale = opts.scale || opts.size / opts.gridSize || 4
-  newOpts.size = opts.size || newOpts.gridSize * newOpts.scale
+  const hash = opts.hash || [0]
+  setBytes(hash)
 
   return {
     backgroundColor: opts.backgroundColor || encodeColor(createColor()),
-    ...newOpts
+    hash,
+    size: opts.size || 32
   }
 }
 
 // opts : {
 //   hash: Uint8Array
-//   size: Int
 //   backgroundColor: String (a css color specification)
-//   gridsize: Int
-//   scale: Int
+//   size: Int
 // }
 // canvas: HTMLCanvasElement
 

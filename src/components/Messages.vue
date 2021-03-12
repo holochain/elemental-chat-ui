@@ -70,10 +70,6 @@ export default {
   watch: {
     channel () {
       this.scrollToEnd()
-    },
-    messages (val) {
-      console.log('agentKey', arrayBufferToBase64(this.agentKey))
-      console.log('messages', val.map(m => arrayBufferToBase64(m.createdBy)))
     }
   },
   mounted () {

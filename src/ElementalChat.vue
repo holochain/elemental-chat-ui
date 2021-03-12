@@ -61,7 +61,7 @@
           </template>
           <div v-if="!dnaHash">Loading Version Info...</div>
           <div v-if="dnaHash">UI: {{ appVersion }}</div>
-          <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
+          <div v-if="dnaHash">DNA: ...{{ dnaHashTail }}</div>
           <div v-if="dnaHash && isHoloHosted()">Host: {{ hostUrl }}</div>
         </v-tooltip>
       </v-toolbar-title>
@@ -193,6 +193,9 @@ export default {
     },
     appVersion () {
       return process.env.VUE_APP_UI_VERSION
+    },
+    dnaHashTail () {
+      return this.dnaHash.slice(this.dnaHash.length - 6)
     }
   },
   created () {
@@ -201,9 +204,6 @@ export default {
   watch: {
     conductorDisconnected (val) {
       if (!val) this.listChannels({ category: 'General' })
-    },
-    agentKey (val) {
-      console.log('agentKey changed', val)
     }
   }
 }

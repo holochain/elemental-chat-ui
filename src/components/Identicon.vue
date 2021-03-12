@@ -36,7 +36,6 @@ export default {
   },
   mounted () {
     this.renderIcon()
-    console.log('this.styleProp', this.styleProp)
   },
   watch: {
     holoHash () {

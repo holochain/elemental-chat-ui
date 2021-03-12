@@ -65,7 +65,6 @@ export default {
     },
     handle () {
       const split = this.content.split(':')
-      console.log('handle', split)
       if (split.length > 1) {
         return split[0] + ':'
       } else {
