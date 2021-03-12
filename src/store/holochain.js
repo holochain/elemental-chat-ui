@@ -57,7 +57,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   }
 
   const appInfo = await holoClient.appInfo()
-  const [cell] = appInfo
+  const [cell] = appInfo.cell_data
   const [cellId, dnaAlias] = cell
   commit('setHoloClientAndDnaAlias', holoClient, dnaAlias)
   const [dnaHash] = cellId
