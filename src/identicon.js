@@ -1,13 +1,14 @@
 let bytes = [0]
 let byteIndex = 0
 
-export function seedrand (hash) {
+export function setBytes (hash) {
   console.log('hash', hash)
   bytes = hash
   byteIndex = 0
 }
 
-export function rand () {
+// returns a value from 0 to 1, determined by the next byte in the hash
+export function value () {
   const result = bytes[byteIndex] / 256.0
   byteIndex = (byteIndex + 1) % bytes.length
   return result
@@ -15,11 +16,11 @@ export function rand () {
 
 export function createColor () {
   // saturation is the whole color spectrum
-  const h = Math.floor(rand() * 360)
+  const h = Math.floor(value() * 360)
   // saturation goes from 40 to 100, it avoids greyish colors
-  const s = ((rand() * 60) + 40)
+  const s = ((value() * 60) + 40)
   // lightness can be anything from 0 to 100, but probabilities are a bell curve around 50%
-  const l = ((rand() + rand() + rand() + rand()) * 25)
+  const l = ((value() + value() + value() + value()) * 25)
 
   return { h, s, l }
 }
@@ -55,9 +56,9 @@ export function * getBitStream (string) {
 function buildOpts (opts) {
   const newOpts = {}
 
-  newOpts.seed = opts.seed || Math.floor((Math.random() * Math.pow(10, 16))).toString(16)
+  newOpts.hash = opts.hash || [0]
 
-  seedrand(newOpts.seed)
+  setBytes(newOpts.hash)
 
   if (opts.size && opts.gridSize && opts.scale) {
     throw new Error("Don't specify size, gridSize *and* scale. Choose two.")
@@ -66,8 +67,6 @@ function buildOpts (opts) {
   newOpts.gridSize = opts.gridSize || opts.size / opts.scale || 8
   newOpts.scale = opts.scale || opts.size / opts.gridSize || 4
   newOpts.size = opts.size || newOpts.gridSize * newOpts.scale
-
-  console.log('createCior', encodeColor(createColor()))
 
   return {
     backgroundColor: encodeColor(createColor()),
@@ -86,39 +85,24 @@ export default function renderIcon (opts, canvas) {
   const cc = canvas.getContext('2d')
   cc.fillStyle = backgroundColor
   cc.fillRect(0, 0, canvas.width, canvas.height)
-  const numDiscs = 1 + (rand() * 2)
+  const numShapes = value() < 0.5 ? 2 : 3
   const centers = []
-  for (let i = 0; i < numDiscs; i++) {
+  for (let i = 0; i < numShapes; i++) {
     centers.push({
-      x: rand() * size,
-      y: rand() * size
+      x: value() * size,
+      y: value() * size
     })
   }
 
   cc.lineWidth = 0.5
   cc.strokeStyle = strokeColor
 
-  // for (let i = 0; i < 4; i++) {
-  //   for (let j = 0; j < 2; j++) {
-  //     cc.strokeStyle = encodeColor(createColor())
-
-  //     const start = centers[Math.floor(centers.length * rand())]
-  //     const end = centers[Math.floor(centers.length * rand())]
-  //     cc.beginPath()
-  //     cc.moveTo(start.x, start.y)
-  //     cc.lineTo(end.x, end.y)
-  //     cc.stroke()
-  //   }
-  // }
-
-  console.log('numDiscs', numDiscs)
-
-  for (let i = 0; i < numDiscs; i++) {
+  for (let i = 0; i < numShapes; i++) {
     const { x, y } = centers[i]
     cc.fillStyle = encodeColor(createColor())
-    const shape = Math.floor(rand() * 3)
+    const shape = Math.floor(value() * 3)
 
-    const radius = 3 + (rand() * size * 0.25)
+    const radius = 3 + (value() * size * 0.25)
 
     switch (shape) {
       case 0:
@@ -141,7 +125,7 @@ export default function renderIcon (opts, canvas) {
 }
 
 function drawTriangle (cc, radius, center) {
-  const a1 = rand() * 2 * Math.PI
+  const a1 = value() * 2 * Math.PI
   const dx1 = radius * Math.cos(a1)
   const dy1 = radius * Math.sin(a1)
   const x1 = center.x + dx1

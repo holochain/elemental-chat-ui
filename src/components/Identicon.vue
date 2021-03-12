@@ -26,7 +26,7 @@ export default {
   computed: {
     opts () {
       return {
-        seed: this.holoHash,
+        hash: this.holoHash,
         size: this.size,
         gridSize: 8
       }
