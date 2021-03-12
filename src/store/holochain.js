@@ -60,7 +60,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   const appInfo = await holoClient.appInfo()
   const [cell] = appInfo.cell_data
   const [cellId, dnaAlias] = cell
-  commit('setHoloClientAndDnaAlias', holoClient, dnaAlias)
+  commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
 
@@ -206,7 +206,8 @@ export default {
       state.reconnectingIn = -1
       state.firstConnect = false
     },
-    setHoloClientAndDnaAlias (state, holoClient, dnaAlias) {
+    setHoloClientAndDnaAlias (state, payload) {
+      const { holoClient, dnaAlias } = payload
       state.dnaAlias = dnaAlias
       state.holoClient = holoClient
       state.conductorDisconnected = false
