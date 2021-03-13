@@ -15,7 +15,7 @@ function value () {
     return result
   }
 
-  return (getByte() + getByte()) / 512 // use 2 bytes per value to make sure we're using all of the hash
+  return (getByte() ^ getByte()) / 256 // use 2 bytes per value to make sure we're using all of the hash
 }
 
 function createColor (lightness) {
