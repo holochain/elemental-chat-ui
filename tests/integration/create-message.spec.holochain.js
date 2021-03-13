@@ -30,7 +30,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       const channelId = uuidv4()
       const newChannel = {
         name: 'Test Channel',
-        channel: { category: 'General', uuid: channelId }
+        entry: { category: 'General', uuid: channelId }
       }
       // bobbo (tryorama node) creates channel
       await bobboChat.call('chat', 'refresh_chatter', null)
@@ -58,9 +58,9 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
           {},
           newChannelTitle
         )
-        console.log(`Successfully found new Channel (${newChannelTitle}) on the page`);
+        console.log(`Successfully found new Channel (${newChannelTitle}) on the page`)
       } catch (e) {
-        console.log(`The new Channel (${newChannelTitle}) was not found on the page`);
+        console.log(`The new Channel (${newChannelTitle}) was not found on the page`)
         newChannelText = null
       }
       expect(newChannelText).toBeTruthy()
@@ -70,14 +70,14 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // *********
       const newMessage = {
         last_seen: { First: null },
-        channel: channel.channel,
+        channel: channel.entry,
         chunk: 0,
-        message: {
+        entry: {
           uuid: uuidv4(),
           content: 'Hello from Alice, the native holochain user on the web. :)'
         }
       }
-      const newMessageContent = newMessage.message.content;
+      const newMessageContent = newMessage.entry.content
 
       // alice (web) sends a message
       await page.focus('textarea')

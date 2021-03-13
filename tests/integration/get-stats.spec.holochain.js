@@ -34,7 +34,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
         try {
           const text = await (await element[e].getProperty('textContent')).jsonValue();
           texts.push(text)
-        }catch(e) {
+        } catch (e) {
           console.log('error: ', e)
           continue
         }

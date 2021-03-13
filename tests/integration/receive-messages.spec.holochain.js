@@ -26,12 +26,12 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       last_seen: { First: null },
       channel: null,
       chunk: 0,
-      message: {
+      entry: {
         uuid: uuidv4(),
         content: 'Hello from Bob, the tryorama node!'
       }
     }
-    const newMessageContent = newMessage.message.content
+    const newMessageContent = newMessage.entry.content
 
     it('displays signal message', async () => {
       let newPage = page
@@ -62,10 +62,10 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       channel = channels.find(channel => channel.info.name === newChannelTitle)
 
       // bobbo creates new message on channel
-      newMessage.channel = channel.channel
+      newMessage.channel = channel.entry
       const callCreateMessage = async () => await bobboChat.call('chat', 'create_message', newMessage)
       const messageResponse = await awaitZomeResult(callCreateMessage, 90000, 10000)
-      expect(messageResponse.message).toEqual(newMessage.message)
+      expect(messageResponse.entry).toEqual(newMessage.entry)
       console.log('new message', messageResponse)
       await wait(3000)
 
@@ -81,7 +81,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
 
       await wait(3000)
       // alice (node) verifies new message is in list of messages from the dht
-      const callListMessages = async () => await aliceChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: { start: 0, end: 1 }})
+      const callListMessages = async () => await aliceChat.call('chat', 'list_messages', { channel: channel.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
       const { messages } = await awaitZomeResult(callListMessages, 90000, 10000)
       expect(messages[0].message.content).toContain(newMessageContent)
 
@@ -100,11 +100,11 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     })
 
     it('displays messages after calling listMessage', async () => {
-      newMessage.message.content = 'Hello, there Bob!  This is Alice, nice to speak with you.'
+      newMessage.entry.content = 'Hello, there Bob!  This is Alice, nice to speak with you.'
       const createMessage = async () => await aliceChat.call('chat', 'create_message', newMessage)
       const messageResponse = await awaitZomeResult(createMessage, 90000, 10000)
       console.log('message 2 response', messageResponse)
-      expect(messageResponse.message).toEqual(newMessage.message)
+      expect(messageResponse.entry).toEqual(newMessage.entry)
 
       // alice (web) refreshes channel list to check new messages (this calls list_messages)
       const refreshChannelButton = await page.$('#add-channel')
