@@ -141,17 +141,17 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
     console.log('Conductor Received Signal:', _)
   })
 
-  // //  type AppBundle {
-  // //     path, // bundleSource
-  // //     agent_key,
-  // //     installed_app_id
-  // //     membrane_proofs // {}
-  // //   }
-  // conductor.installBundledHapp()
+  //  type AppBundle {
+  //     path, // bundleSource
+  //     agent_key,
+  //     installed_app_id
+  //     membrane_proofs // {}
+  //   }
 
   // Tryorama: install elemental chat on both player conductors
   const bundlePath = conductor.join(__dirname, 'bundle', 'elemental-chat.happ')
   const aliceChatHapp = await conductor.installBundledHapp({ path: bundlePath, installedAppId: INSTALLED_APP_ID })
+  const bobboChatHapp = await conductor.installBundledHapp({ path: bundlePath, installedAppId: 'second_agent' })
   // const [[aliceChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: INSTALLED_APP_ID, dnas: [elChatDna] }]])
   // const [[bobboChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: 'second_agent', dnas: [elChatDna] }]])
 

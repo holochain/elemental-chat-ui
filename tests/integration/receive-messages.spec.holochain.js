@@ -74,7 +74,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
         messageData: messageResponse,
         channelData: channel
       }
-      const callSignalChatters = async () => await bobboChat.call('chat', 'signal_chatters', signalMessageData)
+      const callSignalChatters = async () => await bobboChat.call('chat', 'signal_specific_chatters', signalMessageData)
       const signalResult = await awaitZomeResult(callSignalChatters, 90000, 10000)
       console.log('signal result', signalResult)
       expect(signalResult.sent.length).toEqual(1)

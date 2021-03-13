@@ -55,7 +55,7 @@
             <v-list-item
               v-for="(channel, i) in channels"
               :key="i"
-              @click="openChannel(channel.channel.uuid)"
+              @click="openChannel(channel.entry.uuid)"
             >
               <v-list-item-icon class='channel-icons'>
                 <v-icon>mdi-chat-processing-outline</v-icon>
@@ -79,7 +79,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 const makeEmptyChannel = () => ({
   info: { name: '' },
-  channel: { category: 'General', uuid: uuidv4() },
+  entry: { category: 'General', uuid: uuidv4() },
   messages: []
 })
 
