@@ -152,7 +152,8 @@ export default {
     reconnectingIn: 0,
     appInterface: null,
     dnaHash: null,
-    firstConnect: false
+    firstConnect: false,
+    agentKey: null
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
