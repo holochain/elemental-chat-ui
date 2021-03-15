@@ -1,9 +1,8 @@
 import { isHoloHosted, log } from '@/utils'
-import { HOLO_DNA_ALIAS } from '@/consts'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) =>
   state.holoClient.zomeCall(
-    HOLO_DNA_ALIAS,
+    state.dnaAlias,
     zomeName,
     fnName,
     payload)

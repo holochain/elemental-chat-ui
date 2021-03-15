@@ -21,8 +21,3 @@ export const WEB_CLIENT_URI =
   isHoloHosted() || isHoloSelfHosted()
     ? `wss://${window.location.hostname}/api/v1/ws/`
     : `ws://localhost:${WEB_CLIENT_PORT}`
-
-// this dna_alias should be whatever is set in HHA
-// export const HOLO_DNA_ALIAS = 'uhCkkmrkoAHPVf_eufG7eC5fm6QKrW5pPMoktvG5LOC0SnJ4vV1Uv-0'
-
-export const HOLO_DNA_ALIAS = 'elemental-chat.dna.gz'
