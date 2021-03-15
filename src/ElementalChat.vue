@@ -22,7 +22,7 @@
               icon
               v-bind="attrs"
               v-on="on"
-              @click="editHandle()"
+              @click="needsHandle()"
               small
             >
               <v-icon>mdi-account-cog</v-icon>
@@ -155,7 +155,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['editHandle']),
+    ...mapMutations('elementalChat', ['needsHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
       'getStats',
@@ -175,7 +175,6 @@ export default {
     }
   },
   computed: {
-    ...mapState(['agentHandle']),
     ...mapState('holochain', [
       'conductorDisconnected',
       'appInterface',
@@ -185,7 +184,8 @@ export default {
       'agentKey']),
     ...mapState('elementalChat', [
       'stats',
-      'statsLoading'
+      'statsLoading',
+      'agentHandle'
     ]),
     ...mapGetters('elementalChat', [
       'channel'

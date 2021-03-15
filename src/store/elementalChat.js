@@ -105,7 +105,8 @@ export default {
     currentChannelId: null,
     stats: {},
     statsLoading: false,
-    agentHandle: ''
+    agentHandle: '',
+    needsHandle: false
   },
   actions: {
     initialize ({ dispatch, rootState }) {
@@ -202,7 +203,7 @@ export default {
       })
     },
     createMessage: async (
-      { commit, rootState, dispatch },
+      { commit, rootState, dispatch, state },
       payload
     ) => {
       let lastSeen = payload.channel.last_seen
@@ -217,7 +218,7 @@ export default {
         channel: payload.channel.entry,
         entry: {
           uuid: uuidv4(),
-          content: `${rootState.agentHandle}: ${payload.content}`
+          content: `${state.agentHandle}: ${payload.content}`
         },
         chunk: 0
       }
@@ -310,6 +311,8 @@ export default {
       const profile = await callZome(dispatch, rootState, 'profile', 'get_my_profile', null, 30000)
       if (profile && profile.nickname) {
         commit('setAgentHandle', profile.nickname)
+      } else {
+        commit('needsHandle')
       }
     }
   },
@@ -391,6 +394,12 @@ export default {
     },
     setAgentHandle (state, payload) {
       state.agentHandle = payload
+      if (payload) {
+        state.needsHandle = false
+      }
+    },
+    needsHandle (state) {
+      state.needsHandle = true
     }
   },
   getters: {
@@ -421,7 +430,8 @@ export default {
     },
     channelsLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_channel || isLoading.list_channels,
     listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_messages,
-    createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message
+    createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message,
+    updateProfileLoading: (_, __, { holochain: { isLoading } }) => isLoading.update_my_profile
   }
 }
 

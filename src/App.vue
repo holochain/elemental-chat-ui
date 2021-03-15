@@ -89,7 +89,7 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapMutations } from 'vuex'
+import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
 import { isHoloHosted } from '@/utils'
 import ElementalChat from './ElementalChat.vue'
 
@@ -110,7 +110,6 @@ export default {
     ...mapMutations(['setAgentHandle', 'setErrorMessage']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
-      this.setAgentHandle(this.internalAgentHandle)
       this.updateProfile(this.internalAgentHandle)
       this.dialog = false
     },
@@ -129,17 +128,18 @@ export default {
       'isHoloSignedIn',
       'isChaperoneDisconnected'
     ]),
+    ...mapState('elementalChat', ['agentHandle', 'needsHandle']),
     ...mapState([
-      'agentHandle',
-      'needsHandle',
       'errorMessage'
     ]),
+    ...mapGetters('elementalChat', ['updateProfileLoading']),
     shouldDisplayNickPrompt () {
       return (
         this.needsHandle &&
         !this.errorMessage &&
         !this.conductorDisconnected &&
         !this.shouldDisplayHoloConnecting
+        // !this.updateProfileLoading
       )
     },
     shouldDisplayDisconnected () {

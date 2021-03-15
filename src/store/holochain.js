@@ -190,9 +190,8 @@ export default {
       if (rootState.holoClient) {
         await rootState.holoClient.signOut()
       }
-      commit('clearAgentHandle', null, { root: true })
+      commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
-      dispatch('initializeAgent', null, { root: true })
     },
     callIsLoading ({ commit }, payload) {
       commit('updateIsLoading', { fnName: payload, value: true })
