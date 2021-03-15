@@ -176,13 +176,21 @@ export default {
     resetConnectionState ({ commit }) {
       commit('resetConnectionState')
     },
-    async holoLogout ({ rootState, commit, dispatch }) {
-      if (rootState.holoClient) {
-        await rootState.holoClient.signOut()
+    async holoLogout ({ commit, dispatch, state }) {
+      if (state.holoClient) {
+        await state.holoClient.signOut()
       }
       commit('clearAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
       dispatch('initializeAgent', null, { root: true })
+      if (!state.isHoloSignedIn) {
+        try {
+          await state.holoClient.signIn()
+          commit('setIsHoloSignedIn', true)
+        } catch (e) {
+          commit('setIsChaperoneDisconnected', true)
+        }
+      }
     }
   },
   mutations: {

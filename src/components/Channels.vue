@@ -87,7 +87,7 @@ export default {
   name: 'Channels',
   data () {
     return {
-      actionChannel: makeEmptyChannel(), 
+      actionChannel: makeEmptyChannel(),
       showingAdd: false,
       refreshKey: 0
     }
