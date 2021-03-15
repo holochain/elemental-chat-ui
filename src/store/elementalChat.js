@@ -107,7 +107,7 @@ export default {
     statsLoading: false
   },
   actions: {
-    initialize ({ dispatch }) {
+    initialize ({ state, dispatch }) {
       const currentChannelId = window.localStorage.getItem('currentChannelId')
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
@@ -386,7 +386,10 @@ export default {
         ...channel,
         activeChatters
       }
-    }
+    },
+    channelsLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_channel || isLoading.list_channels,
+    listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_messages,
+    createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message
   }
 }
 
