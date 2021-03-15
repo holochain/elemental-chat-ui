@@ -15,7 +15,7 @@ function value () {
     return result
   }
 
-  return (getByte() ^ getByte()) / 256 // use 2 bytes per value to make sure we're using all of the hash
+  return getByte() / 256
 }
 
 function createColor (lightness) {
@@ -80,6 +80,10 @@ function buildOpts (opts) {
 //   size: Int
 // }
 // canvas: HTMLCanvasElement
+// This is currently not ideal identicon generation code in two ways:
+// 1) it doesn't always use all of the bytes of the hash (sometimes it finishes rendering before calling value() enough times)
+// 2) it doesn't use all of the bits of every byte, specifically when using a whole byte to chose a shape.
+// For now we're moving on to more pressing things but this should be addressed before using the code in a production UI
 
 export default function renderIcon (opts, canvas) {
   opts = buildOpts(opts || {})
