@@ -33,9 +33,9 @@ export const storeRaw = {
     }
   },
   actions: {
-    initializeStore ({ dispatch }) {
+    async initializeStore ({ dispatch }) {
       dispatch('initializeAgent')
-      dispatch('holochain/initialize')
+      await dispatch('holochain/initialize')
       dispatch('elementalChat/initialize')
     },
     initializeAgent ({ commit }) {

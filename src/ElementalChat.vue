@@ -158,7 +158,9 @@ export default {
     ...mapMutations(['editHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
-      'getStats'
+      'getStats',
+      'getProfile',
+      'updateProfile'
     ]),
     ...mapActions('holochain', ['holoLogout']),
     visitPocPage () {
