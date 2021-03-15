@@ -23,7 +23,8 @@ function createHoloClient (webSdkConnection) {
     signOut: (...args) => webSdkConnection.signOut(...args),
     appInfo: (...args) => webSdkConnection.appInfo(...args),
     ready: (...args) => webSdkConnection.ready(...args),
-    zomeCall: (...args) => webSdkConnection.zomeCall(...args)
+    zomeCall: (...args) => webSdkConnection.zomeCall(...args),
+    holoInfo: (...args) => webSdkConnection.holoInfo(...args)
   }
 }
 
@@ -52,6 +53,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   try {
     await holoClient.ready()
   } catch (e) {
+    console.error(e)
     commit('setIsChaperoneDisconnected', true)
     return
   }
@@ -62,6 +64,9 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
+  const agentId = cellId[1]
+  console.log('agent key', arrayBufferToBase64(agentId))
+  commit('setAgentKey', agentId)
 
   if (!state.isHoloSignedIn) {
     try {
@@ -71,6 +76,9 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
+
+    const { url } = await holoClient.holoInfo()
+    commit('setHostUrl', url)
   }
 
   isInitializingHolo = false
@@ -152,9 +160,11 @@ export default {
     reconnectingIn: 0,
     appInterface: null,
     dnaHash: null,
+    agentKey: null,
     dnaAlias: null,
     firstConnect: false,
-    agentKey: null
+    isLoading: {},
+    hostUrl: ''
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
@@ -191,6 +201,12 @@ export default {
           commit('setIsChaperoneDisconnected', true)
         }
       }
+    },
+    callIsLoading ({ commit }, payload) {
+      commit('updateIsLoading', { fnName: payload, value: true })
+    },
+    callIsNotLoading ({ commit }, payload) {
+      commit('updateIsLoading', { fnName: payload, value: false })
     }
   },
   mutations: {
@@ -233,6 +249,16 @@ export default {
       state.conductorDisconnected = true
       state.reconnectingIn = RECONNECT_SECONDS
       state.appInterface = null
+    },
+    // this currently only track the function name. For a dna with multiple zomes the function names should be nested inside zome names
+    updateIsLoading (state, { fnName, value }) {
+      state.isLoading = {
+        ...state.isLoading,
+        [fnName]: value
+      }
+    },
+    setHostUrl (state, payload) {
+      state.hostUrl = payload
     }
   }
 }

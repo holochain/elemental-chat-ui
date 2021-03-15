@@ -19,7 +19,7 @@
     "test": "yarn jest --watch"
   },
   "dependencies": {
-    "@holo-host/web-sdk": "^0.4.0",
+    "@holo-host/web-sdk": "git://github.com/Holo-Host/web-sdk.git#05da3de866fab2c7dd4a19012eb7a4f941477598",
     "@holochain-open-dev/holochain-run-dna": "^0.3.2",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@vue/test-utils": "^1.1.3",
@@ -33,6 +33,7 @@
     "uuid": "^8.3.1",
     "vue": "^2.6.11",
     "vue-jest": "^3.0.7",
+    "vue-loading-spinner": "^1.0.11",
     "vue-router": "^3.2.0",
     "vuetify": "^2.2.11",
     "vuex": "^3.4.0",

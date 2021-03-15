@@ -3,12 +3,12 @@
   "log_level": true,
   "connection": {
     "secure": false,
-    "address": "\"localhost\"",
+    "host": "localhost",
     "port": 42233,
-    "path": "\"/\""
+    "path": "/"
   },
   "mode": 2,
   "web_user_legend": {
-    "test@test.com": "uhCAkRIQw4sKXjuLYBw4orVdwcn0y0me/FZeItjIEugoJcAJ826L4"
+    "test@test.com": "uhCAkXjEKf6cCPeywM3Did/UWdh88DU+DJAFEUqLXkMLK/VgzufVD"
   }
 }
