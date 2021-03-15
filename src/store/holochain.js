@@ -6,8 +6,7 @@ import {
   APP_VERSION,
   INSTALLED_APP_ID,
   WEB_CLIENT_PORT,
-  WEB_CLIENT_URI,
-  HOLO_DNA_ALIAS
+  WEB_CLIENT_URI
 } from '@/consts'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
@@ -15,7 +14,6 @@ import { handleSignal } from './elementalChat'
 console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
 console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
-console.log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
@@ -47,7 +45,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       }
     )
     holoClient = createHoloClient(webSdkConnection)
-    commit('setHoloClient', holoClient)
   } else {
     holoClient = state.holoClient
   }
@@ -59,6 +56,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     return
   }
 
+  const appInfo = await holoClient.appInfo()
+  const [cell] = appInfo.cell_data
+  const [cellId, dnaAlias] = cell
+  commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
+  const [dnaHash] = cellId
+  commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
+
   if (!state.isHoloSignedIn) {
     try {
       await holoClient.signIn()
@@ -68,10 +72,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       return
     }
   }
-
-  const appInfo = await holoClient.appInfo()
-  const cellId = appInfo.cell_data[0][0]
-  commit('setDnaHash', 'u' + Buffer.from(cellId[0]).toString('base64'))
 
   isInitializingHolo = false
 }
@@ -152,6 +152,7 @@ export default {
     reconnectingIn: 0,
     appInterface: null,
     dnaHash: null,
+    dnaAlias: null,
     firstConnect: false,
     agentKey: null
   },
@@ -204,8 +205,10 @@ export default {
       state.reconnectingIn = -1
       state.firstConnect = false
     },
-    setHoloClient (state, payload) {
-      state.holoClient = payload
+    setHoloClientAndDnaAlias (state, payload) {
+      const { holoClient, dnaAlias } = payload
+      state.dnaAlias = dnaAlias
+      state.holoClient = holoClient
       state.conductorDisconnected = false
       state.reconnectingIn = -1
       state.firstConnect = false
