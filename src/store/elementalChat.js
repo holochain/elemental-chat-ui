@@ -86,7 +86,7 @@ export const handleSignal = (signal, dispatch) => {
   const signalData = signal.data.payload
   const { signal_name: signalName, signal_payload: signalPayload } = signalData
 
-  log(`signal recieved: ${signalName}`, signalPayload)
+  log(`signal received: ${signalName}`, signalPayload)
 
   switch (signalName) {
     case 'Message':
