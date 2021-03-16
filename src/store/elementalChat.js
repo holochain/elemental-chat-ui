@@ -105,7 +105,8 @@ export default {
     currentChannelId: null,
     stats: {},
     statsLoading: false,
-    agentHandle: '',
+    agentHandle: null,
+    // When this is true, the UI prompts the user to enter their handle.
     needsHandle: false
   },
   actions: {
@@ -308,7 +309,7 @@ export default {
       if (profile && profile.nickname) {
         commit('setAgentHandle', profile.nickname)
       } else {
-        commit('needsHandle')
+        commit('setNeedsHandle', true)
       }
     }
   },
@@ -394,8 +395,8 @@ export default {
         state.needsHandle = false
       }
     },
-    needsHandle (state) {
-      state.needsHandle = true
+    setNeedsHandle (state, payload) {
+      state.needsHandle = payload
     }
   },
   getters: {
@@ -426,8 +427,7 @@ export default {
     },
     channelsLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_channel || isLoading.list_channels,
     listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_messages,
-    createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message,
-    updateProfileLoading: (_, __, { holochain: { isLoading } }) => isLoading.update_my_profile
+    createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message
   }
 }
 

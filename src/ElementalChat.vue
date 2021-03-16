@@ -22,7 +22,7 @@
               icon
               v-bind="attrs"
               v-on="on"
-              @click="needsHandle()"
+              @click="editHandle()"
               small
             >
               <v-icon>mdi-account-cog</v-icon>
@@ -155,7 +155,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations('elementalChat', ['needsHandle']),
+    ...mapMutations('elementalChat', ['setNeedsHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
       'getStats',
@@ -172,6 +172,9 @@ export default {
     },
     isHoloHosted () {
       return isHoloHosted()
+    },
+    editHandle () {
+      this.setNeedsHandle(true)
     }
   },
   computed: {
