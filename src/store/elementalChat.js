@@ -85,6 +85,9 @@ function getStoredChannel (id) {
 export const handleSignal = (signal, dispatch) => {
   const signalData = signal.data.payload
   const { signal_name: signalName, signal_payload: signalPayload } = signalData
+
+  log(`signal recieved: ${signalName}`, signalPayload)
+
   switch (signalName) {
     case 'Message':
       // even though this is defined in the elementalChat store module, it still needs to be called with full namespaced because it's actually called
