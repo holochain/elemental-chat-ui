@@ -26,5 +26,5 @@ export const WEB_CLIENT_URI =
 // export const HOLO_DNA_ALIAS = 'uhCkkmrkoAHPVf_eufG7eC5fm6QKrW5pPMoktvG5LOC0SnJ4vV1Uv-0'
 
 // TODO: make the content of this var dynamic / aware of the present env
-// NB: this holo-dna-alias is only used to test with holochain-run-dna
-export const HOLO_DNA_ALIAS = 'elemental-chat.dna.gz'
+// NB: this holo-dna-alias is only used to test with hc sandbox (verify matches id in happ.yaml)
+export const HOLO_DNA_ALIAS = 'elemental-chat'

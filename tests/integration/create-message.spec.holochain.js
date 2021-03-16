@@ -25,7 +25,7 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await registerNickname(page, webUserNick)
 
       // *********
-      // create channel (doing this at tryrama level to simulate channel created by another)
+      // create channel
       // *********
       const channelId = uuidv4()
       const newChannel = {
@@ -33,16 +33,16 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
         entry: { category: 'General', uuid: channelId }
       }
       // bobbo (tryorama node) creates channel
+      // **creating channel at tryrama level to simulate channel created by another agent
       await bobboChat.call('chat', 'refresh_chatter', null)
-      const callCreateChannel = async () => await bobboChat.call('chat', 'create_channel', newChannel)
-      const channel = await awaitZomeResult(callCreateChannel, 90000, 10000)
+      const channel = await bobboChat.call('chat', 'create_channel', newChannel)
       // bobbo checks stats
       let stats = await bobboChat.call('chat', 'stats', { category: 'General' })
       console.log('stats after channel creation : ', stats)
       expect(stats).toEqual({ agents: 2, active: 2, channels: 1, messages: 0 })
 
       // alice (web) refreshes channel list
-      const newChannelButton = await page.$('#add-channel')
+      const newChannelButton = await page.$('#refresh')
       await newChannelButton.click()
 
       await wait(2000)
@@ -88,9 +88,9 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       await wait(2000)
 
       // bobbo (tryorama node) verifies new message is in list of messages from the dht
-      const callListMessages = async () => await bobboChat.call('chat', 'list_messages', { channel: channel.channel, active_chatter: true, chunk: { start: 0, end: 1 } })
+      const callListMessages = async () => await bobboChat.call('chat', 'list_messages', { channel: channel.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
       const { messages } = await awaitZomeResult(callListMessages, 90000, 10000)
-      expect(messages[0].message.content).toContain(newMessageContent)
+      expect(messages[0].entry.content).toContain(newMessageContent)
 
       const checkNewMessageState = () => callRegistry.create_message
       await waitForState(checkNewMessageState, 'done')

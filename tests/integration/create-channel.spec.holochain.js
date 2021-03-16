@@ -11,13 +11,14 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     const createPage = async () => await global.__BROWSER__.newPage();
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
     ({ page, closeServer, conductor } = await beforeAllSetup(scenario, createPage, callRegistry))
+    console.log('-----------------> 6')
   }, TIMEOUT)
   afterAll(async () => {
     await afterAllSetup(conductor, closeServer)
   })
 
   describe('New Channel Flow', () => {
-    it('creates and displays new message', async () => {
+    it('creates and displays new channel', async () => {
       let newPage = page
       await registerNickname(page, 'Alice')
 

@@ -17,29 +17,34 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
     await afterAllSetup(conductor, closeServer)
   })
 
-  describe('New Channel Flow', () => {
-    it('creates and displays new message', async () => {
+  describe('Stats Display Flow', () => {
+    const checkStats = async (statArray, element) => {
+      const stats = statArray
+      for (const e in element) {
+        try {
+          const text = await (await element[e].getProperty('textContent')).jsonValue()
+          stats.push(text)
+        } catch(e) {
+          console.log('error: ', e)
+          continue
+        }
+      }
+      return stats
+    }
+
+    it('displays correct stats before and after new chatter', async () => {
       const newPage = page
       await registerNickname(newPage, 'Alice')
+      await wait(3000)
 
       // *********
       // check stats
       // *********
       // alice (web) clicks on get-stats
       await page.click('#get-stats')
-      await wait(5000)
+      await wait(3000)
       let element = await page.$$('.display-1')
-      let texts = []
-      for (const e in element) {
-        try {
-          const text = await (await element[e].getProperty('textContent')).jsonValue();
-          texts.push(text)
-        } catch (e) {
-          console.log('error: ', e)
-          continue
-        }
-      }
-
+      let texts = await checkStats([], element)
       console.log('Stats prior to second agent: ', texts)
 
       // assert that we find the right stats
@@ -54,24 +59,16 @@ orchestrator.registerScenario('New Message Scenario', async scenario => {
       // bobbo (tryorama node) declares self as chatter
       await bobboChat.call('chat', 'refresh_chatter', null)
 
-      await wait(5000)
+      await wait(3000)
 
       // *********
       // refresh chatters by second agent
       // *********
       await page.click('#get-stats')
-      await wait(5000)
+      await wait(3000)
+      // reset element to evaluate
       element = await page.$$('.display-1')
-      texts = []
-      for (const e in element) {
-        try {
-          const text = await (await element[e].getProperty('textContent')).jsonValue()
-          texts.push(text)
-        }catch(e) {
-          console.log('error: ', e)
-          continue
-        }
-      }
+      texts = await checkStats([], element)      
       console.log('Stats after second agent: ', texts)
 
       // assert that we find the right stats

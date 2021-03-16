@@ -126,7 +126,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="showingStats = false">
+          <v-btn text @click="showingStats = false" id="close-stats">
             Close
           </v-btn>
         </v-card-actions>

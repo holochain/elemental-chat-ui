@@ -11,11 +11,14 @@ import {
 } from '@/consts'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
+// import wait from 'waait'
 
 console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
 console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
-console.log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
+if (process.env.VUE_APP_CONTEXT === 'holo-host') {
+  console.log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
+}
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
@@ -79,9 +82,9 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, signal =>
+    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
       handleSignal(signal, dispatch))
-
+    // await wait(5000)
     const appInfo = await holochainClient.appInfo({
       installed_app_id: INSTALLED_APP_ID
     })
@@ -158,7 +161,6 @@ export default {
   actions: {
     initialize ({ commit, dispatch, state }) {
       initializeClient(commit, dispatch, state)
-
       setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {

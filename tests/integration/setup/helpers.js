@@ -1,7 +1,8 @@
 /* global expect */
+import path from 'path'
 import { TIMEOUT, WEB_LOGGING, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
-import { conductorConfig, elChatDna } from './tryorama'
+import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
 import wait from 'waait'
 
@@ -131,40 +132,47 @@ export const registerNickname = async (page, webUserNick) => {
   await submitButton.click()
 }
 
+const describeJsHandle = (jsHandle) => {
+  return jsHandle.executionContext().evaluate(arg => {
+    if (arg instanceof Error) return arg.message
+    else return arg
+  }, jsHandle)
+}
+
 export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   // Tryorama: instantiate player conductor
-  console.log('Settng up players on elemental chat...')
+  console.log('Setting up players on elemental chat...')
   const [conductor] = await scenario.players([conductorConfig], false)
+
   await conductor.startup()
 
   conductor.setSignalHandler((_) => {
     console.log('Conductor Received Signal:', _)
   })
 
-  //  type AppBundle {
-  //     path, // bundleSource
-  //     agent_key,
-  //     installed_app_id
-  //     membrane_proofs // {}
-  //   }
-
+  
   // Tryorama: install elemental chat on both player conductors
-  const bundlePath = conductor.join(__dirname, 'bundle', 'elemental-chat.happ')
-  const aliceChatHapp = await conductor.installBundledHapp({ path: bundlePath, installedAppId: INSTALLED_APP_ID })
-  const bobboChatHapp = await conductor.installBundledHapp({ path: bundlePath, installedAppId: 'second_agent' })
-  // const [[aliceChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: INSTALLED_APP_ID, dnas: [elChatDna] }]])
-  // const [[bobboChatHapp]] = await conductor.installAgentsHapps([[{ hAppId: 'second_agent', dnas: [elChatDna] }]])
-
-  // Tryorama: grab chat cell from list of happ cells to use as the 'player'
+  const bundlePath = path.join(__dirname, 'bundle', 'elemental-chat.happ')
+  
+  const aliceChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, INSTALLED_APP_ID)
+  const bobboChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, 'second_agent')
+  
+  // Tryorama: grab chat cell from list of happ cells to use as the agent
   const [aliceChat] = aliceChatHapp.cells
   const [bobboChat] = bobboChatHapp.cells
-
+  
   // Tryorama: alice declares self as chatter
   await aliceChat.call('chat', 'refresh_chatter', null)
-
+  
   // locally spin up ui server only (not holo env)
   console.log('👉 Spinning up UI server')
   const { ports, close: closeServer } = httpServers()
+  
+  conductor.appWs().client.socket.onclose = async () => {
+    // silence logs upon socket closing
+    page.on('pageerror', _ => {})
+    page.on('console',  _ => {})
+  }
 
   const page = await createPage()
 
@@ -172,11 +180,23 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   page.once('load', () => console.info('✅ Page is loaded'))
   page.once('close', () => console.info('✅ Page is closed'))
   if (WEB_LOGGING) {
-    page.on('pageerror', error => console.error(`❌ ${error}`))
+    page.on('pageerror', error => {
+      if (error instanceof Error) {
+        console.log(`❌ ${error.message}`)
+      } else {
+        console.error(`❌ ${error}`)
+      }
+    })
   }
-  page.on('console', message => {
+  page.on('console', async (message) => {
     if (WEB_LOGGING) {
-      console[message.type()](`ℹ️  ${message.text()}`)
+      const args = await Promise.all(message.args().map(arg => describeJsHandle(arg)))
+        .catch(error => {
+          if (error.message.includes('Target closed')) return null
+          console.log(error.message)
+        })
+      if (!args || args.join(' ').includes('Socket is closed')) return
+      console.log('ℹ️  ', ...args)
     }
     try {
       const messageArray = message.text().split(' ')
@@ -205,10 +225,7 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
     page.goto(`http://localhost:${ports.ui}/dist/index.html`),
     page.waitForNavigation({ waitUntil: 'networkidle0' })
   ])
-  // NOTE: We are intentionally loading the page twice to avoid puppeteer issue with page reload vs modal reload
-  // TODO: Once we remove modal as first point of reference, remove reload
-  reload(page)
-  console.log('page loaded')
+
   return { aliceChat, bobboChat, page, closeServer, conductor }
 }
 
