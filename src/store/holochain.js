@@ -186,7 +186,7 @@ export default {
     resetConnectionState ({ commit }) {
       commit('resetConnectionState')
     },
-    async holoLogout ({ commit, state }) {
+    async holoLogout ({ dispatch, commit, state }) {
       if (state.holoClient) {
         await state.holoClient.signOut()
       }
@@ -196,6 +196,7 @@ export default {
         try {
           await state.holoClient.signIn()
           commit('setIsHoloSignedIn', true)
+          dispatch('elementalChat/initializeAgent', null, { root: true })
         } catch (e) {
           commit('setIsChaperoneDisconnected', true)
         }
@@ -232,12 +233,12 @@ export default {
       const { holoClient, dnaAlias } = payload
       state.dnaAlias = dnaAlias
       state.holoClient = holoClient
-      state.conductorDisconnected = false
       state.reconnectingIn = -1
       state.firstConnect = false
     },
     setIsHoloSignedIn (state, payload) {
       state.isHoloSignedIn = payload
+      state.conductorDisconnected = false
     },
     setIsChaperoneDisconnected (state, payload) {
       state.isChaperoneDisconnected = payload

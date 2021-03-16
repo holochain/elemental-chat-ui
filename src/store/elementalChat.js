@@ -109,11 +109,14 @@ export default {
     needsHandle: false
   },
   actions: {
-    initialize ({ dispatch, rootState }) {
+    initialize ({ dispatch }) {
       const currentChannelId = window.localStorage.getItem('currentChannelId')
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
       }
+      dispatch('initializeAgent')
+    },
+    initializeAgent ({ dispatch, rootState }) {
       console.log('rootState.holochain.holochainClient', rootState.holochain.holochainClient)
 
       const tryToGetProfile = () => {
