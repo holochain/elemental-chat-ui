@@ -298,8 +298,7 @@ export default {
     },
     updateProfile ({ commit, dispatch, rootState }, payload) {
       const args = {
-        nickname: payload,
-        avatar_url: ''
+        nickname: payload
       }
       callZome(dispatch, rootState, 'profile', 'update_my_profile', args, 30000)
       commit('setAgentHandle', payload)
