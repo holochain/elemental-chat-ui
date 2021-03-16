@@ -14,7 +14,7 @@ export const arrayBufferToBase64 = buffer => {
 // to monitor and intercept the traffice instead.
 // issue 1: https://github.com/puppeteer/puppeteer/issues/2974
 // issue 2: https://github.com/puppeteer/puppeteer/issues/2470
-export const logZomeCall = (zomeCallName, callAction) => {
-  console.log(`${Date.now()} ${zomeCallName} zomeCall ${callAction}`)
+export const logZomeCall = (zomeName, zomeCallName, callAction) => {
+  console.log(`${Date.now()} ${zomeName}-${zomeCallName} zomeCall ${callAction}`)
 }
 export const actionType = Object.freeze({ START: 'start', DONE: 'done' })

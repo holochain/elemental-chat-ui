@@ -25,8 +25,6 @@ export const waitForState = async (stateChecker, desiredState, pollingInterval =
 
 /// Puppeteer helpers:
 // --------------------
-export const reload = page => page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
-
 export const takeSnapshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` })
 export const fetchPreformanceResults = async (page, console) => {
   // Executes Navigation API within the page context
@@ -121,15 +119,14 @@ export const holoAuthenticateUser = async (frame, modalElement, email, password,
 /// Test Setup helpers:
 // -------------------
 export const registerNickname = async (page, webUserNick) => {
-  await wait(2000)
+  await page.focus('.v-dialog')
+  // add agent nickname
+  await page.keyboard.type(webUserNick, { delay: 200 })
+  const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
+  await submitButton.click()
   // verify page title
   const pageTitle = await page.title()
   expect(pageTitle).toBe('Elemental Chat')
-  // add agent nickname
-  await page.focus('.v-dialog')
-  await page.keyboard.type(webUserNick, { delay: 100 })
-  const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
-  await submitButton.click()
 }
 
 const describeJsHandle = (jsHandle) => {

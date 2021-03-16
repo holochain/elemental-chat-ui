@@ -4,7 +4,7 @@ import wait from 'waait'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
 import { waitForState, awaitZomeResult, findElementByText, findElementByClassandText, getElementProperty, registerNickname, beforeAllSetup, afterAllSetup } from './setup/helpers'
-import { TIMEOUT } from './setup/globals'
+import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
 
 orchestrator.registerScenario('Two Active Chatters', async scenario => {
@@ -48,20 +48,6 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     }
     const newMessageContent = () => newMessage.entry.content
 
-    const checkVisualStats = async (statArray, element) => {
-      const stats = statArray
-      for (const e in element) {
-        try {
-          const text = await (await element[e].getProperty('textContent')).jsonValue()
-          stats.push(text)
-        } catch(e) {
-          console.log('error: ', e)
-          continue
-        }
-      }
-      return stats
-    }
-
     it('references correct app Id', async () => {
       // confirm app is installed with correct app id
       const installedApps = await conductor.adminWs().listActiveApps()
@@ -70,23 +56,15 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
     it('registers nickname', async () => {
       newPage = page
-      await wait(2000)
-      // add agent nickname
-      await page.focus('.v-dialog')
-      await page.keyboard.type(webUserNick, { delay: 200 })
-      const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
-      await submitButton.click()
-      await wait(5000)
-      // verify page title
-      const pageTitle = await page.title()
-      expect(pageTitle).toBe('Elemental Chat')
+      registerNickname(newPage, webUserNick)
+      await wait(WAITTIME)
     })
     
     it('displays new channels after pressing refresh button', async () => {
       // alice (web) refreshes channel list to fetch all messages
       const refreshChannelButton = await page.$('#refresh')
       await refreshChannelButton.click()
-      await wait(2000)
+      await wait(WAITTIME)
 
       // verify new message is visible on page
       newPage = page
@@ -96,7 +74,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       expect(newChannelHTML).toContain(newChannelTitle())
       // alice clicks on new channel
       await newChannelElement.click()
-      await wait(3000)
+      await wait(WAITTIME)
     })
 
     it('creates and displays new channel', async () => {
@@ -139,9 +117,23 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('displays correct stats before and after new chatter', async () => {
+      const checkVisualStats = async (statArray, element) => {
+        const stats = statArray
+        for (const e in element) {
+          try {
+            const text = await (await element[e].getProperty('textContent')).jsonValue()
+            stats.push(text)
+          } catch(e) {
+            console.log('error: ', e)
+            continue
+          }
+        }
+        return stats
+      }
+
       // alice (web) clicks on get-stats
       await page.click('#get-stats')
-      await wait(3000)
+      await wait(WAITTIME)
       let element = await page.$$('.display-1')
       let texts = await checkVisualStats([], element)
       console.log('Stats prior to second agent: ', texts)
@@ -157,10 +149,10 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // bobbo (tryorama node) declares self as chatter
       await bobboChat.call('chat', 'refresh_chatter', null)
-      await wait(3000)
+      await wait(WAITTIME)
 
       await page.click('#get-stats')
-      await wait(3000)
+      await wait(WAITTIME)
        // reset element to evaluate
       element = await page.$$('.display-1')
       texts = await checkVisualStats([], element)      
@@ -174,7 +166,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       await page.click('#close-stats')
       stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
-      await wait(3000)
+      await wait(WAITTIME)
     })
 
     it('creates and displays new message', async () => {
@@ -183,7 +175,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       const newChannelElement = elementsWithText.pop()
       await newChannelElement.click()
 
-      await wait(3000)
+      await wait(WAITTIME)
 
       // new message
       newMessage.channel =  channelInFocus.entry
@@ -195,7 +187,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       // press 'Enter' to submit
       page.keyboard.press(String.fromCharCode(13))
 
-      await wait(3000)
+      await wait(WAITTIME)
 
       // bobbo (tryorama node) verifies new message is in list of messages from the dht
       const callListMessages = async () => await bobboChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
@@ -236,7 +228,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       const newChannelButton = await page.$('#refresh')
       await newChannelButton.click()
 
-      await wait(2000)
+      await wait(WAITTIME)
 
       // alice makes sure the channel exists first
       let newChannelText
@@ -314,7 +306,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       // alice (web) refreshes channel list to fetch all messages
       const refreshChannelButton = await page.$('#refresh')
       await refreshChannelButton.click()
-      await wait(2000)
+      await wait(WAITTIME)
 
       // verify new message is visible on page
       const newPage = page

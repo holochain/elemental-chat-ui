@@ -26,7 +26,7 @@ const LOG_ZOME_CALLS = (typeof process.env.VUE_APP_LOG_ZOME_CALLS === 'string')
 
 export const callZome = async (dispatch, rootState, zomeName, fnName, payload, timeout) => {
   if (LOG_ZOME_CALLS) {
-    log(`${zomeName}.${fnName} zome call`, payload)
+    log(`${zomeName}.${fnName} payload`, payload)
   }
 
   const state = rootState.holochain
@@ -38,16 +38,17 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
 
   try {
     // Note: Do not remove this log. See /store/utils fore more info.
-    logZomeCall(fnName, actionType.START)
+    logZomeCall(zomeName, fnName, actionType.START)
     const result = isHoloHosted()
       ? await callZomeHolo(dispatch, state, zomeName, fnName, payload, timeout)
       : await callZomeLocal(dispatch, state, zomeName, fnName, payload, timeout)
 
-    if (LOG_ZOME_CALLS) {
-      log(`${zomeName}.${fnName} zome result`, result)
-    }
     // Note: Do not remove this log. See /store/utils fore more info.
-    logZomeCall(fnName, actionType.DONE)
+    logZomeCall(zomeName, fnName, actionType.DONE)
+
+    if (LOG_ZOME_CALLS) {
+      log(`${zomeName}.${fnName} result`, result)
+    }
     return result
   } catch (e) {
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
