@@ -139,7 +139,6 @@ export default {
         !this.errorMessage &&
         !this.conductorDisconnected &&
         !this.shouldDisplayHoloConnecting
-        // !this.updateProfileLoading
       )
     },
     shouldDisplayDisconnected () {
