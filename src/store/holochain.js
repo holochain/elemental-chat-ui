@@ -186,12 +186,20 @@ export default {
     resetConnectionState ({ commit }) {
       commit('resetConnectionState')
     },
-    async holoLogout ({ rootState, commit, dispatch }) {
-      if (rootState.holoClient) {
-        await rootState.holoClient.signOut()
+    async holoLogout ({ commit, state }) {
+      if (state.holoClient) {
+        await state.holoClient.signOut()
       }
       commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
+      if (!state.isHoloSignedIn) {
+        try {
+          await state.holoClient.signIn()
+          commit('setIsHoloSignedIn', true)
+        } catch (e) {
+          commit('setIsChaperoneDisconnected', true)
+        }
+      }
     },
     callIsLoading ({ commit }, payload) {
       commit('updateIsLoading', { fnName: payload, value: true })
