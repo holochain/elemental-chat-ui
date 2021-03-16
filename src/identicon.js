@@ -2,7 +2,7 @@ let bytes = [0]
 let byteIndex = 0
 
 function setBytes (hash) {
-  bytes = hash
+  bytes = hash || []
   // byteIndex = hash[hash.length - 1] % hash.length // set the starting point
   byteIndex = 0
 }
@@ -86,6 +86,10 @@ function buildOpts (opts) {
 // For now we're moving on to more pressing things but this should be addressed before using the code in a production UI
 
 export default function renderIcon (opts, canvas) {
+  if (opts.hash && !(opts.hash instanceof Uint8Array)) {
+    throw new Error('invalid type for opts.hash, expecting Uint8Array or null')
+  }
+
   opts = buildOpts(opts || {})
   const { size, backgroundColor } = opts
 
