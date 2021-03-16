@@ -117,17 +117,10 @@ export default {
       dispatch('initializeAgent')
     },
     initializeAgent ({ dispatch, rootState }) {
-      console.log('rootState.holochain.holochainClient', rootState.holochain.holochainClient)
-
       const tryToGetProfile = () => {
-        console.log('trying to get profile')
         if (rootState.holochain.conductorDisconnected) {
-          console.log('disconnected')
-          console.log('rootState.holochain.holochainClient', rootState.holochain.holochainClient)
           setTimeout(tryToGetProfile, 1000)
         } else {
-          console.log('connected')
-          console.log('rootState.holochain.holochainClient', rootState.holochain.holochainClient)
           dispatch('getProfile')
         }
       }
