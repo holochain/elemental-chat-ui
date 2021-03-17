@@ -226,7 +226,6 @@ export default {
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
       channel.info.created_by = toUint8Array(channel.info.created_by)
-      console.log("ACTIVE CHATTER:", channel);
       channel.activeChatters = channel.activeChatters.map((c)=>toUint8Array(c))
       channel.messages = channel.messages.map((msg) => {
         msg.createdBy = toUint8Array(msg.createdBy)
