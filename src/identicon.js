@@ -2,8 +2,13 @@ let bytes = [0]
 let byteIndex = 0
 
 function setBytes (hash) {
-  bytes = hash || []
-  // byteIndex = hash[hash.length - 1] % hash.length // set the starting point
+  if (hash[0] === 132 && hash[1] === 32 && hash[2] === 36) {
+    // removing hCAk
+    bytes = hash.slice(3)
+  } else {
+    bytes = hash || []
+  }
+  // byteIndex = hash.length hash[hash.length - 1] % hash.length // set the starting point
   byteIndex = 0
 }
 

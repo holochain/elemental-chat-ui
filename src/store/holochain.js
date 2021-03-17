@@ -64,9 +64,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
-  const agentId = cellId[1]
-  console.log('agent key', arrayBufferToBase64(agentId))
-  commit('setAgentKey', agentId)
 
   if (!state.isHoloSignedIn) {
     try {
@@ -76,6 +73,14 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
+
+    const appInfo = await holoClient.appInfo()
+    const [cell] = appInfo.cell_data
+    const [cellId] = cell
+    const agentId = cellId[1]
+
+    console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
+    commit('setAgentKey', Buffer.from(agentId))
 
     const { url } = await holoClient.holoInfo()
     commit('setHostUrl', url)
