@@ -365,7 +365,7 @@ export default {
     }
   },
   getters: {
-    channel: state => {
+    channel: (state, _, { holochain: { agentKey } }) => {
       const emptyChannel = {
         info: { name: '' },
         entry: { category: 'General', uuid: '' },
@@ -384,6 +384,7 @@ export default {
       }
 
       const activeChatters = uniqBy((channel.messages || []).map(message => message.createdBy), arrayBufferToBase64)
+        .filter(userIdBuffer => arrayBufferToBase64(userIdBuffer) !== arrayBufferToBase64(agentKey))
 
       return {
         ...channel,
