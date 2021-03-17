@@ -1,9 +1,15 @@
-/* global it, describe, expect, beforeAll, afterAll */
+/* global jest, it, describe, expect, beforeAll, afterAll */
 import Vuetify from 'vuetify'
 import Vue from 'vue'
 import { waitFor, fireEvent } from '@testing-library/vue'
 import { renderAndWaitFullSetup } from '../../test-utils'
 import ElementalChat from '@/ElementalChat.vue'
+
+// jest.mock('@/store/callZome')
+
+jest.mock('axios', () => ({
+  get: jest.fn()
+}))
 
 Vue.use(Vuetify)
 
