@@ -6,8 +6,7 @@ import {
   APP_VERSION,
   INSTALLED_APP_ID,
   WEB_CLIENT_PORT,
-  WEB_CLIENT_URI,
-  HOLO_DNA_ALIAS
+  WEB_CLIENT_URI
 } from '@/consts'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
@@ -15,7 +14,6 @@ import { handleSignal } from './elementalChat'
 console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
 console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
-console.log('HOLO_DNA_ALIAS : ', HOLO_DNA_ALIAS)
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
@@ -25,7 +23,8 @@ function createHoloClient (webSdkConnection) {
     signOut: (...args) => webSdkConnection.signOut(...args),
     appInfo: (...args) => webSdkConnection.appInfo(...args),
     ready: (...args) => webSdkConnection.ready(...args),
-    zomeCall: (...args) => webSdkConnection.zomeCall(...args)
+    zomeCall: (...args) => webSdkConnection.zomeCall(...args),
+    holoInfo: (...args) => webSdkConnection.holoInfo(...args)
   }
 }
 
@@ -47,7 +46,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       }
     )
     holoClient = createHoloClient(webSdkConnection)
-    commit('setHoloClient', holoClient)
   } else {
     holoClient = state.holoClient
   }
@@ -55,9 +53,20 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   try {
     await holoClient.ready()
   } catch (e) {
+    console.error(e)
     commit('setIsChaperoneDisconnected', true)
     return
   }
+
+  const appInfo = await holoClient.appInfo()
+  const [cell] = appInfo.cell_data
+  const { cell_id: cellId, cell_nick: dnaAlias } = cell
+  commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
+  const [dnaHash] = cellId
+  commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
+  const agentId = cellId[1]
+  console.log('agent key', arrayBufferToBase64(agentId))
+  commit('setAgentKey', agentId)
 
   if (!state.isHoloSignedIn) {
     try {
@@ -67,11 +76,10 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
-  }
 
-  const appInfo = await holoClient.appInfo()
-  const cellId = appInfo.cell_data[0][0]
-  commit('setDnaHash', 'u' + Buffer.from(cellId[0]).toString('base64'))
+    const { url } = await holoClient.holoInfo()
+    commit('setHostUrl', url)
+  }
 
   isInitializingHolo = false
 }
@@ -79,15 +87,14 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, signal =>
+    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
       handleSignal(signal, dispatch))
-
     const appInfo = await holochainClient.appInfo({
       installed_app_id: INSTALLED_APP_ID
     })
 
-    const cellId = appInfo.cell_data[0][0]
-    const agentId = cellId[1]
+    const cellId = appInfo.cell_data[0].cell_id
+    const [_, agentId] = cellId
     console.log('agent key', arrayBufferToBase64(agentId))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {
@@ -105,8 +112,10 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     dispatch('elementalChat/refreshChatter', null, { root: true })
 
     holochainClient.client.socket.onclose = function (e) {
-      // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
-      // we create new keys... therefore the identity shouold not be held inbetween sessions
+      // TODO: decide if we would like to remove this clause:
+      // whenever we disconnect from conductor (in dev setup - running 'holochain-conductor-api'),
+      // we create new keys... therefore the identity shouold not be held inbetween sessions 
+      // ^^ NOTE: this no longer true with hc cli.
       commit('resetConnectionState')
       console.log(
         `Socket is closed. Reconnect will be attempted in ${RECONNECT_SECONDS} seconds.`,
@@ -152,12 +161,15 @@ export default {
     reconnectingIn: 0,
     appInterface: null,
     dnaHash: null,
-    firstConnect: false
+    agentKey: null,
+    dnaAlias: null,
+    firstConnect: false,
+    isLoading: {},
+    hostUrl: ''
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
       initializeClient(commit, dispatch, state)
-
       setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
@@ -174,13 +186,27 @@ export default {
     resetConnectionState ({ commit }) {
       commit('resetConnectionState')
     },
-    async holoLogout ({ rootState, commit, dispatch }) {
-      if (rootState.holoClient) {
-        await rootState.holoClient.signOut()
+    async holoLogout ({ commit, dispatch, state }) {
+      if (state.holoClient) {
+        await state.holoClient.signOut()
       }
       commit('clearAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
       dispatch('initializeAgent', null, { root: true })
+      if (!state.isHoloSignedIn) {
+        try {
+          await state.holoClient.signIn()
+          commit('setIsHoloSignedIn', true)
+        } catch (e) {
+          commit('setIsChaperoneDisconnected', true)
+        }
+      }
+    },
+    callIsLoading ({ commit }, payload) {
+      commit('updateIsLoading', { fnName: payload, value: true })
+    },
+    callIsNotLoading ({ commit }, payload) {
+      commit('updateIsLoading', { fnName: payload, value: false })
     }
   },
   mutations: {
@@ -203,8 +229,11 @@ export default {
       state.reconnectingIn = -1
       state.firstConnect = false
     },
-    setHoloClient (state, payload) {
-      state.holoClient = payload
+    setHoloClientAndDnaAlias (state, payload) {
+      const { holoClient, dnaAlias } = payload
+      console.log('HOLO DNA ALIAS : ', dnaAlias)
+      state.dnaAlias = dnaAlias
+      state.holoClient = holoClient
       state.conductorDisconnected = false
       state.reconnectingIn = -1
       state.firstConnect = false
@@ -221,6 +250,16 @@ export default {
       state.conductorDisconnected = true
       state.reconnectingIn = RECONNECT_SECONDS
       state.appInterface = null
+    },
+    // this currently only track the function name. For a dna with multiple zomes the function names should be nested inside zome names
+    updateIsLoading (state, { fnName, value }) {
+      state.isLoading = {
+        ...state.isLoading,
+        [fnName]: value
+      }
+    },
+    setHostUrl (state, payload) {
+      state.hostUrl = payload
     }
   }
 }

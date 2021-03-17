@@ -12,6 +12,8 @@
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
+        <Identicon size="32" :holoHash="agentKey" />
+        <v-toolbar-title class="handle">{{ agentHandle }}</v-toolbar-title>
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -59,7 +61,8 @@
           </template>
           <div v-if="!dnaHash">Loading Version Info...</div>
           <div v-if="dnaHash">UI: {{ appVersion }}</div>
-          <div v-if="dnaHash">DNA: {{ dnaHash }}</div>
+          <div v-if="dnaHash">DNA: ...{{ dnaHashTail }}</div>
+          <div v-if="dnaHash && isHoloHosted()">Host: {{ hostUrl }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
@@ -79,7 +82,7 @@
         <Channels />
         <v-col cols="7" md="9">
           <v-card class="ma-0 pt-n1 pl-1" dark>
-            <Messages :key="channel.channel.uuid" :channel="channel" />
+            <Messages :key="channel.entry.uuid" :channel="channel" />
           </v-card>
         </v-col>
       </v-row>
@@ -126,7 +129,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="showingStats = false">
+          <v-btn text @click="showingStats = false" id="close-stats">
             Close
           </v-btn>
         </v-card-actions>
@@ -136,12 +139,15 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex'
+import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
+import { isHoloHosted } from '@/utils'
+
 export default {
   name: 'ElementalChat',
   components: {
     Channels: () => import('./components/Channels.vue'),
-    Messages: () => import('./components/Messages.vue')
+    Messages: () => import('./components/Messages.vue'),
+    Identicon: () => import('./components/Identicon.vue')
   },
   data () {
     return {
@@ -149,7 +155,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['editHandle']),
+    ...mapMutations(['editHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
       'getStats'
@@ -161,14 +167,20 @@ export default {
     handleShowStats () {
       this.getStats()
       this.showingStats = true
+    },
+    isHoloHosted () {
+      return isHoloHosted()
     }
   },
   computed: {
+    ...mapState(['agentHandle']),
     ...mapState('holochain', [
       'conductorDisconnected',
       'appInterface',
       'isHoloSignedIn',
-      'dnaHash']),
+      'dnaHash',
+      'hostUrl',
+      'agentKey']),
     ...mapState('elementalChat', [
       'stats',
       'statsLoading'
@@ -181,7 +193,13 @@ export default {
     },
     appVersion () {
       return process.env.VUE_APP_UI_VERSION
+    },
+    dnaHashTail () {
+      return this.dnaHash.slice(this.dnaHash.length - 6)
     }
+  },
+  created () {
+    console.log('agentKey started as', this.agentKey)
   },
   watch: {
     conductorDisconnected (val) {
@@ -194,7 +212,6 @@ export default {
 .logout {
   font-size: 14px;
   margin-right: 10px;
-  margin-top: 5px;
   cursor: pointer;
 }
 .no-wrap {
@@ -212,10 +229,14 @@ export default {
   display: flex;
   align-items: center;
 }
-
 .title-logo {
   width: 30px;
   margin-right: 5px;
+}
+.handle {  
+  font-size: 14px;
+  margin-left: 12px;
+  margin-right: 10px;
 }
 .link-text {
   color: #5c007a !important;

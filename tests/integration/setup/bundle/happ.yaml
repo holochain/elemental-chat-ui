@@ -1,0 +1,15 @@
+---
+manifest_version: "1"
+name: elemental-chat-happ
+description: ""
+slots:
+  - id: elemental-chat
+    provisioning:
+      strategy: create
+      deferred: false
+    dna:
+      bundled: ../../../../dnas/elemental-chat.dna
+      properties: ~
+      uuid: ~
+      version: ~
+      clone_limit: 0

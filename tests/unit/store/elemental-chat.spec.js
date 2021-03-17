@@ -8,14 +8,14 @@ const makeChannel = (uuid, name) => ({
     name,
     created_by: ''
   },
-  channel: { category: 'General', uuid },
+  entry: { category: 'General', uuid },
   messages: [],
   last_seen: {}
 })
 
 const makeMessage = (uuid, content) => ({
   createdBy: '',
-  message: { content, uuid },
+  entry: { content, uuid },
   messages: [],
   createdAt: [0, 0]
 })
@@ -81,13 +81,13 @@ describe('elementalChat store', () => {
 
     expect(storedChannel().messages.length).toEqual(8)
 
-    const knownIds = [...initialMessages, signalMessage, ...newMessages].map(m => m.message.uuid)
+    const knownIds = [...initialMessages, signalMessage, ...newMessages].map(m => m.entry.uuid)
 
-    expect(storedChannel().messages.map(m => m.message.uuid))
+    expect(storedChannel().messages.map(m => m.entry.uuid))
       .toEqual(expect.arrayContaining(knownIds))
 
-    const userCreatedMessage = storedChannel().messages.find(m => !(knownIds).includes(m.message.uuid))
+    const userCreatedMessage = storedChannel().messages.find(m => !(knownIds).includes(m.entry.uuid))
 
-    expect(userCreatedMessage.message.content).toContain(userMessageContent)
+    expect(userCreatedMessage.entry.content).toContain(userMessageContent)
   })
 })

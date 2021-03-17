@@ -1,12 +1,13 @@
 <template>
   <v-col cols="5" md="3">
     <v-toolbar dense dark tile class="mb-1">
-      <v-toolbar-title>Channels</v-toolbar-title>
+      <v-toolbar-title class="channel-title">Channels</v-toolbar-title>
+      <Spinner v-if='channelsLoading' size='18px' />
       <v-spacer></v-spacer>
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn
-            id="add-channel"
+            id="refresh"
             color="action"
             icon
             v-bind="attrs"
@@ -55,7 +56,7 @@
             <v-list-item
               v-for="(channel, i) in channels"
               :key="i"
-              @click="openChannel(channel.channel.uuid)"
+              @click="openChannel(channel.entry.uuid)"
             >
               <v-list-item-icon class='channel-icons'>
                 <v-icon>mdi-chat-processing-outline</v-icon>
@@ -75,11 +76,12 @@
 <script>
 
 import { mapState, mapGetters, mapActions } from 'vuex'
+import Spinner from './Spinner.vue'
 import { v4 as uuidv4 } from 'uuid'
 
 const makeEmptyChannel = () => ({
   info: { name: '' },
-  channel: { category: 'General', uuid: uuidv4() },
+  entry: { category: 'General', uuid: uuidv4() },
   messages: []
 })
 
@@ -87,10 +89,13 @@ export default {
   name: 'Channels',
   data () {
     return {
-      actionChannel: makeEmptyChannel(), 
+      actionChannel: makeEmptyChannel(),
       showingAdd: false,
       refreshKey: 0
     }
+  },
+  components: {
+    Spinner
   },
   methods: {
     ...mapActions('elementalChat', [
@@ -110,7 +115,7 @@ export default {
   },
   computed: {
     ...mapState('elementalChat', ['channels']),
-    ...mapGetters('elementalChat', ['channel']),
+    ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
     showEmptyMessage () {
       return this.showingAdd || !this.channels.length
     }
@@ -122,10 +127,13 @@ export default {
   }
 }
 </script>
-<style>
+<style scoped>
 .channels-container {
   overflow-y: auto;
   height: calc(100vh - 150px);
+}
+.channel-title {
+  margin-right: 20px;
 }
 .channel-icons {
   width: 20px;

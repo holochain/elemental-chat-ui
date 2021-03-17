@@ -8,6 +8,10 @@ node_modules
 /dnas
 /coverage
 
+/target/
+.cargo
+.hc
+
 # local env files
 .env
 .env.local
