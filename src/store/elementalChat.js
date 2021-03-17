@@ -229,13 +229,21 @@ export default {
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
       channel.info.created_by = toUint8Array(channel.info.created_by)
-
+      channel.activeChatters = channel.activeChatters.map((c)=>toUint8Array(c))
+      channel.messages = channel.messages.map((msg) => {
+        msg.createdBy = toUint8Array(msg.createdBy)
+        msg.entryHash = toUint8Array(msg.entryHash)
+        msg.createdBy = toUint8Array(msg.createdBy)
+        return msg
+      })
+      const chatters = payload.channel.activeChatters.map((c)=>toUint8Array(c))
+      console.log("Chatter:", chatters);
       dispatch('signalSpecificChatters', {
         signal_message_data: {
           messageData: message,
           channelData: channel
         },
-        chatters: payload.channel.activeChatters,
+        chatters,
         include_active_chatters: true
       })
     },
@@ -268,9 +276,13 @@ export default {
             }
           }
 
-          const messages = [...result.messages]
+          let messages = [...result.messages]
 
           messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
+          messages = messages.map((msg) => {
+            msg.createdBy = toUint8Array(msg.createdBy)
+            return msg
+          })
 
           commit('addMessagesToChannel', {
             channelId: payload.channel.entry.uuid,

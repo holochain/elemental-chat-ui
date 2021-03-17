@@ -1,6 +1,6 @@
 import { AppWebsocket } from '@holochain/conductor-api'
 import { Connection as WebSdkConnection } from '@holo-host/web-sdk'
-import { isHoloHosted, log } from '@/utils'
+import { isHoloHosted, log, toUint8Array } from '@/utils'
 import {
   RECONNECT_SECONDS,
   APP_VERSION,
@@ -211,7 +211,7 @@ export default {
   },
   mutations: {
     setAgentKey (state, payload) {
-      state.agentKey = payload
+      state.agentKey = toUint8Array(payload)
     },
     setAppInterface (state, payload) {
       state.appInterface = payload
