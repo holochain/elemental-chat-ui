@@ -40,9 +40,7 @@ describe('Message', () => {
     getByText(bannerText)
   })
 
-
   it('renders textarea when not in display mode', async () => {})
-
 
   it('creates a new message', async () => {})
 })
