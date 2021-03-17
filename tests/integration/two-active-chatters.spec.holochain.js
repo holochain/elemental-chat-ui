@@ -7,6 +7,9 @@ import { waitForState, awaitZomeResult, findElementByText, findElementByClassand
 import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
 
+// TEMPORARY: Remove and reset this extended waittime after hc header issue is resolved
+const EXTENDED_WAITTIME = WAITTIME + 3000
+
 orchestrator.registerScenario('Two Active Chatters', async scenario => {
   const callRegistry = {}
   const callStats = async () => await aliceChat.call('chat', 'stats', { category: 'General' })
@@ -20,11 +23,11 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     const createPage = async () => await global.__BROWSER__.newPage();
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
     ({ aliceChat, bobboChat, page, closeServer, conductor } = await beforeAllSetup(scenario, createPage, callRegistry))
-
+    await wait(EXTENDED_WAITTIME)
     // scenario setup:
     console.log('Setting up default channel...')
     channelInFocus = await aliceChat.call('chat', 'create_channel', newChannel)
-    console.log('Verifying initial stats...')
+    console.log('Verifying initial stats...', channelInFocus)
     stats = await awaitZomeResult(callStats, 90000, 10000)
     console.log('starting stats : ', stats)
     expect(stats).toEqual({ agents: 1, active: 1, channels: 1, messages: 0 })
@@ -59,7 +62,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       registerNickname(newPage, webUserNick)
       await wait(WAITTIME)
     })
-    
+
     it('displays new channels after pressing refresh button', async () => {
       // alice (web) refreshes channel list to fetch all messages
       const refreshChannelButton = await page.$('#refresh')
@@ -80,19 +83,18 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     it('creates and displays new channel', async () => {
       // alice (web user) creates a channel
       newChannel.name = 'Alice Hangout Room'
-      console.log('newChannelTitle() : ', newChannelTitle())
       await page.click('#add-channel')
 
       newPage = page
       const channelNameElement = await findElementByText('div', 'Channel Name', newPage)
-      const channelInputElement = channelNameElement.pop() 
+      const channelInputElement = channelNameElement.pop()
       await channelInputElement.click()
       await page.keyboard.type(newChannelTitle(), { delay: 100 })
       // press 'Enter' to submit
       page.keyboard.press(String.fromCharCode(13))
 
       // wait for create call response / load
-      const checkNewChannelState = () => callRegistry.create_channel
+      const checkNewChannelState = () => callRegistry['chat.create_channel']
       await waitForState(checkNewChannelState, 'done')
 
       // check for new channel title on page
@@ -149,7 +151,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // bobbo (tryorama node) declares self as chatter
       await bobboChat.call('chat', 'refresh_chatter', null)
-      await wait(WAITTIME)
+      await wait(EXTENDED_WAITTIME)
 
       await page.click('#get-stats')
       await wait(WAITTIME)
@@ -195,7 +197,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       console.log('message list : ', messages)
       expect(messages[0].entry.content).toContain(newMessageContent())
 
-      const checkNewMessageState = () => callRegistry.create_message
+      const checkNewMessageState = () => callRegistry['chat.create_message']
       await waitForState(checkNewMessageState, 'done')
 
       // check for new message content is on page
@@ -215,9 +217,14 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     it('displays channels created by another agent', async () => {
       newChannel.name = 'Bobbo Collaboration Room'
       newChannel.entry.uuid = uuidv4() 
-      // bobbo (tryorama node) creates channel
+
+      if (stats.active !== 2) {
+        await bobboChat.call('chat', 'refresh_chatter', null)
+        await wait(EXTENDED_WAITTIME)
+      }
+
+      // bobbo (tryorama node) creates channel 
       // **creating channel at tryrama level to simulate channel created by another agent
-      // await bobboChat.call('chat', 'refresh_chatter', null)
       channelInFocus = await bobboChat.call('chat', 'create_channel', newChannel)
       // bobbo checks stats
       newStats = await bobboChat.call('chat', 'stats', { category: 'General' })
@@ -247,7 +254,11 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('displays a signal message', async () => {
-      // // await bobboChat.call('chat', 'refresh_chatter', null);
+      if (stats.active !== 2) {
+        await bobboChat.call('chat', 'refresh_chatter', null)
+        await wait(EXTENDED_WAITTIME)
+      }
+
       // bobbo checks channels
       const callListChannels = async () => await bobboChat.call('chat', 'list_channels', { category: 'General' })
       const { channels } = await awaitZomeResult(callListChannels, 90000, 10000)

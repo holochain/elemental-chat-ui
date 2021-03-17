@@ -1,10 +1,9 @@
 import { isHoloHosted, log } from '@/utils'
-import { HOLO_DNA_ALIAS } from '@/consts'
 import { logZomeCall, actionType } from '@/store/utils'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) =>
   state.holoClient.zomeCall(
-    HOLO_DNA_ALIAS,
+    state.dnaAlias,
     zomeName,
     fnName,
     payload)
@@ -36,6 +35,8 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     return
   }
 
+  dispatch('holochain/callIsLoading', fnName, { root: true })
+
   try {
     // Note: Do not remove this log. See /store/utils fore more info.
     logZomeCall(zomeName, fnName, actionType.START)
@@ -55,5 +56,7 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     if (e === 'Error: Socket is not open') {
       return dispatch('resetConnectionState', null, { root: true })
     }
+  } finally {
+    dispatch('holochain/callIsNotLoading', fnName, { root: true })
   }
 }
