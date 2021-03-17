@@ -142,12 +142,16 @@
 import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
 import { isHoloHosted } from '@/utils'
 
+import Channels from './components/Channels.vue'
+import Messages from './components/Messages.vue'
+import Identicon from './components/Identicon.vue'
+
 export default {
   name: 'ElementalChat',
   components: {
-    Channels: () => import('./components/Channels.vue'),
-    Messages: () => import('./components/Messages.vue'),
-    Identicon: () => import('./components/Identicon.vue')
+    Channels,
+    Messages,
+    Identicon
   },
   data () {
     return {

@@ -76,7 +76,6 @@
 <script>
 
 import { mapState, mapGetters, mapActions } from 'vuex'
-import Spinner from './Spinner.vue'
 import { v4 as uuidv4 } from 'uuid'
 
 const makeEmptyChannel = () => ({
@@ -95,7 +94,7 @@ export default {
     }
   },
   components: {
-    Spinner
+    Spinner: () => require('./Spinner.vue'),
   },
   methods: {
     ...mapActions('elementalChat', [

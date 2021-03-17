@@ -1,7 +1,7 @@
 module.exports = {
   clearMocks: true,
   collectCoverageFrom: ["src/**/*.{js,jsx,ts,tsx}", "!src/**/*.d.ts"],
-  setupFiles: ["regenerator-runtime/runtime"],
+  setupFiles: ["regenerator-runtime/runtime", "jest-canvas-mock"],
   setupFilesAfterEnv: ["@testing-library/jest-dom/extend-expect"],
   testEnvironment: "jest-environment-jsdom-fourteen",
   transform: {

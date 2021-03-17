@@ -27,7 +27,7 @@ import { arrayBufferToBase64 } from '@/store/utils'
 export default {
   name: 'Messages',
   components: {
-    Message: () => import('./Message.vue')
+    Message: () => require('./Message.vue')
   },
   data () {
     return {

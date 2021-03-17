@@ -44,6 +44,7 @@
     "async-wait-until": "^1.2.6",
     "babel-plugin-module-resolver": "^4.1.0",
     "core-js": "^3.6.5",
+    "jest-canvas-mock": "^2.3.1",
     "jest-environment-jsdom-fourteen": "^1.0.1",
     "localforage": "^1.9.0",
     "localforage-getitems": "^1.4.2",
@@ -63,7 +64,7 @@
   "devDependencies": {
     "@babel/core": "^7.13.1",
     "@holo-host/chaperone": "^2.0.0",
-    "@holochain/tryorama": "file:/home/lisa/Documents/gitrepos/holochain/holochain-new/tryorama/tryorama",
+    "@holochain/tryorama": "^0.4.0",
     "@testing-library/vue": "^5.6.1",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
