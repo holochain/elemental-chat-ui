@@ -90,7 +90,7 @@ export const handleSignal = (signal, dispatch) => {
 
   switch (signalName) {
     case 'Message':
-      // even though this is defined in the elementalChat store module, it still needs to be called with full namespaced because it's actually called
+      // even though this is defined in the elementalChat store module, it still needs to be called with full namespace because it's actually called
       // in the context of the holochain store module (hence the export).
       dispatch('elementalChat/handleMessageSignal', signalPayload, { root: true })
       break
@@ -107,14 +107,28 @@ export default {
     channels: [],
     currentChannelId: null,
     stats: {},
-    statsLoading: false
+    statsLoading: false,
+    agentHandle: null,
+    // When this is true, the UI prompts the user to enter their handle.
+    needsHandle: false
   },
   actions: {
-    initialize ({ state, dispatch }) {
+    initialize ({ dispatch }) {
       const currentChannelId = window.localStorage.getItem('currentChannelId')
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
       }
+      dispatch('initializeAgent')
+    },
+    initializeAgent ({ dispatch, rootState }) {
+      const tryToGetProfile = () => {
+        if (rootState.holochain.conductorDisconnected) {
+          setTimeout(tryToGetProfile, 1000)
+        } else {
+          dispatch('getProfile')
+        }
+      }
+      tryToGetProfile()
     },
     getStats: async ({ rootState, dispatch, commit }) => {
       commit('setStatsLoading', true)
@@ -189,7 +203,7 @@ export default {
       })
     },
     createMessage: async (
-      { commit, rootState, dispatch },
+      { commit, rootState, dispatch, state },
       payload
     ) => {
       let lastSeen = payload.channel.last_seen
@@ -204,7 +218,7 @@ export default {
         channel: payload.channel.entry,
         entry: {
           uuid: uuidv4(),
-          content: `${rootState.agentHandle}: ${payload.content}`
+          content: `${state.agentHandle}: ${payload.content}`
         },
         chunk: 0
       }
@@ -293,10 +307,24 @@ export default {
     },
     refreshChatter ({ dispatch, rootState }) {
       callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000)
-        .catch(error => log('refreshChatter zome error', error))
     },
     joinChannel ({ commit }, payload) {
       commit('setCurrentChannelId', payload)
+    },
+    updateProfile ({ commit, dispatch, rootState }, payload) {
+      const args = {
+        nickname: payload
+      }
+      callZome(dispatch, rootState, 'profile', 'update_my_profile', args, 30000)
+      commit('setAgentHandle', payload)
+    },
+    async getProfile ({ commit, dispatch, rootState }) {
+      const profile = await callZome(dispatch, rootState, 'profile', 'get_my_profile', null, 30000)
+      if (profile && profile.nickname) {
+        commit('setAgentHandle', profile.nickname)
+      } else {
+        commit('setNeedsHandle', true)
+      }
     }
   },
   mutations: {
@@ -374,6 +402,15 @@ export default {
       state.stats.activeCount = payload.activeCount
       state.stats.channelCount = payload.channelCount
       state.stats.messageCount = payload.messageCount
+    },
+    setAgentHandle (state, payload) {
+      state.agentHandle = payload
+      if (payload) {
+        state.needsHandle = false
+      }
+    },
+    setNeedsHandle (state, payload) {
+      state.needsHandle = payload
     }
   },
   getters: {
