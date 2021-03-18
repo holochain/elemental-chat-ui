@@ -45,12 +45,12 @@
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="error.shouldShow" persistent max-width="460">
+      <v-dialog v-model="shouldShowErrorMessage" persistent max-width="460">
         <v-card>
           <v-card-title class="headline">
             Hm... Something doesn't look right.
           </v-card-title>
-          <v-card-text>{{ error.message }}</v-card-text>
+          <v-card-text>{{ errorMessage }}</v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn text @click="clearErrorMessage">
@@ -81,7 +81,7 @@
       </v-dialog>
       <v-responsive height="100%">
         <transition name="fade">
-          <router-view id="router" />
+          <ElementalChat />
         </transition>
       </v-responsive>
     </v-main>
@@ -89,76 +89,84 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
-import { isHoloHosted } from "@/utils";
+import { mapState, mapActions, mapMutations } from 'vuex'
+import { isHoloHosted } from '@/utils'
+import ElementalChat from './ElementalChat.vue'
 
 export default {
-  name: "App",
-  components: {},
-  data() {
+  name: 'App',
+  components: {
+    ElementalChat
+  },
+  data () {
     return {
-      internalAgentHandle: "",
+      internalAgentHandle: '',
       dialog: false
-    };
+    }
   },
   methods: {
-    ...mapActions("elementalChat", ["diplayErrorMessage", "setChannelPolling"]),
-    ...mapActions(["setAgentHandle", "skipBackoff"]),
-    agentHandleEntered() {
-      if (this.internalAgentHandle === "") return;
-      this.setAgentHandle(this.internalAgentHandle);
-      this.dialog = false;
+    ...mapActions('elementalChat', ['setChannelPolling', 'updateProfile']),
+    ...mapActions('holochain', ['skipBackoff']),
+    ...mapMutations(['setAgentHandle', 'setErrorMessage']),
+    agentHandleEntered () {
+      if (this.internalAgentHandle === '') return
+      this.updateProfile(this.internalAgentHandle)
+      this.dialog = false
     },
-    clearErrorMessage() {
-      this.diplayErrorMessage({ message: "", shouldShow: false });
+    clearErrorMessage () {
+      this.setErrorMessage('')
     },
-    retryNow() {
-      this.skipBackoff();
+    retryNow () {
+      this.skipBackoff()
     }
   },
   computed: {
-    ...mapState("elementalChat", ["error"]),
-    ...mapState([
-      "agentHandle",
-      "needsHandle",
-      "conductorDisconnected",
-      "firstConnect",
-      "reconnectingIn",
-      "isHoloSignedIn",
-      "isChaperoneDisconnected"
+    ...mapState('holochain', [
+      'conductorDisconnected',
+      'firstConnect',
+      'reconnectingIn',
+      'isHoloSignedIn',
+      'isChaperoneDisconnected'
     ]),
-    shouldDisplayNickPrompt() {
+    ...mapState('elementalChat', ['agentHandle', 'needsHandle']),
+    ...mapState([
+      'errorMessage'
+    ]),
+    shouldDisplayNickPrompt () {
       return (
         this.needsHandle &&
-        !this.error.message &&
+        !this.errorMessage &&
         !this.conductorDisconnected &&
         !this.shouldDisplayHoloConnecting
-      );
+      )
     },
-    shouldDisplayDisconnected() {
-      return this.conductorDisconnected && !this.firstConnect;
+    shouldDisplayDisconnected () {
+      return this.conductorDisconnected && !this.firstConnect
     },
-    shouldDisplayHoloConnecting() {
+    shouldDisplayHoloConnecting () {
       return (
         isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected)
-      );
+      )
     },
-    holoConnectionMessage() {
+    shouldShowErrorMessage () {
+      return this.errorMessage.length > 0
+    },
+    holoConnectionMessage () {
       if (this.isChaperoneDisconnected) {
-        return "Can't find HoloPort. Please check your internet connection and refresh this page.";
+        return "Can't find HoloPort. Please check your internet connection and refresh this page."
       } else {
-        return "Connecting to HoloPort...";
+        return 'Connecting to HoloPort...'
       }
     }
   },
-  created() {
-    this.$store.dispatch("initialiseStore");
-    this.$vuetify.theme.dark = true;
+  created () {
+    this.$store.dispatch('initializeStore')
+    this.$vuetify.theme.dark = true
   },
-  mounted() {
-    this.setChannelPolling();
+  mounted () {
+    this.setChannelPolling()
   }
-};
+}
 </script>
 <style scoped>
 #router {
