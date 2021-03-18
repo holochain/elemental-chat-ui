@@ -106,7 +106,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       expect(newChannelElement).toBeTruthy()
       expect(newChannelHTML).toContain(newChannelTitle())
 
-      // alice (as tryorama node) verifies new message is in list of messages from the dht
+      // alice (as tryorama node) verifies new channel is in list of channels from the dht
       const callListChannels = async () => await aliceChat.call('chat', 'list_channels', { category: 'General' })
       const { channels: newChannels } = await awaitZomeResult(callListChannels, 90000, 10000)
       channelInFocus = newChannels.find(channel => channel.info.name === newChannelTitle())
