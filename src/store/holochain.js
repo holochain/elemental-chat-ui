@@ -87,7 +87,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, RECONNECT_SECONDS*1000, signal =>
+    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, RECONNECT_SECONDS * 1000, signal =>
       handleSignal(signal, dispatch))
 
     const appInfo = await holochainClient.appInfo({

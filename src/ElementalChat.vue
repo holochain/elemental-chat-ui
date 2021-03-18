@@ -238,7 +238,7 @@ export default {
   width: 30px;
   margin-right: 5px;
 }
-.handle {  
+.handle {
   font-size: 14px;
   margin-left: 12px;
   margin-right: 10px;
