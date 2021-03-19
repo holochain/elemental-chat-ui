@@ -26,7 +26,7 @@
       hide-details
       full-width
       rows="3"
-      @keydown.enter="createMessage"
+      @keydown.enter.prevent="createMessage"
       :append-icon="createMessageLoading ? '' : 'mdi-send'"
       @click:append="createMessage"
     />
@@ -84,6 +84,11 @@ export default {
   methods: {
     ...mapMutations(['setErrorMessage']),
     createMessage () {
+      if (this.createMessageLoading) {
+        // stop user from sending a new message before the last zome call has returned
+        return
+      }
+
       if (this.channels.length === 0) {
         this.setErrorMessage('You must first create a channel before sending a message.')
         // refresh error msg setting after 10 secs

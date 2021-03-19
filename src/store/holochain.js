@@ -1,6 +1,6 @@
 import { AppWebsocket } from '@holochain/conductor-api'
 import { Connection as WebSdkConnection } from '@holo-host/web-sdk'
-import { isHoloHosted, log } from '@/utils'
+import { isHoloHosted, log, toUint8Array } from '@/utils'
 import {
   RECONNECT_SECONDS,
   APP_VERSION,
@@ -65,9 +65,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
-  const agentId = cellId[1]
-  console.log('agent key', arrayBufferToBase64(agentId))
-  commit('setAgentKey', agentId)
 
   if (!state.isHoloSignedIn) {
     try {
@@ -77,6 +74,14 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
+
+    const appInfo = await holoClient.appInfo()
+    const [cell] = appInfo.cell_data
+    const [cellId] = cell
+    const agentId = cellId[1]
+
+    console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
+    commit('setAgentKey', Buffer.from(agentId))
 
     const { url } = await holoClient.holoInfo()
     commit('setHostUrl', url)
@@ -187,17 +192,17 @@ export default {
     resetConnectionState ({ commit }) {
       commit('resetConnectionState')
     },
-    async holoLogout ({ commit, dispatch, state }) {
+    async holoLogout ({ dispatch, commit, state }) {
       if (state.holoClient) {
         await state.holoClient.signOut()
       }
-      commit('clearAgentHandle', null, { root: true })
+      commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
-      dispatch('initializeAgent', null, { root: true })
       if (!state.isHoloSignedIn) {
         try {
           await state.holoClient.signIn()
           commit('setIsHoloSignedIn', true)
+          dispatch('elementalChat/initializeAgent', null, { root: true })
         } catch (e) {
           commit('setIsChaperoneDisconnected', true)
         }
@@ -212,7 +217,7 @@ export default {
   },
   mutations: {
     setAgentKey (state, payload) {
-      state.agentKey = payload
+      state.agentKey = toUint8Array(payload)
     },
     setAppInterface (state, payload) {
       state.appInterface = payload
@@ -234,12 +239,12 @@ export default {
       const { holoClient, dnaAlias } = payload
       state.dnaAlias = dnaAlias
       state.holoClient = holoClient
-      state.conductorDisconnected = false
       state.reconnectingIn = -1
       state.firstConnect = false
     },
     setIsHoloSignedIn (state, payload) {
       state.isHoloSignedIn = payload
+      state.conductorDisconnected = false
     },
     setIsChaperoneDisconnected (state, payload) {
       state.isChaperoneDisconnected = payload

@@ -155,10 +155,12 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['editHandle']),
+    ...mapMutations('elementalChat', ['setNeedsHandle']),
     ...mapActions('elementalChat', [
       'listChannels',
-      'getStats'
+      'getStats',
+      'getProfile',
+      'updateProfile'
     ]),
     ...mapActions('holochain', ['holoLogout']),
     visitPocPage () {
@@ -170,10 +172,12 @@ export default {
     },
     isHoloHosted () {
       return isHoloHosted()
+    },
+    editHandle () {
+      this.setNeedsHandle(true)
     }
   },
   computed: {
-    ...mapState(['agentHandle']),
     ...mapState('holochain', [
       'conductorDisconnected',
       'appInterface',
@@ -183,7 +187,8 @@ export default {
       'agentKey']),
     ...mapState('elementalChat', [
       'stats',
-      'statsLoading'
+      'statsLoading',
+      'agentHandle'
     ]),
     ...mapGetters('elementalChat', [
       'channel'

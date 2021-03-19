@@ -5,7 +5,7 @@
   "scripts": {
     "serve:holo": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24273/' vue-cli-service serve",
     "build": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
-    "build-dev": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holohost.dev/' vue-cli-service build",
+    "build-dev": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holohost.dev/' vue-cli-service build --mode development",
     "build-scale-test": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-scaletest.holohost.dev/' vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@holo-host/web-sdk": "git://github.com/Holo-Host/web-sdk.git#05da3de866fab2c7dd4a19012eb7a4f941477598",
-    "@holochain-open-dev/holochain-run-dna": "^0.3.2",
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@vue/test-utils": "^1.1.3",
     "async-wait-until": "^1.2.6",
