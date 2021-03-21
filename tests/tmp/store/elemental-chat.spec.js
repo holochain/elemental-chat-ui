@@ -1,7 +1,7 @@
 /* global jest, it, describe, expect */
 import store from '@/store/index'
 
-// jest.mock('@/store/callZome')
+jest.mock('@/store/callZome')
 
 const makeChannel = (uuid, name) => ({
   info: {
@@ -21,8 +21,11 @@ const makeMessage = (uuid, content) => ({
 })
 
 describe('elementalChat store', () => {
-  // TODO: update test description
-  it.skip('yam', async () => {
+  it('manages storeChannelUnseen count', () => {})
+
+  it('manages getStoredStats content', () => {})
+
+  it.skip('handles order of incoming/received messages', async () => {
     const channelId = 1
 
     const channel = makeChannel(channelId, 'Channel1')

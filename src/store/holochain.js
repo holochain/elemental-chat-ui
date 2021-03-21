@@ -95,6 +95,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
 
     const cellId = appInfo.cell_data[0].cell_id
     const [_, agentId] = cellId
+    console.log('INSIDE HC LOCAL ENV..')
     console.log('agent key', arrayBufferToBase64(agentId))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {
@@ -169,12 +170,14 @@ export default {
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
+      commit('setFirstConnect', true)
       initializeClient(commit, dispatch, state)
       setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
             commit('setReconnecting', state.reconnectingIn - 1)
           } else {
+            commit('setFirstConnect', false)
             initializeClient(commit, dispatch, state)
           }
         }
@@ -218,6 +221,9 @@ export default {
     },
     setDnaHash (state, payload) {
       state.dnaHash = payload
+    },
+    setFirstConnect (state, payload) {
+      state.firstConnect = payload
     },
     setReconnecting (state, payload) {
       state.firstConnect = false

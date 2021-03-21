@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll">
-      <ul class="pb-10 pl-0">
+      <ul class="pb-10 pl-0" aria-label="Message List">
         <li
           v-for="message in messages"
           :key="message.entry.uuid"

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <v-app-bar app dense dark tile elevation="5">
+    <v-app-bar app dense dark tile elevation="5" aria-label="App Bar">
       <v-toolbar-title class="title pl-0 no-wrap">
-        <img src="@/assets/chat.png" class="title-logo" />
-        Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }}
+        <img src="@/assets/chat.png" class="title-logo" aria-label="Elemental Chat Logo"/>
+        <p role="title"  aria-label="Page Title"> Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }} </p>
       </v-toolbar-title>
       <v-spacer></v-spacer>
 
@@ -12,8 +12,8 @@
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
-        <Identicon size="32" :holoHash="agentKey" />
-        <v-toolbar-title class="handle">{{ agentHandle }}</v-toolbar-title>
+        <Identicon size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
+        <v-toolbar-title class="handle" aria-label="Agent Handle">{{ agentHandle }}</v-toolbar-title>
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -24,6 +24,7 @@
               v-on="on"
               @click="editHandle()"
               small
+              aria-label="Update Agent Handle"
             >
               <v-icon>mdi-account-cog</v-icon>
             </v-btn>
@@ -40,6 +41,7 @@
               v-on="on"
               @click="handleShowStats"
               small
+              aria-label="View App Stats"
             >
               <v-icon>mdi-chart-line</v-icon>
             </v-btn>
@@ -55,6 +57,7 @@
               v-bind="attrs"
               v-on="on"
               small
+              aria-label="App Version Information"
             >
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
@@ -66,14 +69,10 @@
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
-    <v-card dark outlined class="mb-1 v-application banner">
+    <v-card dark outlined class="mb-1 v-application banner" role="banner" aria-label="POC Banner">
       <v-card-text class="pl-0 text-center lime black-text">
-        <p class="banner-text">
-          This is a proof of concept application, not intended for full
-          production use. Read more in our
-          <a @click="visitPocPage" class="underline link-text"
-            >Elemental Chat FAQs</a
-          >
+        <p class="banner-text">This is a proof of concept application, not intended for full production use. Read more in our
+          <a @click="visitPocPage" class="underline link-text">Elemental Chat FAQs</a>
         </p>
       </v-card-text>
     </v-card>
@@ -87,7 +86,7 @@
         </v-col>
       </v-row>
     </v-card>
-    <v-dialog v-model="showingStats" persistent max-width="660">
+    <v-dialog v-model="showingStats" persistent max-width="660" aria-label="App Status Model">
       <v-card>
         <v-card-title class="headline">
           Stats

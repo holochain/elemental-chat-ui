@@ -1,6 +1,6 @@
 <template>
   <v-col cols="5" md="3">
-    <v-toolbar dense dark tile class="mb-1">
+    <v-toolbar dense dark tile class="mb-1" aria-label="Channel Bar">
       <v-toolbar-title class="channel-title">Channels</v-toolbar-title>
       <Spinner v-if='channelsLoading' size='18px' />
       <v-spacer></v-spacer>
@@ -14,6 +14,7 @@
             v-on="on"
             @click="listChannels({ category: 'General' })"
             small
+            aria-label="Refresh App"
           >
             <v-icon>mdi-refresh</v-icon>
           </v-btn>
@@ -30,6 +31,7 @@
             v-on="on"
             @click="showingAdd = true"
             small
+            aria-label="Add New Channel"
           >
             <v-icon>mdi-chat-plus-outline</v-icon>
           </v-btn>
@@ -42,7 +44,7 @@
         <v-col cols="12">
           <v-text-field
             id="channel-name"
-            v-if="showEmptyMessage"
+            v-if="showMessageInput"
             v-model="actionChannel.info.name"
             label="Channel Name"
             dense
@@ -52,11 +54,12 @@
             append-icon="mdi-plus-box-outline"
             @click:append="handleCreateChannel(actionChannel)"
           />
-          <v-list v-if="channels.length" dense :key='refreshKey'>
+          <v-list v-if="channels.length" dense :key='refreshKey' aria-label="Channel List">
             <v-list-item
               v-for="(channel, i) in channels"
               :key="i"
               @click="openChannel(channel.entry.uuid)"
+              aria-label="Channel List Items"
             >
               <v-list-item-icon class='channel-icons'>
                 <v-icon>mdi-chat-processing-outline</v-icon>
@@ -105,6 +108,8 @@ export default {
     handleCreateChannel (input) {
       this.showingAdd = false
       if (input.info.name === '') return
+
+      console.log('CREATING CHANNEL with following input ; ', input)
       this.createChannel(input)
     },
     openChannel (id) {
@@ -115,13 +120,29 @@ export default {
   computed: {
     ...mapState('elementalChat', ['channels']),
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
-    showEmptyMessage () {
+    showMessageInput () {
+      // console.log('this.showingAdd : ', this.showingAdd)
+      // console.log(' no channels? , this.channels.length : ', !this.channels.length, this.channels.length)
+      console.log('showMessageInput ? : ', this.showingAdd || !this.channels.length)
       return this.showingAdd || !this.channels.length
     }
   },
+  created () {
+    console.log('>>>>>>>>> starting channel list: ', this.channels)
+    console.log('COMPUTED CHANNEL ; ', this.channel)
+  },
   watch: {
     showingAdd () {
+      console.log('making empty channel...')
       this.actionChannel = makeEmptyChannel()
+    },
+    channels (val) {
+      console.log('CHANNELS LIST CHANGED >>>> channel items with values: ', val)
+      console.log('chanel list length : ', val.length)
+      const newChannel = val[0]
+      if (newChannel) {
+        console.log('channel info name: ', newChannel.info.name)
+      }
     }
   }
 }

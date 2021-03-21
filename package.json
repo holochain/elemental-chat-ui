@@ -8,7 +8,7 @@
     "build-holo-scale-test": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-scaletest.holohost.dev/' vue-cli-service build",
     "build:self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service build",
     "build:holochain": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit --watch=true",
+    "test:unit": "vue-cli-service test:unit --watch=false",
     "test:integration-hc": "yarn clear:env && nix-shell --command 'VUE_APP_CONTEXT='holochain' VUE_APP_WEB_LOGS='false' VUE_APP_TEST_PORT='8888' node scripts/test.js --config=./jest.hcintegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
     "test:integration-holo": "VUE_APP_CONTEXT='holo-host' VUE_APP_WEB_LOGS='false' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000",
     "test:holochain-ci": "yarn fetch:dna && yarn build:happ && yarn build:holochain && CI=1 yarn test:integration-hc",
