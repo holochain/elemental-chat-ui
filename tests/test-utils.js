@@ -56,14 +56,9 @@ export const renderAndWaitWithVuetify = async (element, options = {}, ms = 0, ca
 
 export const renderAndWaitFullSetup = async (element, customStore, options = {}, ms = 0, callback) => await renderAndWaitWithVuetify(element, { ...options, store: { ...storeRaw, ...customStore } }, ms, callback)
 
+export const stub = async (element, stubs, store, ms = 0, callback) => await renderAndWaitWithVuetify(element, { stubs, store }, ms, callback)
+
 const localVue = createLocalVue()
 localVue.use(Vuex)
-const stubbedComponents = {
-  Channels: "<div class='stub'></div>",
-  Messages: "<div class='stub'></div>",
-  Identicon: "<div class='stub'></div>"
-}
-export const stub = async (element, stubs = stubbedComponents, store, ms = 0, callback) => await renderAndWaitWithVuetify(element, { stub: stubs, store, localVue }, ms, callback)
-
 export const stubElement = (element, store) => shallowMount(element, { store, localVue })
 export const mockElement = (element, store) => mount(element, { mocks: { $store: store } })

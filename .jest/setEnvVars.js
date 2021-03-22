@@ -1,2 +1,3 @@
-// process.env.MY_CUSTOM_TEST_ENV_VAR = 'foo'
+/* set default global vars to mock in jest tests */ 
 process.env.VUE_APP_CONTEXT = 'holochain'
+process.env.VUE_APP_UI_VERSION = '0.0.1-alpha30'
