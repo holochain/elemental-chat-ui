@@ -89,6 +89,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
   try {
     const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
       handleSignal(signal, dispatch))
+    console.log('>>>>>>>>>>> holochainClient : ', holochainClient)
     const appInfo = await holochainClient.appInfo({
       installed_app_id: INSTALLED_APP_ID
     })

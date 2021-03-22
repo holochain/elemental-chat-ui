@@ -235,6 +235,8 @@ export default {
       const channel = payload.channel
       channel.info.created_by = toUint8Array(channel.info.created_by)
 
+      console.log(' ---------------------> NEW MESSAGE: ', message)
+
       dispatch('signalSpecificChatters', {
         signal_message_data: {
           messageData: message,

@@ -60,5 +60,5 @@ export const stub = async (element, stubs, store, ms = 0, callback) => await ren
 
 const localVue = createLocalVue()
 localVue.use(Vuex)
-export const stubElement = (element, store) => shallowMount(element, { store, localVue })
-export const mockElement = (element, store) => mount(element, { mocks: { $store: store } })
+export const stubElement = (element, store, opts = {}) => shallowMount(element, { store, localVue, vuetify: new Vuetify(), ...opts })
+export const mockElement = (element, store, opts = {}) => mount(element, { mocks: { $store: store, vuetify: new Vuetify(), ...opts } })

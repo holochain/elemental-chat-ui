@@ -17,7 +17,7 @@ describe('ElementalChat with real store', () => {
     jest.clearAllMocks()
   })
 
-  it('Displays Correct Page Title', async () => {
+  it('Displays correct page title', async () => {
     const { getByRole } = await renderAndWaitFullSetup(ElementalChat)
     const title = getByRole('title', { name: /page title/i })
     expect(title).toBeTruthy()
@@ -109,7 +109,7 @@ describe('ElementalChat with store stubs and mocks', () => {
   })
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.resetModules() // Most important - it clears the cache
+    jest.resetModules()
     process.env = { ...DEFAULT_ENV }
     process.env.VUE_APP_UI_VERSION = '0.0.1-test'
   })

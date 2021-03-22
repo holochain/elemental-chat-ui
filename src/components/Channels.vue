@@ -44,7 +44,7 @@
         <v-col cols="12">
           <v-text-field
             id="channel-name"
-            v-if="showMessageInput"
+            v-if="showChannelInput"
             v-model="actionChannel.info.name"
             label="Channel Name"
             dense
@@ -120,10 +120,10 @@ export default {
   computed: {
     ...mapState('elementalChat', ['channels']),
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
-    showMessageInput () {
+    showChannelInput () {
       // console.log('this.showingAdd : ', this.showingAdd)
       // console.log(' no channels? , this.channels.length : ', !this.channels.length, this.channels.length)
-      console.log('showMessageInput ? : ', this.showingAdd || !this.channels.length)
+      console.log('showChannelInput ? : ', this.showingAdd || !this.channels.length)
       return this.showingAdd || !this.channels.length
     }
   },

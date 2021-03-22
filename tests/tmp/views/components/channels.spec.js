@@ -2,7 +2,7 @@
 import { within, waitFor, fireEvent } from '@testing-library/vue'
 import store from '@/store/index'
 import { renderAndWaitFullSetup, handleOneWithMarkup, stub, stubElement } from '../../test-utils'
-import { mockHolochainState, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, setStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy } from '../../mock-helpers'
+import { mockHolochainState, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, setStubbedStore, createNewChannel } from '../../mock-helpers'
 import Channels from '@/components/Channels.vue'
 import Vuetify from 'vuetify'
 import Vue from 'vue'
@@ -23,25 +23,15 @@ describe('Channels with real store', () => {
 // ///////////////// //
 // The following tests mock the store and test the following vuex and vue implementation parts :
 // 1. correct actions are dispated,
-// 2. correct mutations are commitd,
+// 2. correct mutations are commited,
 // 3. state is updated correctly,
 // 4. getters are referenced properly
-// 5. (mocked) state is the current value of the
+// 5. (mocked) state is the current value of the store
 describe('Channels with store stubs and mocks', () => {
   const DEFAULT_ENV = process.env
   let channelTitle = 'An amazing new channel'
   let channelId = 0
   let stubbedStore
-
-  const createNewChannel = (uuid, name) => ({
-    info: {
-      name,
-      created_by: ''
-    },
-    entry: { category: 'General', uuid },
-    messages: [],
-    last_seen: {}
-  })
 
   beforeAll(() => {
     mockAgentState.needsHandle = false
@@ -49,7 +39,7 @@ describe('Channels with store stubs and mocks', () => {
   })
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.resetModules() // Most important - it clears the cache
+    jest.resetModules()
     process.env = { ...DEFAULT_ENV }
     process.env.VUE_APP_UI_VERSION = '0.0.1-test'
   })

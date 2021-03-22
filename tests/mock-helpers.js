@@ -1,23 +1,66 @@
 /* global jest */
 import { toUint8Array } from '@/utils'
-import { state as hcState, actions as hcActions } from '@/store/holochain'
-import elementalChatComponent, { state as chatState, actions as chatActions } from '@/store/elementalChat'
+import { state as hcState, actions as hcActions, mutations as hcMutations } from '@/store/holochain'
+import elementalChatComponent, { state as chatState, actions as chatActions, mutations as chatMutations } from '@/store/elementalChat'
+import { storeRaw } from '@/store'
+import { v4 as uuidv4 } from 'uuid'
 import Vuex from 'vuex'
 
 export const DNA_VERSION_MOCK = 'uhC0kvrTHaVNrHaYMBEBbP9nQDA8xdat45mfQb9NtklMJ1ZOfqmZh'
 export const DNA_HASH_MOCK = toUint8Array(Buffer.from(DNA_VERSION_MOCK, 'base64'))
 export const AGENT_KEY_MOCK = toUint8Array(Buffer.from('uhCAkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64'))
 
-/// Stubbing Element helpers :
-// --------------------
-export const mockAgentState = {
-  needsHandle: true,
-  agentHandle: ''
+export const timestampToSemanticDate = (timestamp) => {
+  return `${new Date(timestamp[0] * 1000)}`
 }
 
-export const resetAgentState = () => {
-  mockAgentState.needsHandle = true
-  mockAgentState.agentHandle = ''
+/// Stubbing Element helpers :
+// --------------------
+// create message for api input into dna
+export const createNewMessage = (uuid = uuidv4(), content, agent = '') => ({
+  createdBy: agent,
+  entry: { content, uuid },
+  messages: [],
+  createdAt: [0, 0]
+})
+
+// create message mocking api output from dna
+export const createMockMessage = (uuid = uuidv4(), content, agent = '', timestamp = [0, 0]) => ({
+  entry: {
+    uuid,
+    content // "agent: testing message"
+  },
+  entryHash: {},
+  createdBy: agent,
+  createdAt: timestamp
+})
+
+// create channel for api input into dna
+export const createNewChannel = (uuid = uuidv4(), name) => ({
+  info: {
+    name,
+    created_by: ''
+  },
+  entry: { category: 'General', uuid },
+  messages: [],
+  last_seen: {}
+})
+
+// create channel mocking api output from dna
+export const createMockChannel = (uuid = uuidv4(), name, agent = '') => ({
+  info: {
+    name,
+    created_by: agent
+  },
+  entry: { category: 'General', uuid },
+  messages: [],
+  activeChatters: [agent],
+  unseen: false
+})
+
+export const getCurrentChannel = chatState => {
+  if (chatState.currentChannelId === null) return emptyChannel
+  return chatState.channels.find(channel => channel.entry.uuid === chatState.currentChannelId)
 }
 
 export const emptyChannel = {
@@ -54,22 +97,6 @@ export const resetChatState = () => {
   mockChatState.statsLoading = false
 }
 
-export const createMockChannel = (uuid, name, agent) => ({
-  info: {
-    name,
-    created_by: agent
-  },
-  entry: { category: 'General', uuid },
-  messages: [],
-  activeChatters: [agent],
-  unseen: false
-})
-
-export const getCurrentChannel = chatState => {
-  if (chatState.currentChannelId === null) return emptyChannel
-  return chatState.channels.find(channel => channel.entry.uuid === chatState.currentChannelId)
-}
-
 export const mockHolochainState = {
   ...hcState,
   agentKey: AGENT_KEY_MOCK,
@@ -81,18 +108,55 @@ export const resetHolochainState = () => {
   mockAgentState.dnaHash = DNA_VERSION_MOCK
 }
 
-export const setStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, additionalChannels = 0) => {
-  const channelsList = chatState.channels
-  for (let i; i <= additionalChannels; i++) {
-    channelsList.push(createMockChannel(i, `Channel #${i}`, agentState.agentHandle || `test-agent-${i}`))
+export const mockAgentState = {
+  needsHandle: true,
+  agentHandle: ''
+}
+
+export const resetAgentState = () => {
+  mockAgentState.needsHandle = true
+  mockAgentState.agentHandle = ''
+}
+
+export let stubbedActions = {}
+export const setStubbedActions = (actionStubs = {}) => {
+  const actions = {
+    chat: { ...actionStubs.chat, ...chatActions },
+    holochain: { ...actionStubs.holochain, ...hcActions },
+    index: { ...actionStubs.index, ...storeRaw.actions }
   }
-  const stubbedActions = {
-    listChannels: () => Promise.resolve(channelsList),
-    ...chatActions,
-    ...hcActions
+  stubbedActions = { actions, ...stubbedActions }
+  return stubbedActions
+}
+
+export let stubbedMutations = {}
+export const setStubbedMutations = (mutationStubs = {}) => {
+  const mutations = {
+    chat: { ...mutationStubs.chat, ...chatMutations },
+    holochain: { ...mutationStubs.holochain, ...hcMutations },
+    index: { ...mutationStubs.index, ...storeRaw.mutations }
+  }
+  stubbedMutations = { mutations, ...stubbedMutations }
+  return stubbedMutations
+}
+
+export const setStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, actions = stubbedActions, mutations = stubbedMutations, opts = {}) => {
+  const { callLoading, additionalChannels } = opts
+  if (actions === {}) {
+    actions = setStubbedActions()
+  }
+  if (mutations === {}) {
+    mutations = setStubbedMutations()
+  }
+  const channelsList = chatState.channels
+  if (additionalChannels) {
+    for (let i; i <= additionalChannels; i++) {
+      channelsList.push(createMockChannel(i, `Channel #${i}`, agentState.agentHandle || `test-agent-${i}`))
+    }
   }
   return new Vuex.Store({
-    actions: stubbedActions,
+    actions: { ...actions.index },
+    mutations: { ...mutations.index },
     state: {
       ...agentState,
       errorMessage: ''
@@ -101,14 +165,19 @@ export const setStubbedStore = (agentState = mockAgentState, holochainState = mo
       elementalChat: {
         namespaced: true,
         state: chatState,
+        actions: { ...actions.chat, listChannels: () => Promise.resolve(channelsList) },
+        mutations: { ...mutations.chat },
         getters: {
+          createMessageLoading: () => callLoading || false,
           channel: () => getCurrentChannel(chatState)
           // channel: elementalChatComponent.getters.channel.mockImplementation(() => getCurrentChannel(chatState))
         }
       },
       holochain: {
         namespaced: true,
-        state: holochainState
+        state: holochainState,
+        actions: { ...actions.holochain },
+        mutations: { ...mutations.holochain }
       }
     }
   })
