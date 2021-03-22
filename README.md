@@ -36,17 +36,37 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
 ## How to run automated tests:
 For unit tests
 - `yarn test:unit`
+
 For integration tests
 - In a holochain envoriment `yarn test:integration-hc`
 - In a holo envoriment `yarn test:integration-holo`
 
 ## Build:
 
-For hosted context:
+For holochain context:
 
 ```shell
-yarn run build
+yarn run build-holochain
 ```
+
+For development hosted context:
+
+```shell
+yarn run build-holo-dev
+```
+
+For development hosted context:
+
+```shell
+build-holo-scale-test
+```
+
+For production hosted context:
+
+```shell
+yarn run build-holo-hosted
+```
+
 
 For self-hosted context:
 
