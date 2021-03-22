@@ -33,6 +33,13 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
 
 3. When you're done and you want to clean up all the holochain databases that `hc` created in `/tmp`, run `hc clean`
 
+## How to run automated tests:
+For unit tests
+- `yarn test:unit`
+For integration tests
+- In a holochain envoriment `yarn test:integration-hc`
+- In a holo envoriment `yarn test:integration-holo`
+
 ## Build:
 
 For hosted context:
