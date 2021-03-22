@@ -33,18 +33,6 @@ jobs:
       run: nix-shell --command "echo Completed"
     - name: Check Holochain version
       run: nix-shell --command "holochain -V"
-    - name: Install dependencies
-      run: |
-            sudo service lightdm start
-            export DISPLAY=:0.0
-    - name: Install Chromedriver latest version
-      run: |
-            sudo apt-get update
-            sudo apt-get install lsb-release libappindicator3-1
-            curl -L -o google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-            sudo dpkg -i google-chrome.deb
-            sudo sed -i 's|HERE/chrome"|HERE/chrome" --no-sandbox|g' /opt/google/chrome/google-chrome
-            rm google-chrome.deb
     - name: Install node-modules
       run:  yarn install
     - name: Run holochain-environment integration tests
