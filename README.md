@@ -40,6 +40,7 @@ For integration tests
 - In a holochain envoriment `yarn test:integration-hc`
 - In a holo envoriment `yarn test:integration-holo`
 
+
 ## Build:
 
 For hosted context:
