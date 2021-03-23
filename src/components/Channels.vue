@@ -108,8 +108,6 @@ export default {
     handleCreateChannel (input) {
       this.showingAdd = false
       if (input.info.name === '') return
-
-      console.log('CREATING CHANNEL with following input ; ', input)
       this.createChannel(input)
     },
     openChannel (id) {
@@ -128,14 +126,6 @@ export default {
   watch: {
     showingAdd () {
       this.actionChannel = makeEmptyChannel()
-    },
-    channels (val) {
-      console.log('CHANNELS LIST CHANGED >>>> channel items with values: ', val)
-      console.log('chanel list length : ', val.length)
-      const newChannel = val[0]
-      if (newChannel) {
-        console.log('channel info name: ', newChannel.info.name)
-      }
     }
   }
 }
