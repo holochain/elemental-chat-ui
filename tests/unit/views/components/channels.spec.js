@@ -20,13 +20,6 @@ describe('Channels with real store', () => {
   })
 })
 
-// ///////////////// //
-// The following tests mock the store and test the following vuex and vue implementation parts :
-// 1. correct actions are dispated,
-// 2. correct mutations are commited,
-// 3. state is updated correctly,
-// 4. getters are referenced properly
-// 5. (mocked) state is the current value of the store
 describe('Channels with store stubs and mocks', () => {
   const DEFAULT_ENV = process.env
   let channelTitle = 'An amazing new channel'
@@ -61,7 +54,7 @@ describe('Channels with store stubs and mocks', () => {
         channelCount: 1,
         messageCount: 0
       },
-      channels: [createMockChannel(channelId, channelTitle, mockAgentState.agentHandle)],
+      channels: [createMockChannel(channelTitle, mockAgentState.agentHandle, channelId)],
       currentChannelId: channelId
     }
     stubbedStore = setStubbedStore(null, null, mockChatState)
@@ -70,7 +63,7 @@ describe('Channels with store stubs and mocks', () => {
     await wrapper.find('#channel-name').setValue(channelTitle)
     await wrapper.trigger('keydown.enter')
     await wrapper.vm.$nextTick()
-    expect(store.dispatch).toHaveBeenCalledWith('elementalChat/createChannel', createNewChannel(channelId, channelTitle))
+    expect(store.dispatch).toHaveBeenCalledWith('elementalChat/createChannel', createNewChannel(channelTitle, channelId))
   })
 
   it('displays the + sign whenever a new channel appears', async () => {
@@ -78,7 +71,7 @@ describe('Channels with store stubs and mocks', () => {
   })
 
   it('displays the correct number of channels', () => {
-    // await store.dispatch('elementalChat/createChannel', createNewChannel(1, channelTitle))
+    // await store.dispatch('elementalChat/createChannel', createNewChannel(channelTitle, 1))
     // console.log('IN TEST >> storedChannels() : ', storedChannels())
     // const newChannel = storedChannels()[0]
     // console.log('NEW CHANNEL : ', newChannel.last_seen, newChannel.name, newChannel.entry, newChannel.info, newChannel.messages, newChannel.unseen)

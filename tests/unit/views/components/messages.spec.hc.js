@@ -1,32 +1,42 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
 import { within, waitFor, fireEvent } from '@testing-library/vue'
-import store from '@/store/index'
 import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../../test-utils'
 import { createNewChannel, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, setStubbedStore } from '../../../mock-helpers'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 import Messages from '@/components/Messages.vue'
+import store from '@/store/index'
+
+jest.mock('@/store/callZome')
 
 Vue.use(Vuetify)
 
-describe('Message with real store', () => {
-  it('creates a new message within new channel', async () => {
+describe('Messages with real store', () => {
+  beforeAll(() => {
+    jest.clearAllMocks()
+    jest.resetModules()
+  })
+
+  it.only('creates a new message within new channel', async () => {
     // create channel
-    await store.dispatch('elementalChat/createChannel', createNewChannel(channelId, 'Channel1'))
+    const channelTitle = 'Music Room'
+    await store.dispatch('elementalChat/createChannel', createNewChannel(channelTitle))
     const storedChannel = () => store.state.elementalChat.channels[0]
+    console.log('storedChannel >>>>>> : ', storedChannel())
+    console.log('channel.messages : ', storedChannel().messages)
     expect(storedChannel().messages.length).toEqual(0)
-    const channelTitle = 'My first channel'
-
-
     const { getByLabelText, getByRole } = await renderAndWaitFullSetup(Messages)
     // create message on channel
-    const newMessageContent = 'Some super creative, captivating message.'
+    const newMessageContent = 'Alice: Some super creative, captivating message.'
     const messageInputBox = getByLabelText('Send a message')
     expect(messageInputBox).toBeTruthy()
     await fireEvent.update(messageInputBox, newMessageContent)
     await fireEvent.keyDown(messageInputBox, { key: 'Enter', code: 'Enter' })
-
-    expect(storedChannels().length).toEqual(1)
+    const messageList = getByRole('list', { name: /message list/i })
+    const { getByText: getOneByBannerText } = within(messageList)
+    const bannerWithText = handleOneWithMarkup(getOneByBannerText, newMessageContent)
+    expect(bannerWithText).toBeTruthy()
+    expect(storedChannel().messages.length).toEqual(1)
   })
 })
 

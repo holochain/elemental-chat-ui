@@ -1,4 +1,6 @@
-export const callZome = async (_, __, zomeName, fnName, payload) => {
+export const callZome = async (_, rootState, zomeName, fnName, payload) => {
+  console.log('>>>>>>>>>>>>>>> ROOTSTATE : ', rootState.elementalChat.channels)
+
   console.log(`calling mock callZome with ${zomeName}.${fnName}() with payload : `, payload)
   switch (fnName) {
     case 'agent_stats':
@@ -16,6 +18,18 @@ export const callZome = async (_, __, zomeName, fnName, payload) => {
           createdAt: [0, 0]
         }
       }
+
+    case 'list_channels':
+      return rootState.elementalChat.channels.map(channel => {
+        /* eslint-disable no-unused-vars */
+        const { messages, activeChatters, unseen, dnaChannel } = channel
+        return { ...dnaChannel, latest_chunk: 0 }
+      })
+
+    case 'list_messages':
+      const messageChannel = rootState.elementalChat.channels.find(c => c.entry.uuid === payload.channel.uuid)
+      return messageChannel.messages
+
     case 'create_message':
       return {
         ...payload,

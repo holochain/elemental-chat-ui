@@ -38,7 +38,7 @@ describe('Message with store stubs and mocks', () => {
     stubbedStore = setStubbedStore()
     const agentHandle = 'Alice:'
     const messageContent = 'My first message'
-    const newMessage = createMockMessage(1, `${agentHandle} ${messageContent}`, AGENT_KEY_MOCK, [1616402851, 716802516])
+    const newMessage = createMockMessage(`${agentHandle} ${messageContent}`, AGENT_KEY_MOCK, 1, [1616402851, 716802516])
     propsData.message = newMessage
     propsData.isMine = true
     const wrapper = stubElement(Message, stubbedStore, { propsData })
@@ -75,7 +75,7 @@ describe('Message with store stubs and mocks', () => {
 
   it('displays textarea when a channel exists', async () => {
     const channelId = 10
-    mockChatState.channels = [createMockChannel(channelId, "Alice's chatty channel", mockAgentState.agentHandle)]
+    mockChatState.channels = [createMockChannel("Alice's chatty channel", mockAgentState.agentHandle, channelId)]
     mockChatState.currentChannelId = channelId
     stubbedStore = setStubbedStore()
     propsData.message = null
@@ -90,7 +90,7 @@ describe('Message with store stubs and mocks', () => {
     propsData.message = null
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
-    const newMessage = createMockMessage(3, 'Alice: A third written message', AGENT_KEY_MOCK, [1616402851 + 3, 716802516 + 3000])
+    const newMessage = createMockMessage('Alice: A third written message', AGENT_KEY_MOCK, 3, [1616402851 + 3, 716802516 + 3000])
     const textArea = wrapper.find('[aria-label="Message Textarea"]')
     textArea.value = newMessage.entry.content
     expect(textArea.trigger('input')).toBeTruthy()
@@ -102,7 +102,7 @@ describe('Message with store stubs and mocks', () => {
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
-    const newMessage = createMockMessage(4, 'Alice: May the force be with me...', AGENT_KEY_MOCK, [1616402851 + 4, 716802516 + 4000])
+    const newMessage = createMockMessage('Alice: May the force be with me...', AGENT_KEY_MOCK, 4, [1616402851 + 4, 716802516 + 4000])
     const textArea = wrapper.find('[aria-label="Message Textarea"]')
     textArea.value = newMessage.entry.content
     textArea.trigger('input')
@@ -117,7 +117,7 @@ describe('Message with store stubs and mocks', () => {
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
-    const newMessage = createMockMessage(5, 'Alice: 5th time and going on strong', AGENT_KEY_MOCK, [1616402851 + 5, 716802516 + 5000])
+    const newMessage = createMockMessage('Alice: 5th time and going on strong', AGENT_KEY_MOCK, 5, [1616402851 + 5, 716802516 + 5000])
     await stubbedStore.dispatch('elementalChat/createMessage', newMessage)
     // todo: investigate why spinner returns false here
     // expect(wrapper.find('[aria-label="Loading Icon"]').exists()).toBe(true)

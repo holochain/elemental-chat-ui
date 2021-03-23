@@ -7,6 +7,7 @@ export function isHoloSelfHosted () {
 }
 
 export function toUint8Array (value) {
+  if (!value) return
   if (!!value.type && value.type === 'Buffer') {
     return Uint8Array.from(value.data)
   } else {

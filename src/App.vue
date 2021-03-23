@@ -23,6 +23,7 @@
               @keydown.enter="agentHandleEntered"
               append-icon="mdi-face-agent"
               @click:append="agentHandleEntered"
+              aria-label="Agent Handle Input"
             />
           </v-card-text>
           <v-card-actions>

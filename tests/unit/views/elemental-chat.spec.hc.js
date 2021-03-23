@@ -68,20 +68,6 @@ describe('ElementalChat with real store', () => {
     expect(identicon).toBeTruthy()
   })
 
-  // TODO: determine how to access tooltip contents
-  it.skip('Displays App info on Hover', async (done) => {
-    const { getByText: getByHoverText, getByRole } = await renderAndWaitFullSetup(ElementalChat)
-    const versionInfoBtn = getByRole('button', { name: /app version button/i })
-    fireEvent.mouseOver(versionInfoBtn)
-    window.requestAnimationFrame(() => {
-      const dnaVersionInfo = getByHoverText('DNA', { exact: false })
-      expect(dnaVersionInfo).toBeInTheDocument()
-      const uiVersionInfo = getByHoverText('UI', { exact: false })
-      expect(uiVersionInfo).toBeInTheDocument()
-      done()
-    })
-  })
-
   it.skip('Displays App Stats Dialog when clicked', async () => {
     const { getByRole, debug } = await renderAndWaitFullSetup(ElementalChat)
     const statsInfoBtn = getByRole('button', { name: /view app stats/i })
@@ -130,57 +116,14 @@ describe('ElementalChat with store stubs and mocks', () => {
     expect(wrapper.is(ElementalChat)).toBe(true)
     expect(wrapper.find('[aria-label="Agent Handle"]').text()).toBe(newAgentNickame)
   })
-  // /////////////////
-  // TODO: Determine if possible to test via USING TESTING LIBRARY, VUEX STUBS, & JEST MOCKS approach
-  // Using example above, there is an issue with mocking the getter fn ..discover how jest wants getter.channel mock to be passed (see setStubbedStore to mock getter fns)
-  it.skip('Renders agent nickname in appbar', async () => {
-    const newAgentNickame = 'Alice Alias'
-    const stubbedComponents = ['Channels', 'Messages', 'Identicon']
-    // const stubbedComponents = {
-    //   Channels: "<div class='stub'></div>",
-    //   Messages: "<div class='stub'></div>",
-    //   Identicon: "<div class='stub'></div>"
-    // }
-    const stubbedStore = setStubbedStore({
-      needsHandle: false,
-      agentHandle: newAgentNickame
-    })
-    const { getByText, debug } = await stub(ElementalChat, stubbedComponents, stubbedStore)
-    debug()
-    const agentHandle = getByText(newAgentNickame)
-    expect(agentHandle).toBeInDocument()
-  })
-
-  // follows the same approach as above
-  it.skip('Renders logout button when in holo hosting environment', async () => {
-    mockHolochainState.isHoloSignedIn = true
-    stubbedStore = setStubbedStore()
-    const stubbedComponents = ['Channels', 'Messages', 'Identicon']
-    const { getByText, debug } = await stub(ElementalChat, stubbedComponents, stubbedStore)
-    debug()
-    const logoutButton = getByText('Logout')
-    expect(logoutButton).toBeInDocument()
-  })
-  // ////////////////////
 
   it('Renders correct app version info', async () => {
-    // mockHolochainState.dnaHash = null
     stubbedStore = setStubbedStore()
-    let wrapper = stubElement(ElementalChat, stubbedStore)
+    const wrapper = stubElement(ElementalChat, stubbedStore)
     expect(wrapper.is(ElementalChat)).toBe(true)
 
     const uiVersion = wrapper.find('[aria-label="App UI Version Info"]')
     const dnaVersion = wrapper.find('[aria-label="App DNA Version Info"]')
-
-    // TODO: Follow-up on why the v-if doesn't make this element invisible when the dnaHash is null
-    // expect(uiVersion.element).not.toBeVisible()
-    // expect(dnaVersion.element).not.toBeVisible()
-
-    // resetHolochainState()
-    // stubbedStore = setStubbedStore()
-    // wrapper = stubElement(ElementalChat, stubbedStore)
-    // const updatedUiVersion = wrapper.find('[aria-label="App UI Version Info"]')
-    // const updateddnaVersion = wrapper.find('[aria-label="App DNA Version Info"]')
 
     expect(uiVersion.element).toBeVisible()
     expect(dnaVersion.element).toBeVisible()
@@ -200,7 +143,7 @@ describe('ElementalChat with store stubs and mocks', () => {
         channelCount: 1,
         messageCount: 0
       },
-      channels: [createMockChannel(channelId, channelTitle, mockAgentState.agentHandle)],
+      channels: [createMockChannel(channelTitle, mockAgentState.agentHandle, channelId)],
       currentChannelId: channelId
     }
     const stubbedStore = setStubbedStore(null, null, mockChatState)

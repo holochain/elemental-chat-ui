@@ -1,10 +1,13 @@
 /* global jest */
 import { toUint8Array } from '@/utils'
-import { state as hcState, actions as hcActions, mutations as hcMutations } from '@/store/holochain'
-import elementalChatComponent, { state as chatState, actions as chatActions, mutations as chatMutations } from '@/store/elementalChat'
+import holochainComponent from '@/store/holochain'
+import elementalChatComponent from '@/store/elementalChat'
 import { storeRaw } from '@/store'
 import { v4 as uuidv4 } from 'uuid'
 import Vuex from 'vuex'
+
+const { state: hcState, actions: hcActions, mutations: hcMutations } = holochainComponent
+const { state: chatState, actions: chatActions, mutations: chatMutations } = elementalChatComponent
 
 export const DNA_VERSION_MOCK = 'uhC0kvrTHaVNrHaYMBEBbP9nQDA8xdat45mfQb9NtklMJ1ZOfqmZh'
 export const DNA_HASH_MOCK = toUint8Array(Buffer.from(DNA_VERSION_MOCK, 'base64'))
@@ -16,16 +19,16 @@ export const timestampToSemanticDate = (timestamp) => {
 
 /// Stubbing Element helpers :
 // --------------------
-// create message for api input into dna
-export const createNewMessage = (uuid = uuidv4(), content, agent = '') => ({
+// create message for api - input into dna
+export const createNewMessage = (content, agent = '', uuid = uuidv4()) => ({
   createdBy: agent,
   entry: { content, uuid },
   messages: [],
   createdAt: [0, 0]
 })
 
-// create message mocking api output from dna
-export const createMockMessage = (uuid = uuidv4(), content, agent = '', timestamp = [0, 0]) => ({
+// create message mocking full obj - after dna
+export const createMockMessage = (content, agent = '', uuid = uuidv4(), timestamp = [0, 0]) => ({
   entry: {
     uuid,
     content // "agent: testing message"
@@ -35,8 +38,8 @@ export const createMockMessage = (uuid = uuidv4(), content, agent = '', timestam
   createdAt: timestamp
 })
 
-// create channel for api input into dna
-export const createNewChannel = (uuid = uuidv4(), name) => ({
+// create channel for api - input into dna
+export const createNewChannel = (name, uuid = uuidv4()) => ({
   info: {
     name,
     created_by: ''
@@ -46,8 +49,8 @@ export const createNewChannel = (uuid = uuidv4(), name) => ({
   last_seen: {}
 })
 
-// create channel mocking api output from dna
-export const createMockChannel = (uuid = uuidv4(), name, agent = '') => ({
+// create channel mocking full object - after  dna
+export const createMockChannel = (name, agent = '', uuid = uuidv4()) => ({
   info: {
     name,
     created_by: agent
@@ -125,7 +128,7 @@ export const setStubbedActions = (actionStubs = {}) => {
     holochain: { ...actionStubs.holochain, ...hcActions },
     index: { ...actionStubs.index, ...storeRaw.actions }
   }
-  stubbedActions = { actions, ...stubbedActions }
+  stubbedActions = { ...actions, ...stubbedActions }
   return stubbedActions
 }
 
@@ -136,22 +139,22 @@ export const setStubbedMutations = (mutationStubs = {}) => {
     holochain: { ...mutationStubs.holochain, ...hcMutations },
     index: { ...mutationStubs.index, ...storeRaw.mutations }
   }
-  stubbedMutations = { mutations, ...stubbedMutations }
+  stubbedMutations = { ...mutations, ...stubbedMutations }
   return stubbedMutations
 }
 
 export const setStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, actions = stubbedActions, mutations = stubbedMutations, opts = {}) => {
   const { callLoading, additionalChannels } = opts
-  if (actions === {}) {
+  if (JSON.stringify(actions) === '{}') {
     actions = setStubbedActions()
   }
-  if (mutations === {}) {
+  if (JSON.stringify(mutations) === '{}') {
     mutations = setStubbedMutations()
   }
   const channelsList = chatState.channels
   if (additionalChannels) {
     for (let i; i <= additionalChannels; i++) {
-      channelsList.push(createMockChannel(i, `Channel #${i}`, agentState.agentHandle || `test-agent-${i}`))
+      channelsList.push(createMockChannel(`Channel #${i}`, agentState.agentHandle || `test-agent-${i}`, i))
     }
   }
   return new Vuex.Store({
