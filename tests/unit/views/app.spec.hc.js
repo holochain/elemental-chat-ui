@@ -25,7 +25,7 @@ describe('App with store stubs and mocks', () => {
   }
 
   beforeAll(() => {
-    appConductor = new MockConductor(9999, 8888)
+    appConductor = new MockConductor(9090, 8080)
     appConductor.any(MOCK_CELL_DATA)
     createLocalVue().use(Vuex)
     setStubbedMutations({
@@ -41,13 +41,13 @@ describe('App with store stubs and mocks', () => {
       firstConnect: false,
       reconnectingIn: 0,
       appInterface: {
-        port: 8888,
+        port: 8080,
         appId: 'elemental-chat',
         cellId: [DNA_HASH_MOCK, AGENT_KEY_MOCK],
         appVersion: process.env.VUE_APP_UI_VERSION
       },
       dnaAlias: 'elemental-chat-alias-test',
-      isLoading: {}, // dictionary of loading calls
+      isLoading: {},
       hostUrl: '',
       holoClient: null,
       isHoloSignedIn: false,
@@ -71,15 +71,11 @@ describe('App with store stubs and mocks', () => {
     stubElement(App, stubbedStore)
     await wait(2000)
     expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
-    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(1)
+    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(2)
   })
 
-  it('handles agent without nickame on init', async () => {
-    // check store.holochain.agne
-    // verify `needsHandle` action dispatched
-  })
-
-  it.only('commits `setAgentHandle` mutation when an agent submits new handle', async () => {
+  // await connection issue
+  it.skip('handles initializing agent nickname', async () => {
     setStubbedMutations()
     stubbedStore = setStubbedStore()
     const wrapper = stubElement(App, stubbedStore)
@@ -94,20 +90,6 @@ describe('App with store stubs and mocks', () => {
     // expect(store.dispatch).toHaveBeenCalledWith('setAgentHandle', {})
   })
 
-  it.skip('Updates agent nickname and displays update in appbar', async () => {
-    stubbedStore = setStubbedStore()
-    const wrapper = stubElement(App, stubbedStore)
-    expect(wrapper.is(App)).toBe(true)
-
-    console.log('\n\n\n=============================================')
-    // expect(agentNickname).toBeInTheDocument()
-    // const updateNickBtn = getByRole('button', { name: /update agent handle/i })
-    // fireEvent.click(updateNickBtn)
-    // debug()
-
-    // check rootStore.state.needsHandle === false
-  })
-
   it("dispatches `skipBackoff` action when 'retry now' button is pressed", async () => {
     setStubbedActions({
       chat: { skipBackoff: jest.fn() }
@@ -117,8 +99,6 @@ describe('App with store stubs and mocks', () => {
     const wrapper = stubElement(App, stubbedStore)
 
     await wait(2000)
-
-    // refs:
     expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
     expect(stubbedStore.dispatch).toHaveBeenCalledTimes(2)
 

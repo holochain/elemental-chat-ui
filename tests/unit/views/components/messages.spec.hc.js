@@ -1,7 +1,7 @@
-/* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
-import { within, waitFor, fireEvent } from '@testing-library/vue'
-import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../../test-utils'
-import { createNewChannel, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, setStubbedStore } from '../../../mock-helpers'
+/* global jest, it, describe, expect, beforeAll */
+import { within, fireEvent } from '@testing-library/vue'
+import { renderAndWaitFullSetup, handleOneWithMarkup } from '../../../test-utils'
+import { createNewChannel, createNewMessage } from '../../../mock-helpers'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 import Messages from '@/components/Messages.vue'
@@ -12,18 +12,18 @@ jest.mock('@/store/callZome')
 Vue.use(Vuetify)
 
 describe('Messages with real store', () => {
+  let channelTitle
+  const storedChannel = () => store.state.elementalChat.channels[0]
+
   beforeAll(() => {
     jest.clearAllMocks()
     jest.resetModules()
   })
 
-  it.only('creates a new message within new channel', async () => {
+  it('creates a new message within new channel', async () => {
     // create channel
-    const channelTitle = 'Music Room'
+    channelTitle = 'Music Room'
     await store.dispatch('elementalChat/createChannel', createNewChannel(channelTitle))
-    const storedChannel = () => store.state.elementalChat.channels[0]
-    console.log('storedChannel >>>>>> : ', storedChannel())
-    console.log('channel.messages : ', storedChannel().messages)
     expect(storedChannel().messages.length).toEqual(0)
     const { getByLabelText, getByRole } = await renderAndWaitFullSetup(Messages)
     // create message on channel
@@ -34,42 +34,33 @@ describe('Messages with real store', () => {
     await fireEvent.keyDown(messageInputBox, { key: 'Enter', code: 'Enter' })
     const messageList = getByRole('list', { name: /message list/i })
     const { getByText: getOneByBannerText } = within(messageList)
-    const bannerWithText = handleOneWithMarkup(getOneByBannerText, newMessageContent)
-    expect(bannerWithText).toBeTruthy()
+    const messageText = handleOneWithMarkup(getOneByBannerText, newMessageContent)
+    expect(messageText).toBeTruthy()
     expect(storedChannel().messages.length).toEqual(1)
   })
-})
 
-describe('Messages with store stubs and mocks', () => {
-  const DEFAULT_ENV = process.env
-  let channelTitle = 'An amazing new channel'
-  let channelId = 0
-  let stubbedStore
+  it('displays a list of messages', async () => {
+    const { getByLabelText, getByRole } = await renderAndWaitFullSetup(Messages)
+    const messageInputBox = getByLabelText('Send a message')
+    const messageList = getByRole('list', { name: /message list/i })
 
-  beforeAll(() => {
-    mockAgentState.needsHandle = false
-    mockAgentState.agentHandle = 'Alice'
-  })
-  beforeEach(() => {
-    jest.clearAllMocks()
-    jest.resetModules()
-    process.env = { ...DEFAULT_ENV }
-    process.env.VUE_APP_UI_VERSION = '0.0.1-test'
-  })
-  afterAll(() => {
-    process.env = DEFAULT_ENV
-    resetAgentState()
-    resetHolochainState()
-    resetChatState()
-  })
+    // create two more messages in channel
+    // create additional message #1 on channel
+    const additionalMessageContent1 = 'Alice: Hey hey!'
+    expect(additionalMessageContent1).toBeTruthy()
+    await fireEvent.update(messageInputBox, additionalMessageContent1)
+    await fireEvent.keyDown(messageInputBox, { key: 'Enter', code: 'Enter' })
+    // create additional message #2 on channel
+    const additionalMessageContent2 = 'Alice: Anyone here?'
+    expect(additionalMessageContent2).toBeTruthy()
+    await fireEvent.update(messageInputBox, additionalMessageContent2)
+    await fireEvent.keyDown(messageInputBox, { key: 'Enter', code: 'Enter' })
 
-  it('displays the correct number of messages', () => {
-    // await store.dispatch('elementalChat/createChannel', createNewChannel(1, channelTitle))
-    // console.log('IN TEST >> storedChannels() : ', storedChannels())
-    // const newChannel = storedChannels()[0]
-    // console.log('NEW CHANNEL : ', newChannel.last_seen, newChannel.name, newChannel.entry, newChannel.info, newChannel.messages, newChannel.unseen)
-
-    // Follow up on ID and make see if/how it impact ordering... (order should be alphabetical for channels)
-    // expect(wrapper.findAllComponents(Child).length).toBe(3)
+    const { getByText: getOneByBannerText } = within(messageList)
+    const firstMessageText = handleOneWithMarkup(getOneByBannerText, additionalMessageContent1)
+    expect(firstMessageText).toBeTruthy()
+    const secondMessageText = handleOneWithMarkup(getOneByBannerText, additionalMessageContent2)
+    expect(secondMessageText).toBeTruthy()
+    expect(storedChannel().messages.length).toEqual(3)
   })
 })

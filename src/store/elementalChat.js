@@ -141,7 +141,6 @@ export default {
       }, 300000) // Polling every 5mins
     },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
-      console.log('>>>>>>>>> CREATING CHANNEL... with payload : ', payload)
       const holochainPayload = {
         name: payload.info.name,
         entry: payload.entry
@@ -155,9 +154,7 @@ export default {
         60000
       )
         .then(committedChannel => {
-          console.log('COMMITTED CHANNEL : ', committedChannel)
           committedChannel.last_seen = { First: null }
-          console.log(' >>>>>>> ABOUT TO ADD CHANNEL')
           commit('addChannels', [{ ...committedChannel, messages: [] }])
           dispatch('joinChannel', committedChannel.entry.uuid)
         })
@@ -234,8 +231,6 @@ export default {
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
       channel.info.created_by = toUint8Array(channel.info.created_by)
-
-      console.log(' ---------------------> NEW MESSAGE: ', message)
 
       dispatch('signalSpecificChatters', {
         signal_message_data: {
@@ -335,13 +330,10 @@ export default {
       storeChannels(state.channels)
     },
     setCurrentChannelId (state, uuid) {
-      console.log(' >>>>>>> SETTING CHANNEL AS UNSEEN === FALSE.')
       state.currentChannelId = uuid
       window.localStorage.setItem('currentChannelId', uuid)
 
       const channel = state.channels.find(channel => channel.entry.uuid === uuid)
-
-      // console.log('CHANNEL : ', channel.last_seen, channel.name, channel.entry, channel.info, channel.messages, channel.unseen)
 
       if (channel) {
         channel.unseen = false
@@ -350,7 +342,6 @@ export default {
     },
     addChannels (state, newChannels) {
       const channels = state.channels
-      console.log(' >>>>>>> ADDING CHANNEL')
       // order is important in this uniqBy because we want existing copy of the channel to win
       state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.entry.uuid))
         .map(c => ({
@@ -358,7 +349,6 @@ export default {
           ...c
         }))
 
-      console.log('ADDED CHANNEL >>>>>>> state.channels : ', state.channels)
       storeChannels(state.channels)
     },
     setUnseen (state, payload) {
@@ -395,7 +385,6 @@ export default {
       }
 
       const activeChatters = uniqBy((channel.messages || []).map(message => message.createdBy), arrayBufferToBase64)
-      console.log('>>> active chatters ', activeChatters)
       return {
         ...channel,
         activeChatters

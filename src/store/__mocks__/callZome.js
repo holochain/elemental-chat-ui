@@ -1,6 +1,4 @@
 export const callZome = async (_, rootState, zomeName, fnName, payload) => {
-  console.log('>>>>>>>>>>>>>>> ROOTSTATE : ', rootState.elementalChat.channels)
-
   console.log(`calling mock callZome with ${zomeName}.${fnName}() with payload : `, payload)
   switch (fnName) {
     case 'agent_stats':

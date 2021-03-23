@@ -89,14 +89,12 @@ const initializeClientLocal = async (commit, dispatch, _) => {
   try {
     const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
       handleSignal(signal, dispatch))
-    console.log('>>>>>>>>>>> holochainClient : ', holochainClient)
     const appInfo = await holochainClient.appInfo({
       installed_app_id: INSTALLED_APP_ID
     })
 
     const cellId = appInfo.cell_data[0].cell_id
     const [_, agentId] = cellId
-    console.log('INSIDE HC LOCAL ENV..')
     console.log('agent key', arrayBufferToBase64(agentId))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {

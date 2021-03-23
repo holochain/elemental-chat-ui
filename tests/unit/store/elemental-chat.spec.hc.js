@@ -28,7 +28,6 @@ describe('elementalChat store', () => {
   beforeEach(async () => {
     createLocalVue().use(Vuex)
     stubbedStore = setStubbedStore()
-    console.log('STUBBED STORE', stubbedStore.state.elementalChat)
   })
 
   it('manages storeChannelUnseen count', async () => {

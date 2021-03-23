@@ -21,13 +21,9 @@ describe('ElementalChat with real store', () => {
     expect(title).toBeTruthy()
   })
 
-  it.skip('Renders logout button when in holo hosting environment', async () => {
-    mockHolochainState.isHoloSignedIn = true
-    stubbedStore = setStubbedStore()
-    const stubbedComponents = ['Channels', 'Messages', 'Identicon']
-    const { getByText, debug } = await stub(ElementalChat, stubbedComponents, stubbedStore)
-    debug()
-    const logoutButton = getByText('Logout')
-    expect(logoutButton).toBeInDocument()
+  it('Renders logout button when in holo hosting environment', async () => {
+    const { getByText } = await renderAndWaitFullSetup(ElementalChat)
+    const statsInfoBtn = getByText('Logout')
+    expect(statsInfoBtn).toBeTruthy()
   })
 })

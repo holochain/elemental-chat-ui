@@ -68,14 +68,9 @@ export default {
       return this.channel.messages
     }
   },
-  created () {
-    console.log('!!!!!!!!!!!!!!!! this.channel ? ', !!this.channel)
-  },
   watch: {
     channel (val) {
-      this.scrollToEnd(),
-      console.log('CHANNEL INFO CHANGED : ', val)
-      
+      this.scrollToEnd()
     }
   },
   mounted () {

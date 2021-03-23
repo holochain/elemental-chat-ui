@@ -83,7 +83,6 @@ export default {
   methods: {
     ...mapMutations(['setErrorMessage']),
     createMessage () {
-      console.log('TRIGGERED....')
       if (this.channels.length === 0) {
         this.setErrorMessage('You must first create a channel before sending a message.')
         // refresh error msg setting after 10 secs
@@ -102,13 +101,7 @@ export default {
       this.createdAt = `${new Date(this.message.createdAt[0] * 1000)}`
       this.uuid = this.message.entry.uuid
     }
-    console.log('!!!!!!!!!!!!!!!! this.channels.length > 0 : ', this.channels.length > 0)
-  },
-  watch: {
-    channels (val) {
-      console.log('CHANNELS LIST INFO CHANGED: ', val)
-    }
-  },
+  }
 }
 </script>
 <style scoped>

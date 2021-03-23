@@ -54,7 +54,7 @@
             append-icon="mdi-plus-box-outline"
             @click:append="handleCreateChannel(actionChannel)"
           />
-          <v-list v-if="channels.length" dense :key='refreshKey' aria-label="Channel List">
+          <v-list v-if="channels.length" dense :key='refreshKey' role='list' aria-label="Channel List">
             <v-list-item
               v-for="(channel, i) in channels"
               :key="i"
@@ -121,19 +121,12 @@ export default {
     ...mapState('elementalChat', ['channels']),
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
     showChannelInput () {
-      // console.log('this.showingAdd : ', this.showingAdd)
-      // console.log(' no channels? , this.channels.length : ', !this.channels.length, this.channels.length)
       console.log('showChannelInput ? : ', this.showingAdd || !this.channels.length)
       return this.showingAdd || !this.channels.length
     }
   },
-  created () {
-    console.log('>>>>>>>>> starting channel list: ', this.channels)
-    console.log('COMPUTED CHANNEL ; ', this.channel)
-  },
   watch: {
     showingAdd () {
-      console.log('making empty channel...')
       this.actionChannel = makeEmptyChannel()
     },
     channels (val) {
