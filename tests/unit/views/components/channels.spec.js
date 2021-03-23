@@ -2,7 +2,7 @@
 import { within, fireEvent } from '@testing-library/vue'
 import store from '@/store/index'
 import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../../test-utils'
-import { resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, setStubbedStore, createNewChannel } from '../../../mock-helpers'
+import { resetHolochainState, mockAgentState, resetAgentState, resetChatState, mockChatState, setStubbedStore, createNewChannel, createMockChannel } from '../../../mock-helpers'
 import Channels from '@/components/Channels.vue'
 import Vuetify from 'vuetify'
 import Vue from 'vue'
@@ -52,6 +52,7 @@ describe('Channels with real store', () => {
 })
 
 describe('Channels with store stubs and mocks', () => {
+  let stubbedStore
   beforeAll(() => {
     mockAgentState.needsHandle = false
     mockAgentState.agentHandle = 'Alice'
@@ -67,4 +68,24 @@ describe('Channels with store stubs and mocks', () => {
   })
 
   it('displays the + sign whenever a new channel appears', async () => {})
+
+  it('Renders agent nickname in appbar', async () => {
+    const unseenChannel = createMockChannel('My favorite channel', 'Alice', '101', true)
+    const stubbedChatState = {
+      channels: [unseenChannel],
+      currentChannelId: unseenChannel.entry.uuid,
+      stats: {
+        agentCount: 1,
+        activeCount: 1,
+        channelCount: 1,
+        messageCount: 0
+      },
+      statsLoading: false
+    }
+    stubbedStore = setStubbedStore(mockAgentState, mockChatState, stubbedChatState)
+    const wrapper = stubElement(Channels, stubbedStore)
+    expect(wrapper.is(Channels)).toBe(true)
+    const channelListItem = wrapper.findAll('[aria-label="Channel List-Items"]').at(1)
+    expect(channelListItem.text()).toContain('+')
+  })
 })

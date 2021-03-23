@@ -50,7 +50,7 @@ export const createNewChannel = (name, uuid = uuidv4()) => ({
 })
 
 // create channel mocking full object - after  dna
-export const createMockChannel = (name, agent = '', uuid = uuidv4()) => ({
+export const createMockChannel = (name, agent = '', uuid = uuidv4(), unseen = false) => ({
   info: {
     name,
     created_by: agent
@@ -58,7 +58,7 @@ export const createMockChannel = (name, agent = '', uuid = uuidv4()) => ({
   entry: { category: 'General', uuid },
   messages: [],
   activeChatters: [agent],
-  unseen: false
+  unseen
 })
 
 export const getCurrentChannel = chatState => {
