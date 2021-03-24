@@ -21,8 +21,7 @@ const makeMessage = (uuid, content) => ({
 })
 
 describe('elementalChat store', () => {
-  // TODO: update test description
-  it.skip('handles incoming messages from signals and list_messages', async () => {
+  it.skip('handles signals properly', async () => {
     const channelId = 1
 
     const channel = makeChannel(channelId, 'Channel1')

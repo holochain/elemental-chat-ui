@@ -38,7 +38,7 @@
   "dependencies": {
     "@babel/preset-env": "^7.13.8",
     "@holo-host/web-sdk": "git://github.com/Holo-Host/web-sdk.git#05da3de866fab2c7dd4a19012eb7a4f941477598",
-    "@holochain/conductor-api": "^0.0.1",
+    "@holochain/conductor-api": "0.0.1",
     "@holochain/tryorama": "^0.4.0",
     "@testing-library/jest-dom": "^5.11.9",
     "@whi/stdlog": "^0.3.4",
