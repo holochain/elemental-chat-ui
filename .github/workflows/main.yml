@@ -34,7 +34,7 @@ jobs:
     - name: Check Holochain version
       run: nix-shell --command "holochain -V"
     - name: Install node-modules
-      run: yarn install
+      run:  yarn install
     - name: Run holochain-environment integration tests
       run: nix-shell --run 'yarn test:holochain-ci'
     - name: Run holo-environment authentication test

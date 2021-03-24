@@ -1073,7 +1073,7 @@
     winston "^3.2.1"
     winston-null "^2.0.0"
 
-"@holochain/tryorama@^0.4.0":
+"@holochain/tryorama@^0.4.1":
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/@holochain/tryorama/-/tryorama-0.4.1.tgz#511df2ce254d9bde20a66c5a97d0ba5a32b6e297"
   integrity sha512-Dc84Z1QELFeLPSjxGhDX4bsByzPElvf1BMSfGA517sr72DeInRDrGwTWdtf/B5y1R2TfBBEUxlKsvYlspYbVmw==
@@ -11692,9 +11692,9 @@ regjsgen@^0.5.1:
   integrity sha512-OFFT3MfrH90xIW8OOSyUrk6QHD5E9JOTeGodiJeBS3J6IwlgzJMNE/1bZklWz5oTg+9dCMyEetclvCVXOPoN3A==
 
 regjsparser@^0.6.4:
-  version "0.6.8"
-  resolved "https://registry.yarnpkg.com/regjsparser/-/regjsparser-0.6.8.tgz#4532c3da36d75d56e3f394ce2ea6842bde7496bd"
-  integrity sha512-3weFrFQREJhJ2PW+iCGaG6TenyzNSZgsBKZ/oEf6Trme31COSeIWhHw9O6FPkuXktfx+b6Hf/5e6dKPHaROq2g==
+  version "0.6.9"
+  resolved "https://registry.yarnpkg.com/regjsparser/-/regjsparser-0.6.9.tgz#b489eef7c9a2ce43727627011429cf833a7183e6"
+  integrity sha512-ZqbNRz1SNjLAiYuwY0zoXW8Ne675IX5q+YHioAGbCw4X96Mjl2+dcX9B2ciaeyYjViDAfvIjFpQjJgLttTEERQ==
   dependencies:
     jsesc "~0.5.0"
 
