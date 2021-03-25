@@ -3,7 +3,7 @@ import 'regenerator-runtime/runtime.js'
 import wait from 'waait'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
-import { waitForState, findElementsByText, findElementsByClassAndText, getElementProperty, registerNicknameAndTest, setupTwoChatters, afterAllSetup } from './setup/helpers'
+import { waitForState, findElementsByText, findElementsByClassAndText, registerNicknameAndTest, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup } from './setup/helpers'
 import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
 
@@ -64,6 +64,9 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     const newMessageContent = () => newMessage.entry.content
 
     it('calls refresh_chatter for user on page load ', async () => {
+      // verify page title
+      const pageTitle = await page.title()
+      expect(pageTitle).toBe('Elemental Chat')
       // page has already loaded by now
       newStats = await callStats(aliceChat)
       expect(newStats.active).toEqual(1)
@@ -201,7 +204,8 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       await waitForState(checkNewMessageState, 'done')
 
       // bobbo (tryorama node) verifies new message is in list of messages from the dht
-      const { messages } = await bobboChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
+      const createNewMessage = async () => await bobboChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
+      const { messages } = await awaitZomeResult(createNewMessage, 90000, 10000)
       console.log('message list : ', messages)
       expect(messages[0].entry.content).toContain(newMessageContent())
 
@@ -240,7 +244,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       const newChannelButton = await page.$('#refresh')
       await newChannelButton.click()
 
-      await wait(WAITTIME)
+      await wait(EXTENDED_WAITTIME)
 
       // alice makes sure the channel exists first
       let newChannelText
@@ -292,7 +296,8 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       await newChannelElement.click()
 
       // alice (node) verifies new message is in list of messages from the dht
-      const { messages } = await aliceChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
+      const createNewMessage = async () => await aliceChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
+      const { messages } = await awaitZomeResult(createNewMessage, 90000, 10000)
       expect(messages[0].entry.content).toContain(newMessageContent())
 
       // alice checks for new message content on page
@@ -333,6 +338,26 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       newStats = await callStats(bobboChat)
       expect(newStats).toEqual({ ...stats, messages: stats.messages + 1 })
       stats = newStats
+    })
+
+    it.only('displays updated agent name in appbar', async () => {
+      await page.click('#update-handle')
+      // newPage = page
+      // const [handleDialogTitle] = await findElementsByText('span', 'Tell us your nick name 😎', newPage)
+      // expect(handleDialogTitle).toBeTruthy()
+
+      // await registerNicknameAndTest('Alice Alias', newPage)
+      await page.focus('.v-dialog')
+      // add agent nickname
+
+      // const updateHandleInput = await findElementsByText('div', 'Enter your handle', newPage)
+      // console.log('updateHandleInput >>>>>>>>>> ', updateHandleInput)
+      // expect(updateHandleInput).toBeTruthy()
+      // await updateHandleInput.click()
+
+      await page.keyboard.type('Alice alias', { delay: 200 })
+      const [submitButton] = await findElementsByText('button', 'Let\'s Go', page)
+      await submitButton.click()
     })
   })
 })

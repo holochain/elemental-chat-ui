@@ -1,6 +1,6 @@
 /* global expect */
 import path from 'path'
-import { WEB_LOGGING, SCREENSHOT_PATH } from './globals'
+import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
 import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
@@ -72,6 +72,33 @@ export const findIframe = async (page, urlRegex, pollingInterval = 1000) => {
   })
 }
 
+/// Tryorama helpers:
+// -------------------
+export const awaitZomeResult = async (
+  asyncCall,
+  timeout = TIMEOUT,
+  pollingInterval = POLLING_INTERVAL
+) => {
+  let timeoutId
+  const callTimeout = new Promise((resolve, reject) => {
+    timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId)
+      reject(new Error(`Waited for ${timeout / 1000} seconds`))
+    }, timeout)
+  })
+  const fetchList = new Promise((resolve, reject) => {
+    const poll = setInterval(async () => {
+      const callResult = await asyncCall()
+      if (callResult) {
+        clearInterval(poll)
+        clearTimeout(timeoutId)
+        resolve(callResult)
+      }
+    }, pollingInterval)
+  })
+  return Promise.race([fetchList, callTimeout])
+}
+
 /// Holo Test helpers:
 // -------------------
 export const holoAuthenticateUser = async (frame, modalElement, email, password, type = 'signup') => {
@@ -104,9 +131,6 @@ export const registerNicknameAndTest = async (page, webUserNick) => {
   await page.keyboard.type(webUserNick, { delay: 200 })
   const [submitButton] = await findElementsByText('button', 'Let\'s Go', page)
   await submitButton.click()
-  // verify page title
-  const pageTitle = await page.title()
-  expect(pageTitle).toBe('Elemental Chat')
 }
 
 const describeJsHandle = (jsHandle) => {

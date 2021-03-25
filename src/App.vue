@@ -5,7 +5,7 @@
       <v-dialog v-model="shouldDisplayNickPrompt" persistent max-width="320">
         <v-card>
           <v-card-title class="headline">
-            Tell us your nick name 😎
+            <span>Tell us your nick name 😎</span>
           </v-card-title>
           <v-card-text
             >As a super simple way to see who wrote a message your nick name or
