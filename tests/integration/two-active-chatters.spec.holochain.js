@@ -3,7 +3,7 @@ import 'regenerator-runtime/runtime.js'
 import wait from 'waait'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
-import { waitForState, findElementsByText, findElementsByClassAndText, registerNicknameAndTest, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup } from './setup/helpers'
+import { waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup } from './setup/helpers'
 import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
 
@@ -340,24 +340,20 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       stats = newStats
     })
 
-    it.only('displays updated agent name in appbar', async () => {
+    it('displays updated agent name in appbar', async () => {
       await page.click('#update-handle')
-      // newPage = page
-      // const [handleDialogTitle] = await findElementsByText('span', 'Tell us your nick name 😎', newPage)
-      // expect(handleDialogTitle).toBeTruthy()
-
-      // await registerNicknameAndTest('Alice Alias', newPage)
-      await page.focus('.v-dialog')
+      await wait(WAITTIME)
+      // reset element to evaluate
+      const [dialog] = await page.$$('.v-dialog')
+      console.log('dialog : ', dialog)
+      const elementsWithText = await findElementsByText('div', 'Enter your handle', dialog)
+      const updateHandleInput = elementsWithText.pop()
+      expect(updateHandleInput).toBeTruthy()
+      await updateHandleInput.click()
       // add agent nickname
-
-      // const updateHandleInput = await findElementsByText('div', 'Enter your handle', newPage)
-      // console.log('updateHandleInput >>>>>>>>>> ', updateHandleInput)
-      // expect(updateHandleInput).toBeTruthy()
-      // await updateHandleInput.click()
-
-      await page.keyboard.type('Alice alias', { delay: 200 })
-      const [submitButton] = await findElementsByText('button', 'Let\'s Go', page)
-      await submitButton.click()
+      newPage = page
+      await registerNickname(newPage, 'Alice Alias')
+      await wait(WAITTIME)
     })
   })
 })

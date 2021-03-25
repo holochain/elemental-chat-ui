@@ -1,4 +1,3 @@
-/* global expect */
 import path from 'path'
 import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
@@ -125,8 +124,7 @@ export const holoAuthenticateUser = async (frame, modalElement, email, password,
 
 /// Test Setup helpers:
 // -------------------
-export const registerNicknameAndTest = async (page, webUserNick) => {
-  await page.focus('.v-dialog')
+export const registerNickname = async (page, webUserNick) => {
   // add agent nickname
   await page.keyboard.type(webUserNick, { delay: 200 })
   const [submitButton] = await findElementsByText('button', 'Let\'s Go', page)
