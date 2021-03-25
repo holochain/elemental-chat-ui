@@ -9,7 +9,7 @@ const os = require('os')
 const DIR = path.join(os.tmpdir(), 'jest_puppeteer_global_setup')
 module.exports = async function () {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
