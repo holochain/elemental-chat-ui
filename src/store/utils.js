@@ -15,6 +15,7 @@ export const arrayBufferToBase64 = buffer => {
 // issue 1: https://github.com/puppeteer/puppeteer/issues/2974
 // issue 2: https://github.com/puppeteer/puppeteer/issues/2470
 export const logZomeCall = (zomeName, zomeCallName, callAction) => {
+  if (!process.env.NODE_ENV === 'test') return
   console.log(`${Date.now()} ${zomeName}.${zomeCallName} zomeCall ${callAction}`)
 }
 export const actionType = Object.freeze({ START: 'start', DONE: 'done' })

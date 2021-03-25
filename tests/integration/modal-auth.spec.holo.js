@@ -1,6 +1,6 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, WEB_LOGGING } from './setup/globals'
-import { findIframe, holoAuthenticateUser, findElementByText } from './setup/helpers'
+import { findIframe, holoAuthenticateUser, findElementsByText } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
 const chaperoneUrlCheck = {
@@ -42,6 +42,10 @@ describe('Authentication Flow', () => {
   })
 
   it('should successfully sign up', async () => {
+    // verify page
+    const pageTitle = await page.title()
+    expect(pageTitle).toBe('Elemental Chat')
+
     // *********
     // Sign Up and Log Into hApp
     // *********
@@ -50,23 +54,23 @@ describe('Authentication Flow', () => {
     const iframe = await findIframe(page, chaperoneUrlCheck.production)
     const chaperoneModal = await iframe.evaluateHandle(() => document)
 
-    const [loginTitle] = await findElementByText('h1', 'Elemental Chat Login', chaperoneModal)
+    const [loginTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
     expect(loginTitle).toBeTruthy()
 
-    const [createCredentialsLink] = await findElementByText('a', 'Create credentials', chaperoneModal)
+    const [createCredentialsLink] = await findElementsByText('a', 'Create credentials', chaperoneModal)
     await createCredentialsLink.click()
 
-    const { emailInput, passwordInput, confirmationInput } = await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
+    const { emailValue, passwordValue, confirmationValue } = await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
 
-    expect(emailInput).toBe(HOSTED_AGENT.email)
-    expect(passwordInput).toBe(HOSTED_AGENT.password)
-    expect(confirmationInput).toEqual(passwordInput)
+    expect(emailValue).toBe(HOSTED_AGENT.email)
+    expect(passwordValue).toBe(HOSTED_AGENT.password)
+    expect(confirmationValue).toEqual(passwordValue)
 
     // *********
     // Evaluate Main Frame
     // *********
-    // verify page title
-    const pageTitle = await page.title()
-    expect(pageTitle).toBe('Elemental Chat')
+    // verify main page has logout button
+    const [logoutButton] = await findElementsByText('span', 'Logout', page)
+    expect(logoutButton).toBeTruthy()
   })
 }, TIMEOUT)

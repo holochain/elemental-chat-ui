@@ -8,7 +8,7 @@
       <v-spacer></v-spacer>
 
       <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout">
-        Logout
+        <span>Logout</span>
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
