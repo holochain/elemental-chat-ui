@@ -147,28 +147,29 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
     console.log('Conductor Received Signal:', _)
   })
 
-  
   // Tryorama: install elemental chat on both player conductors
   const bundlePath = path.join(__dirname, 'bundle', 'elemental-chat.happ')
-  
+
   const aliceChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, INSTALLED_APP_ID)
   const bobboChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, 'second_agent')
-  
+
   // Tryorama: grab chat cell from list of happ cells to use as the agent
   const [aliceChat] = aliceChatHapp.cells
   const [bobboChat] = bobboChatHapp.cells
-  
+
   // Tryorama: alice declares self as chatter
   await aliceChat.call('chat', 'refresh_chatter', null)
-  
+
+  await aliceChat.call('profile', 'update_my_profile', { nickname: 'Alice' + ' ' })
+
   // locally spin up ui server only (not holo env)
   console.log('👉 Spinning up UI server')
   const { ports, close: closeServer } = httpServers()
-  
+
   conductor.appWs().client.socket.onclose = async () => {
     // silence logs upon socket closing
     page.on('pageerror', _ => {})
-    page.on('console',  _ => {})
+    page.on('console', _ => {})
   }
 
   const page = await createPage()

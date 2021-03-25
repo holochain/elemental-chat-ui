@@ -57,12 +57,6 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       expect(installedApps).toContain(INSTALLED_APP_ID)
     })
 
-    it('registers nickname', async () => {
-      newPage = page
-      registerNickname(newPage, webUserNick)
-      await wait(WAITTIME)
-    })
-
     it('displays new channels after pressing refresh button', async () => {
       // alice (web) refreshes channel list to fetch all messages
       const refreshChannelButton = await page.$('#refresh')
@@ -125,7 +119,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
           try {
             const text = await (await element[e].getProperty('textContent')).jsonValue()
             stats.push(text)
-          } catch(e) {
+          } catch (e) {
             console.log('error: ', e)
             continue
           }
@@ -155,7 +149,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       await page.click('#get-stats')
       await wait(WAITTIME)
-       // reset element to evaluate
+      // reset element to evaluate
       element = await page.$$('.display-1')
       texts = await checkVisualStats([], element)
       console.log('Stats after second agent: ', texts)
@@ -180,7 +174,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       await wait(WAITTIME)
 
       // new message
-      newMessage.channel =  channelInFocus.entry
+      newMessage.channel = channelInFocus.entry
       newMessage.entry.content = 'Hello from Alice, the native holochain user on the shared network. :)'
 
       // alice (web) sends a message

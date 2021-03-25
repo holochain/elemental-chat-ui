@@ -9,12 +9,12 @@ const os = require('os')
 const DIR = path.join(os.tmpdir(), 'jest_puppeteer_global_setup')
 module.exports = async function () {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: [
-      `--no-sandbox`,
-      `--disable-setuid-sandbox`,
-      `--disable-extensions`,
-      `--disable-features=site-per-process`
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-extensions',
+      '--disable-features=site-per-process'
     ]
   })
 
