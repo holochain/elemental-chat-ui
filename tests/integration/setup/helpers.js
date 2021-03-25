@@ -1,6 +1,5 @@
-/* global expect */
 import path from 'path'
-import { TIMEOUT, WEB_LOGGING, POLLING_INTERVAL, SCREENSHOT_PATH } from './globals'
+import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
 import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
@@ -24,8 +23,8 @@ export const waitForState = async (stateChecker, desiredState, pollingInterval =
 
 /// Puppeteer helpers:
 // --------------------
-export const takeSnapshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` })
-export const fetchPreformanceResults = async (page, console) => {
+export const takeScreenshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` })
+export const fetchPerformanceResults = async (page, console) => {
   // Executes Navigation API within the page context
   const metrics = await page.evaluate(() => JSON.stringify(window.performance))
   // Parses the result to JSON
@@ -47,14 +46,14 @@ const escapeXpathString = str => {
 }
 
 // returns JS DOM Element
-export const findElementByText = async (element, text, page) => {
+export const findElementsByText = async (element, text, page) => {
   const cleanedText = escapeXpathString(text).trim()
   const matches = await page.$x(`//${element}[contains(., ${cleanedText})]`)
   if (matches.length > 0) return matches
   else throw Error(`Failed to find a match for element (${element}) with text (${text}) on page (${page}).`)
 }
 
-export const findElementByClassandText = async (element, className, text, page) => {
+export const findElementsByClassAndText = async (element, className, text, page) => {
   const matches = await page.$x(`//${element}[contains(concat(' ', @class, ' '), ' ${className} ') and contains(., '${text}')]`)
   if (matches.length > 0) return matches[0]
   else throw Error(`Failed to find a match for element (${element}) with class (${className}) and text (${text}) on page (${page}).`)
@@ -79,10 +78,14 @@ export const awaitZomeResult = async (
   timeout = TIMEOUT,
   pollingInterval = POLLING_INTERVAL
 ) => {
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new Error(`Waited for ${timeout / 1000} seconds`, timeout))
+  let timeoutId
+  const callTimeout = new Promise((resolve, reject) => {
+    timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId)
+      reject(new Error(`Waited for ${timeout / 1000} seconds`))
     }, timeout)
+  })
+  const fetchList = new Promise((resolve, reject) => {
     const poll = setInterval(async () => {
       const callResult = await asyncCall()
       if (callResult) {
@@ -92,40 +95,40 @@ export const awaitZomeResult = async (
       }
     }, pollingInterval)
   })
+  return Promise.race([fetchList, callTimeout])
 }
 
 /// Holo Test helpers:
 // -------------------
 export const holoAuthenticateUser = async (frame, modalElement, email, password, type = 'signup') => {
   await frame.type(`#${type}-email`, email, { delay: 100 })
-  const emailInput = await frame.$eval(`#${type}-email`, el => el.value)
+  const emailValue = await frame.$eval(`#${type}-email`, el => el.value)
 
   await frame.type(`#${type}-password`, password, { delay: 100 })
-  const passwordInput = await frame.$eval(`#${type}-password`, el => el.value)
+  const passwordValue = await frame.$eval(`#${type}-password`, el => el.value)
 
-  let confirmationInput
+  let confirmationValue, submitbuttonText
   if (type === 'signup') {
+    submitbuttonText = 'Submit'
     await frame.type(`#${type}-password-confirm`, password, { delay: 100 })
-    confirmationInput = await frame.$eval(`#${type}-password-confirm`, el => el.value)
+    confirmationValue = await frame.$eval(`#${type}-password-confirm`, el => el.value)
+  } else {
+    submitbuttonText = 'Login'
   }
 
-  const [submitButton] = await findElementByText('button', 'Submit', modalElement)
+  const [submitButton] = await findElementsByText('button', submitbuttonText, modalElement)
   await submitButton.click()
 
-  return { emailInput, passwordInput, confirmationInput }
+  return { emailValue, passwordValue, confirmationValue }
 }
 
 /// Test Setup helpers:
 // -------------------
 export const registerNickname = async (page, webUserNick) => {
-  await page.focus('.v-dialog')
   // add agent nickname
   await page.keyboard.type(webUserNick, { delay: 200 })
-  const [submitButton] = await findElementByText('button', 'Let\'s Go', page)
+  const [submitButton] = await findElementsByText('button', 'Let\'s Go', page)
   await submitButton.click()
-  // verify page title
-  const pageTitle = await page.title()
-  expect(pageTitle).toBe('Elemental Chat')
 }
 
 const describeJsHandle = (jsHandle) => {
@@ -135,7 +138,7 @@ const describeJsHandle = (jsHandle) => {
   }, jsHandle)
 }
 
-export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
+export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   // Tryorama: instantiate player conductor
   console.log('Setting up players on elemental chat...')
   const [conductor] = await scenario.players([conductorConfig], false)
@@ -156,8 +159,9 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   const [aliceChat] = aliceChatHapp.cells
   const [bobboChat] = bobboChatHapp.cells
 
-  // Tryorama: alice declares self as chatter
-  await aliceChat.call('chat', 'refresh_chatter', null)
+  const startingStats = await aliceChat.call('chat', 'stats', { category: 'General' })
+
+  await aliceChat.call('profile', 'update_my_profile', { nickname: 'Alice' + ' ' })
 
   // locally spin up ui server only (not holo env)
   console.log('👉 Spinning up UI server')
@@ -166,7 +170,7 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
   conductor.appWs().client.socket.onclose = async () => {
     // silence logs upon socket closing
     page.on('pageerror', _ => {})
-    page.on('console',  _ => {})
+    page.on('console', _ => {})
   }
 
   const page = await createPage()
@@ -221,7 +225,7 @@ export const beforeAllSetup = async (scenario, createPage, callRegistry) => {
     page.waitForNavigation({ waitUntil: 'networkidle0' })
   ])
 
-  return { aliceChat, bobboChat, page, closeServer, conductor }
+  return { aliceChat, bobboChat, page, closeServer, conductor, startingStats }
 }
 
 export const afterAllSetup = async (conductor, closeServer) => {

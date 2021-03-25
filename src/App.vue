@@ -5,7 +5,7 @@
       <v-dialog v-model="shouldDisplayNickPrompt" persistent max-width="320" role='dialog' aria-label="Agent Handle Dialog">
         <v-card>
           <v-card-title class="headline">
-            Tell us your nick name 😎
+            <span>Tell us your nick name 😎</span>
           </v-card-title>
           <v-card-text
             >As a super simple way to see who wrote a message your nick name or
@@ -108,12 +108,12 @@ export default {
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['setChannelPolling']),
+    ...mapActions('elementalChat', ['setChannelPolling', 'updateProfile']),
     ...mapActions('holochain', ['skipBackoff']),
     ...mapMutations(['setAgentHandle', 'setErrorMessage']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
-      this.setAgentHandle(this.internalAgentHandle)
+      this.updateProfile(this.internalAgentHandle)
       this.dialog = false
     },
     clearErrorMessage () {
@@ -131,9 +131,8 @@ export default {
       'isHoloSignedIn',
       'isChaperoneDisconnected'
     ]),
+    ...mapState('elementalChat', ['agentHandle', 'needsHandle']),
     ...mapState([
-      'agentHandle',
-      'needsHandle',
       'errorMessage'
     ]),
     shouldDisplayNickPrompt () {
