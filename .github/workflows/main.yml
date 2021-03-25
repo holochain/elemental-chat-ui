@@ -34,6 +34,8 @@ jobs:
     - name: Check Holochain version
       run: nix-shell --command "holochain -V"
     - name: Install node-modules
-      run:  yarn install
+      run: yarn install
+    - name: Correct holochain-conductor-api dep build
+      run: yarn correct:hc-conductor-api-build
     - name: Run holochain-environment integration tests
       run: nix-shell --run 'yarn test:holochain-ci'
