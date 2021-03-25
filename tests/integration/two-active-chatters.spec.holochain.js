@@ -71,7 +71,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // verify new message is visible on page
       newPage = page
-      const elementsWithText = await findElementByText('div', newChannelTitle(), newPage)
+      const elementsWithText = await findElementByText('div', newChannel.name, newPage)
       const newChannelElement = elementsWithText.pop()
       const newChannelHTML = await getElementProperty(newChannelElement, 'innerHTML')
       expect(newChannelHTML).toContain(newChannelTitle())
