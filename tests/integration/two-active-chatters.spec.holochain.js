@@ -74,7 +74,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       const elementsWithText = await findElementByText('div', newChannel.name, newPage)
       const newChannelElement = elementsWithText.pop()
       const newChannelHTML = await getElementProperty(newChannelElement, 'innerHTML')
-      expect(newChannelHTML).toContain(newChannelTitle())
+      expect(newChannelHTML).toContain(newChannel.name)
       // alice clicks on new channel
       await newChannelElement.click()
       await wait(WAITTIME)
