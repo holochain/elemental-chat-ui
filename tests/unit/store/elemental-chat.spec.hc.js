@@ -38,21 +38,19 @@ describe('elementalChat store', () => {
   })
 
   it('manages getstoredStats content', async () => {
-    // Check the initial state
-    expect((stubbedStore.state.elementalChat.channels).length).toEqual(1)
-    expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(null)
-
-    // Add two channels
+    expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(2)
     await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel1', AGENT_KEY_MOCK, 3))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(3)
     await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel2', AGENT_KEY_MOCK, 4))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(4)
-
-    await stubbedStore.dispatch('elementalChat/getStats')
-    // Note: channelCount is 3 because we just added two and had one in state from the mock
-    expect((stubbedStore.state.elementalChat.channels).length).toEqual(3)
+    // Check the initial stats state
     expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(3)
     expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(0)
+
+    await stubbedStore.dispatch('elementalChat/getStats')
+    // channelCount is 3 because we just added two and had one in state from the mock
+    expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(5)
+    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(1)
 
     stubbedStore.commit('elementalChat/addMessagesToChannel', {
       channelId: 4,
@@ -60,10 +58,8 @@ describe('elementalChat store', () => {
     })
 
     await stubbedStore.dispatch('elementalChat/getStats')
-    expect((stubbedStore.state.elementalChat.channels).length).toEqual(3)
-    expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(3)
-    expect((stubbedStore.state.elementalChat.channels[2].messages).length).toEqual(1)
-    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(1)
+    expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(5)
+    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(2)
   })
 
   it('handles order of incoming/received messages', async () => {
