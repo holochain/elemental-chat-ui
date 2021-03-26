@@ -64,6 +64,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
+  dispatch('elementalChat/refreshChatter', null, { root: true })
 
   if (!state.isHoloSignedIn) {
     try {
