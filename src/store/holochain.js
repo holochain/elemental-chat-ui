@@ -197,6 +197,7 @@ export default {
       }
       commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
+      commit('setAgentKey', null)
       if (!state.isHoloSignedIn) {
         try {
           await state.holoClient.signIn()
