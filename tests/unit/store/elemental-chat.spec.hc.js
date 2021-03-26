@@ -1,27 +1,10 @@
 /* global jest, it, describe, expect, beforeEach */
-import { getStubbedStore } from '../../mock-helpers'
+import { getStubbedStore, createNewChannel, createNewMessage, AGENT_KEY_MOCK } from '../../mock-helpers'
 import Vuex from 'vuex'
 import { createLocalVue } from '@vue/test-utils'
 import store from '@/store/index'
 
 jest.mock('@/store/callZome')
-
-const makeChannel = (uuid, name) => ({
-  info: {
-    name,
-    created_by: ''
-  },
-  entry: { category: 'General', uuid },
-  messages: [],
-  last_seen: {}
-})
-
-const makeMessage = (uuid, content) => ({
-  createdBy: '',
-  entry: { content, uuid },
-  messages: [],
-  createdAt: [0, 0]
-})
 
 describe('elementalChat store', () => {
   let stubbedStore
@@ -32,9 +15,9 @@ describe('elementalChat store', () => {
 
   it('manages storeChannelUnseen count', async () => {
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(null)
-    await stubbedStore.dispatch('elementalChat/createChannel', makeChannel(1, 'Channel1'))
+    await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel1', AGENT_KEY_MOCK, 1))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(1)
-    await stubbedStore.dispatch('elementalChat/createChannel', makeChannel(2, 'Channel2'))
+    await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel2', AGENT_KEY_MOCK, 2))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(2)
     // Check the initial stats state
     expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(0)
@@ -47,7 +30,7 @@ describe('elementalChat store', () => {
 
     stubbedStore.commit('elementalChat/addMessagesToChannel', {
       channelId: 1,
-      messages: [makeMessage(11, 'new message')]
+      messages: [createNewMessage('new message', AGENT_KEY_MOCK, 11)]
     })
     expect(stubbedStore.state.elementalChat.channels[0].unseen).toEqual(false)
     expect(stubbedStore.state.elementalChat.channels[1].unseen).toEqual(true)
@@ -56,9 +39,9 @@ describe('elementalChat store', () => {
 
   it('manages getstoredStats content', async () => {
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(2)
-    await stubbedStore.dispatch('elementalChat/createChannel', makeChannel(3, 'Channel1'))
+    await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel1', AGENT_KEY_MOCK, 3))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(3)
-    await stubbedStore.dispatch('elementalChat/createChannel', makeChannel(4, 'Channel2'))
+    await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel2', AGENT_KEY_MOCK, 4))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(4)
     // Check the initial stats state
     expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(3)
@@ -71,7 +54,7 @@ describe('elementalChat store', () => {
 
     stubbedStore.commit('elementalChat/addMessagesToChannel', {
       channelId: 4,
-      messages: [makeMessage(11, 'new message')]
+      messages: [createNewMessage('new message', AGENT_KEY_MOCK, 11)]
     })
 
     await stubbedStore.dispatch('elementalChat/getStats')
@@ -81,15 +64,15 @@ describe('elementalChat store', () => {
 
   it('handles order of incoming/received messages', async () => {
     const channelId = 1
-    const channel = makeChannel(channelId, 'Channel1')
-    await store.dispatch('elementalChat/createChannel', makeChannel(channelId, 'Channel1'))
+    const channel = createNewChannel('Channel1', AGENT_KEY_MOCK, channelId)
+    await store.dispatch('elementalChat/createChannel', createNewChannel('Channel1', AGENT_KEY_MOCK, channelId))
     const storedChannel = () => store.state.elementalChat.channels[0]
     expect(storedChannel().messages.length).toEqual(0)
 
     const initialMessages = [
-      makeMessage(11, '11'),
-      makeMessage(12, '12'),
-      makeMessage(13, '13')
+      createNewMessage('11', AGENT_KEY_MOCK, 11),
+      createNewMessage('12', AGENT_KEY_MOCK, 12),
+      createNewMessage('13', AGENT_KEY_MOCK, 13)
     ]
     // simulate initial messages loaded into channel
     store.commit('elementalChat/addMessagesToChannel', {
@@ -98,7 +81,7 @@ describe('elementalChat store', () => {
     })
     expect(storedChannel().messages.length).toEqual(3)
 
-    const signalMessage = makeMessage(14, '14')
+    const signalMessage = createNewMessage('14', AGENT_KEY_MOCK, 14)
     // simulate a message signal arriving
     await store.dispatch('elementalChat/handleMessageSignal', {
       channelData: channel,
@@ -115,9 +98,9 @@ describe('elementalChat store', () => {
     expect(storedChannel().messages.length).toEqual(5)
 
     const newMessages = [
-      makeMessage(15, '15'),
-      makeMessage(16, '16'),
-      makeMessage(17, '17')
+      createNewMessage('15', AGENT_KEY_MOCK, 15),
+      createNewMessage('16', AGENT_KEY_MOCK, 16),
+      createNewMessage('17', AGENT_KEY_MOCK, 17)
     ]
     // simulate more messages arriving through gossip
     store.commit('elementalChat/addMessagesToChannel', {

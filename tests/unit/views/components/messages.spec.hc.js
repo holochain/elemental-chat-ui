@@ -1,7 +1,7 @@
 /* global jest, it, describe, expect, beforeAll */
 import { within, fireEvent } from '@testing-library/vue'
 import { renderAndWaitFullSetup, handleOneWithMarkup } from '../../../test-utils'
-import { createNewChannel, createNewMessage } from '../../../mock-helpers'
+import { createNewChannel } from '../../../mock-helpers'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 import Messages from '@/components/Messages.vue'

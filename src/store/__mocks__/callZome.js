@@ -33,7 +33,7 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
         ...payload,
         createdAt: [0, 0],
         entryHash: '',
-        createdBy: ''
+        createdBy: rootState.holochain.agentKey || Buffer.from('agent public key')
       }
     case 'signal_specific_chatters':
       return null

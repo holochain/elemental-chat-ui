@@ -243,6 +243,9 @@ export default {
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
+
+      console.log('adding CHANNEL >>> ', channel)
+
       channel.info.created_by = toUint8Array(channel.info.created_by)
       channel.activeChatters = channel.activeChatters.map(c => toUint8Array(c))
       channel.messages = channel.messages.map((msg) => {

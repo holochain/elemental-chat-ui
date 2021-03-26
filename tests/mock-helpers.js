@@ -20,7 +20,7 @@ export const timestampToSemanticDate = (timestamp) => {
 /// Stubbing Element helpers :
 // --------------------
 // create message for api - input into dna
-export const createNewMessage = (content, agent = '', uuid = uuidv4()) => ({
+export const createNewMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4()) => ({
   createdBy: agent,
   entry: { content, uuid },
   messages: [],
@@ -28,7 +28,7 @@ export const createNewMessage = (content, agent = '', uuid = uuidv4()) => ({
 })
 
 // create message mocking full obj - after dna
-export const createMockMessage = (content, agent = '', uuid = uuidv4(), timestamp = [0, 0]) => ({
+export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4(), timestamp = [0, 0]) => ({
   entry: {
     uuid,
     content // "agent: testing message"
@@ -39,10 +39,10 @@ export const createMockMessage = (content, agent = '', uuid = uuidv4(), timestam
 })
 
 // create channel for api - input into dna
-export const createNewChannel = (name, uuid = uuidv4()) => ({
+export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4()) => ({
   info: {
     name,
-    created_by: ''
+    created_by: agent
   },
   entry: { category: 'General', uuid },
   messages: [],
@@ -50,7 +50,7 @@ export const createNewChannel = (name, uuid = uuidv4()) => ({
 })
 
 // create channel mocking full object - after  dna
-export const createMockChannel = (name, agent = '', uuid = uuidv4(), unseen = false) => ({
+export const createMockChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4(), unseen = false) => ({
   info: {
     name,
     created_by: agent
