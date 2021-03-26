@@ -85,7 +85,9 @@ export const mockChatState = {
   // start with empty to mock showingAdd() behavior in channels component on first render
   channels: [emptyChannel],
   currentChannelId: null,
-  statsLoading: false
+  statsLoading: false,
+  agentKey: AGENT_KEY_MOCK,
+  dnaHash: DNA_VERSION_MOCK
 }
 
 export const resetChatState = () => {
@@ -167,7 +169,7 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
     modules: {
       elementalChat: {
         namespaced: true,
-        state: chatState,
+        state: {...chatState, ...agentState},
         actions: { ...actions.chat, listChannels: () => Promise.resolve(channelsList) },
         mutations: { ...mutations.chat },
         getters: {
