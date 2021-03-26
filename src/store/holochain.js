@@ -61,7 +61,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
   const appInfo = await holoClient.appInfo()
   const [cell] = appInfo.cell_data
-  const [cellId, dnaAlias] = cell
+  let cellId, dnaAlias
+  if (Array.isArray(cell)) {
+    [cellId, dnaAlias] = cell
+  } else {
+    cellId = cell.cell_id
+    dnaAlias = cell.cell_nick
+  }
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
@@ -77,7 +83,12 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
     const appInfo = await holoClient.appInfo()
     const [cell] = appInfo.cell_data
-    const [cellId] = cell
+    let cellId
+    if (Array.isArray(cell)) {
+      [cellId] = cell
+    } else {
+      cellId = cell.cell_id
+    }
     const agentId = cellId[1]
 
     console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
@@ -100,7 +111,14 @@ const initializeClientLocal = async (commit, dispatch, _) => {
       installed_app_id: INSTALLED_APP_ID
     })
 
-    const cellId = appInfo.cell_data[0][0]
+    const cell = appInfo.cell_data[0]
+
+    let cellId
+    if (Array.isArray(cell)) {
+      [cellId] = cell
+    } else {
+      cellId = cell.cell_id
+    }
     const agentId = cellId[1]
     console.log('agent key', arrayBufferToBase64(agentId))
     commit('setAgentKey', agentId)
