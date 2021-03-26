@@ -244,15 +244,14 @@ export default {
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
       channel.info.created_by = toUint8Array(channel.info.created_by)
-      channel.activeChatters = channel.activeChatters.map((c)=>toUint8Array(c))
+      channel.activeChatters = channel.activeChatters.map(c => toUint8Array(c))
       channel.messages = channel.messages.map((msg) => {
         msg.createdBy = toUint8Array(msg.createdBy)
         msg.entryHash = toUint8Array(msg.entryHash)
         msg.createdBy = toUint8Array(msg.createdBy)
         return msg
       })
-      const chatters = payload.channel.activeChatters.map((c)=>toUint8Array(c))
-      console.log("Chatter:", chatters);
+      const chatters = payload.channel.activeChatters.map(c => toUint8Array(c))
       dispatch('signalSpecificChatters', {
         signal_message_data: {
           messageData: message,
@@ -433,7 +432,7 @@ export default {
       }
 
       const activeChatters = uniqBy((channel.messages || []).map(message => message.createdBy), arrayBufferToBase64)
-        // .filter(userIdBuffer => arrayBufferToBase64(userIdBuffer) !== arrayBufferToBase64(agentKey))
+        .filter(userIdBuffer => arrayBufferToBase64(userIdBuffer) !== arrayBufferToBase64(agentKey))
 
       return {
         ...channel,

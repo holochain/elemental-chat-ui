@@ -49,6 +49,21 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     await afterAllSetup(conductor, closeServer)
   })
 
+  const checkChannelState = async () => {
+    if (stats.channels < 1) {
+      await page.click('#refresh')
+      await wait(WAITTIME)
+    }
+  }
+
+  const checkAgentsState = async () => {
+    if (stats.active !== 2) {
+      await bobboChat.call('chat', 'refresh_chatter', null)
+      stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
+      await wait(EXTENDED_WAITTIME)
+    }
+  }
+
   describe('Two Player Active Chat', () => {
     const webUserNick = 'Alice '
 
@@ -74,12 +89,11 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('displays new channels after pressing refresh button', async () => {
-      // alice (web) refreshes channel list to fetch all messages
+      // alice (web) refreshes channel list
       const refreshChannelButton = await page.$('#refresh')
       await refreshChannelButton.click()
       await wait(WAITTIME)
-
-      // verify new message is visible on page
+      // verify new channel is visible on page
       newPage = page
       const elementsWithText = await findElementsByText('div', newChannel.name, newPage)
       const newChannelElement = elementsWithText.pop()
@@ -91,6 +105,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('creates and displays new channel', async () => {
+      await checkChannelState()
       // alice (web user) creates a channel
       newChannel.name = 'Alice Hangout Room'
       await page.click('#add-channel')
@@ -128,8 +143,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('displays correct stats before and after new chatter', async () => {
-      await page.click('#refresh')
-      await wait(EXTENDED_WAITTIME)
+      await checkChannelState()
       const checkVisualStats = async (statArray, element) => {
         const stats = statArray
         for (const e in element) {
@@ -152,7 +166,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       console.log('Stats prior to second agent: ', texts)
 
       // assert that we find the right stats
-      expect(texts[1]).toEqual(' ' + stats.agents + ' 👤')
+      expect(texts[1]).toEqual(stats.agents + ' 👤')
       expect(texts[3]).toEqual(stats.active + ' 👤')
       expect(texts[5]).toEqual(stats.channels + ' 🗨️')
       expect(texts[7]).toEqual(stats.messages + ' 🗨️')
@@ -172,7 +186,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       console.log('Stats after second agent: ', texts)
 
       // assert that we find the right stats
-      expect(texts[1]).toEqual(' ' + (stats.agents + 1) + ' 👤')
+      expect(texts[1]).toEqual(stats.agents + 1 + ' 👤')
       expect(texts[3]).toEqual(stats.active + 1 + ' 👤')
       expect(texts[5]).toEqual(stats.channels + ' 🗨️')
       expect(texts[7]).toEqual(stats.messages + ' 🗨️')
@@ -183,11 +197,11 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('creates and displays new message', async () => {
+      await checkChannelState()
       newPage = page
       const elementsWithText = await findElementsByText('div', newChannel.name, newPage)
       const newChannelElement = elementsWithText.pop()
       await newChannelElement.click()
-
       await wait(WAITTIME)
 
       // new message
@@ -224,16 +238,13 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('displays channels created by another agent', async () => {
+      await checkChannelState()
+      await checkAgentsState()
       newChannel.name = 'Bobbo Collaboration Room'
       newChannel.entry.uuid = uuidv4()
 
-      if (stats.active !== 2) {
-        await bobboChat.call('chat', 'refresh_chatter', null)
-        await wait(EXTENDED_WAITTIME)
-      }
-
       // bobbo (tryorama node) creates channel
-      // **creating channel at tryrama level to simulate channel created by another agent
+      // **creating channel at tryorama level - simulating channel created by another agent
       channelInFocus = await bobboChat.call('chat', 'create_channel', newChannel)
       // bobbo checks stats
       newStats = await callStats(bobboChat)
@@ -263,11 +274,8 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('displays a signal message', async () => {
-      if (stats.active !== 2) {
-        await bobboChat.call('chat', 'refresh_chatter', null)
-        await wait(EXTENDED_WAITTIME)
-      }
-
+      await checkChannelState()
+      await checkAgentsState()
       // bobbo checks channels
       const { channels } = await bobboChat.call('chat', 'list_channels', { category: 'General' })
       console.log('channel list', channels)
@@ -314,6 +322,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     })
 
     it('displays new messages after pressing refresh button', async () => {
+      await checkChannelState()
       newMessage.channel = channelInFocus.entry
       newMessage.entry.uuid = uuidv4()
       newMessage.entry.content = 'Hello, there! Nice to speak with you.'
@@ -343,9 +352,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     it('handles updating agent handle', async () => {
       await page.click('#update-handle')
       await wait(WAITTIME)
-      // reset element to evaluate
       const [dialog] = await page.$$('.v-dialog')
-      console.log('dialog : ', dialog)
       const elementsWithText = await findElementsByText('div', 'Enter your handle', dialog)
       const updateHandleInput = elementsWithText.pop()
       expect(updateHandleInput).toBeTruthy()
