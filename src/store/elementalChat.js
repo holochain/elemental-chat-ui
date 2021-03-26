@@ -239,15 +239,24 @@ export default {
       }
 
       commit('addMessagesToChannel', { channelId: payload.channel.entry.uuid, messages: [message] })
+      console.log('adding CHANNEL.ENTRYHASH >>>>>>>> ', message.entryHash)
 
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
 
-      console.log('adding CHANNEL >>> ', channel)
+      console.log('adding CHANNEL >>>>>>>> ', channel)
 
       channel.info.created_by = toUint8Array(channel.info.created_by)
+
+      console.log('adding CHANNEL.INFO.CREATEDBY >>>>>>>> ', channel.info.created_by)
+
+      console.log('Before filter >>> CHANNEL.ACTIVECHATTERS >>>>>>>> ', channel.activeChatters)
+
       channel.activeChatters = channel.activeChatters.map(c => toUint8Array(c))
+
+      console.log('After filter >>> CHANNEL.ACTIVECHATTERS >>>>>>>> ', channel.activeChatters)
+
       channel.messages = channel.messages.map((msg) => {
         msg.createdBy = toUint8Array(msg.createdBy)
         msg.entryHash = toUint8Array(msg.entryHash)

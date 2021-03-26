@@ -33,7 +33,7 @@ export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4
     uuid,
     content // "agent: testing message"
   },
-  entryHash: {},
+  entryHash: Buffer.from('entry hash'),
   createdBy: agent,
   createdAt: timestamp
 })
@@ -46,7 +46,9 @@ export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4()) 
   },
   entry: { category: 'General', uuid },
   messages: [],
-  last_seen: {}
+  last_seen: {},
+  // adding activeChatters as well, as this is added in the getters, which is not accessed when testing store unit tests
+  activeChatters: []
 })
 
 // create channel mocking full object - after  dna
@@ -173,7 +175,6 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
         getters: {
           createMessageLoading: () => callLoading || false,
           channel: () => getCurrentChannel(chatState)
-          // channel: elementalChatStore.getters.channel.mockImplementation(() => getCurrentChannel(chatState))
         }
       },
       holochain: {
