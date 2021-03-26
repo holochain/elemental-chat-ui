@@ -99,6 +99,8 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   }
 
   isInitializingHolo = false
+
+  dispatch('elementalChat/refreshChatter', null, { root: true })
 }
 
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
@@ -211,19 +213,32 @@ export default {
       commit('resetConnectionState')
     },
     async holoLogout ({ dispatch, commit, state }) {
-      if (state.holoClient) {
-        await state.holoClient.signOut()
-      }
       commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
-      if (!state.isHoloSignedIn) {
-        try {
-          await state.holoClient.signIn()
-          commit('setIsHoloSignedIn', true)
-          dispatch('elementalChat/initializeAgent', null, { root: true })
-        } catch (e) {
-          commit('setIsChaperoneDisconnected', true)
+      commit('setAgentKey', null)
+      if (!state.holoClient) return
+
+      await state.holoClient.signOut()
+      try {
+        await state.holoClient.signIn()
+
+        commit('setIsHoloSignedIn', true)
+
+        const [cell] = appInfo.cell_data
+        let cellId
+        if (Array.isArray(cell)) {
+          [cellId] = cell
+        } else {
+          cellId = cell.cell_id
         }
+        const agentId = cellId[1]
+
+        console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
+        commit('setAgentKey', Buffer.from(agentId))
+
+        dispatch('elementalChat/initializeAgent', null, { root: true })
+      } catch (e) {
+        commit('setIsChaperoneDisconnected', true)
       }
     },
     callIsLoading ({ commit }, payload) {
@@ -235,7 +250,9 @@ export default {
   },
   mutations: {
     setAgentKey (state, payload) {
-      state.agentKey = toUint8Array(payload)
+      state.agentKey = payload
+        ? toUint8Array(payload)
+        : null
     },
     setAppInterface (state, payload) {
       state.appInterface = payload
