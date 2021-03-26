@@ -1,10 +1,8 @@
-/* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
+/* global jest, it, describe, expect, beforeEach */
 import Vuetify from 'vuetify'
 import Vue from 'vue'
-import { within, waitFor, fireEvent } from '@testing-library/vue'
-import { renderAndWaitFullSetup, handleOneWithMarkup, stub, stubElement } from '../../test-utils'
+import { renderAndWaitFullSetup } from '../../test-utils'
 import ElementalChat from '@/ElementalChat.vue'
-import wait from 'waait'
 
 jest.mock('@/store/callZome')
 

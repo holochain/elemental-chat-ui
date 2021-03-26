@@ -7,7 +7,7 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
 
-      <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout">
+      <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout" aria-label="Logout with Holo">
         <span>Logout</span>
       </v-toolbar-title>
 
