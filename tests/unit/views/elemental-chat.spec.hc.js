@@ -68,18 +68,13 @@ describe('ElementalChat with real store', () => {
     expect(identicon).toBeTruthy()
   })
 
-  // why is element debug cuttoff at end?
-  it.skip('Displays App Stats Dialog when clicked', async () => {
-    const { getByRole, debug } = await renderAndWaitFullSetup(ElementalChat)
+  it('Displays App Stats Dialog when clicked', async () => {
+    const { getByText, getByRole } = await renderAndWaitFullSetup(ElementalChat)
     const statsInfoBtn = getByRole('button', { name: /view app stats/i })
+    expect(statsInfoBtn).toBeTruthy()
     fireEvent.click(statsInfoBtn)
     await wait(2000)
-    console.log('\n\n\n')
-    debug()
-    console.log('\n\n\n')
-    const statsModal = await waitFor(() => getByRole('dialog', { name: /"app statistics dialog/i }))
-    debug(statsModal)
-    expect(statsModal).toBeTruthy()
+    expect(getByText('Stats')).toBeInTheDocument()
   })
 })
 
