@@ -221,9 +221,13 @@ export default {
 
         commit('setIsHoloSignedIn', true)
 
-        const appInfo = await state.holoClient.appInfo()
         const [cell] = appInfo.cell_data
-        const [cellId] = cell
+        let cellId
+        if (Array.isArray(cell)) {
+          [cellId] = cell
+        } else {
+          cellId = cell.cell_id
+        }
         const agentId = cellId[1]
 
         console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
