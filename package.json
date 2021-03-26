@@ -36,6 +36,7 @@
     "clear:env": "yarn clear:hc && yarn clear:lair",
     "run:chaperone": "yarn chaperone-server --config ./chaperone.json",
     "run:dna": "hc sandbox clean && hc sandbox generate ./tests/integration/setup/bundle/elemental-chat.happ -r=8888 -a='elemental-chat:alpha19:0001'",
+    "correct:hc-conductor-api-build": "cd node_modules/@holochain/conductor-api && npm i",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {

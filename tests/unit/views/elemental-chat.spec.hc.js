@@ -125,9 +125,6 @@ describe('ElementalChat with store stubs and mocks', () => {
     const uiVersion = wrapper.find('[aria-label="App UI Version Info"]')
     const dnaVersion = wrapper.find('[aria-label="App DNA Version Info"]')
 
-    // expect(uiVersion.element).toBeVisible()
-    // expect(dnaVersion.element).toBeVisible()
-
     expect(uiVersion.text()).toBe(`UI: ${process.env.VUE_APP_UI_VERSION}`)
     expect(dnaVersion.text()).toBe(`DNA: ...${DNA_VERSION_MOCK.slice(DNA_VERSION_MOCK.length - 6)}`)
   })
