@@ -74,22 +74,6 @@ describe('App with store stubs and mocks', () => {
     expect(stubbedStore.dispatch).toHaveBeenCalledTimes(2)
   })
 
-  // await connection issue
-  it.skip('handles initializing agent nickname', async () => {
-    getStubbedMutations()
-    stubbedStore = getStubbedStore()
-    const wrapper = stubElement(App, stubbedStore)
-    expect(wrapper.is(App)).toBe(true)
-
-    const updateAgentBtn = await wrapper.find('[aria-label="Update Agent Handle"]')
-    updateAgentBtn.trigger('click')
-    await wrapper.find('[aria-label="Agent Handle Input"]').setValue('Updated Alice')
-    await wrapper.find('[aria-label="Agent Handle Input"]').trigger('click')
-    // await wrapper.trigger('keydown.enter')
-    await wrapper.vm.$nextTick()
-    // expect(store.dispatch).toHaveBeenCalledWith('setAgentHandle', {})
-  })
-
   it("dispatches `skipBackoff` action when 'retry now' button is pressed", async () => {
     getStubbedActions({
       chat: { skipBackoff: jest.fn() }
