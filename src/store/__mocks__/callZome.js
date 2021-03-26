@@ -13,7 +13,7 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
         ...channel,
         info: {
           name,
-          createdAt: [0, 0]
+          created_by: Buffer.from('uhCAkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64')
         }
       }
 
@@ -32,7 +32,7 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
       return {
         ...payload,
         createdAt: [0, 0],
-        entryHash: '',
+        entryHash: Buffer.from('uhCEkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64'),
         createdBy: rootState.holochain.agentKey || Buffer.from('agent public key')
       }
     case 'signal_specific_chatters':
