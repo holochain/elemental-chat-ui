@@ -38,26 +38,36 @@ describe('elementalChat store', () => {
   })
 
   it('manages getstoredStats content', async () => {
+    // check initial state
+    expect((stubbedStore.state.elementalChat.channels).length).toEqual(3)
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(2)
+
+    // check inital stored stats state
+    expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(3)
+    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(0)
+
+    // add two channels
     await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel1', AGENT_KEY_MOCK, 3))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(3)
     await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel2', AGENT_KEY_MOCK, 4))
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(4)
-    // Check the initial stats state
-    expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(3)
-    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(0)
 
+    // check updated state and stats state
     await stubbedStore.dispatch('elementalChat/getStats')
     // channelCount is 3 because we just added two and had one in state from the mock
+    expect((stubbedStore.state.elementalChat.channels).length).toEqual(5)
     expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(5)
     expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(1)
 
+    // add messages to channel
     stubbedStore.commit('elementalChat/addMessagesToChannel', {
       channelId: 4,
       messages: [createNewMessage('new message', AGENT_KEY_MOCK, 11)]
     })
 
+    // check final state and stats state
     await stubbedStore.dispatch('elementalChat/getStats')
+    expect((stubbedStore.state.elementalChat.channels).length).toEqual(5)
     expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(5)
     expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(2)
   })
