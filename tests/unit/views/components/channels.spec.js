@@ -2,7 +2,7 @@
 import { within, fireEvent } from '@testing-library/vue'
 import store from '@/store/index'
 import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../../test-utils'
-import { resetHolochainState, mockAgentState, resetAgentState, resetChatState, mockChatState, setStubbedStore, createNewChannel, createMockChannel } from '../../../mock-helpers'
+import { resetHolochainState, mockAgentState, resetAgentState, resetChatState, mockChatState, getStubbedStore, createNewChannel, createMockChannel } from '../../../mock-helpers'
 import Channels from '@/components/Channels.vue'
 import Vuetify from 'vuetify'
 import Vue from 'vue'
@@ -82,7 +82,7 @@ describe('Channels with store stubs and mocks', () => {
       },
       statsLoading: false
     }
-    stubbedStore = setStubbedStore(mockAgentState, mockChatState, stubbedChatState)
+    stubbedStore = getStubbedStore(mockAgentState, mockChatState, stubbedChatState)
     const wrapper = stubElement(Channels, stubbedStore)
     expect(wrapper.is(Channels)).toBe(true)
     const channelListItem = wrapper.findAll('[aria-label="Channel List-Items"]').at(1)

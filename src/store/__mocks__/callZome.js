@@ -8,9 +8,9 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
       }
     case 'create_channel':
       /* eslint-disable no-case-declarations */
-      const { name, ...channelEntry } = payload
+      const { name, ...channel } = payload
       return {
-        ...channelEntry,
+        ...channel,
         info: {
           name,
           createdAt: [0, 0]

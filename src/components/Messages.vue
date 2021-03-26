@@ -69,7 +69,7 @@ export default {
     }
   },
   watch: {
-    channel (val) {
+    channel () {
       this.scrollToEnd()
     }
   },

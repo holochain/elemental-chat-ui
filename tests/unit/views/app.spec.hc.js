@@ -1,6 +1,6 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
 import { stubElement } from '../../test-utils'
-import { AGENT_KEY_MOCK, DNA_HASH_MOCK, setStubbedActions, setStubbedMutations, resetHolochainState, resetAgentState, resetChatState, setStubbedStore, mockChatState } from '../../mock-helpers'
+import { AGENT_KEY_MOCK, DNA_HASH_MOCK, getStubbedActions, getStubbedMutations, resetHolochainState, resetAgentState, resetChatState, getStubbedStore, mockChatState } from '../../mock-helpers'
 import { createLocalVue } from '@vue/test-utils'
 import Vuex from 'vuex'
 import Vue from 'vue'
@@ -28,12 +28,12 @@ describe('App with store stubs and mocks', () => {
     appConductor = new MockConductor(9090, 8080)
     appConductor.any(MOCK_CELL_DATA)
     createLocalVue().use(Vuex)
-    setStubbedMutations({
+    getStubbedMutations({
       holochain: {
         setReconnecting: jest.fn()
       }
     })
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
     holochainState = {
       ...mockChatState,
       holochainClient: Promise.resolve({}),
@@ -66,7 +66,7 @@ describe('App with store stubs and mocks', () => {
   })
 
   it('calls `initializeStore` action on init', async () => {
-    stubbedStore = setStubbedStore(null, holochainState)
+    stubbedStore = getStubbedStore(null, holochainState)
     stubbedStore.dispatch = jest.fn()
     stubElement(App, stubbedStore)
     await wait(2000)
@@ -76,8 +76,8 @@ describe('App with store stubs and mocks', () => {
 
   // await connection issue
   it.skip('handles initializing agent nickname', async () => {
-    setStubbedMutations()
-    stubbedStore = setStubbedStore()
+    getStubbedMutations()
+    stubbedStore = getStubbedStore()
     const wrapper = stubElement(App, stubbedStore)
     expect(wrapper.is(App)).toBe(true)
 
@@ -91,10 +91,10 @@ describe('App with store stubs and mocks', () => {
   })
 
   it("dispatches `skipBackoff` action when 'retry now' button is pressed", async () => {
-    setStubbedActions({
+    getStubbedActions({
       chat: { skipBackoff: jest.fn() }
     })
-    stubbedStore = setStubbedStore(null, holochainState)
+    stubbedStore = getStubbedStore(null, holochainState)
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(App, stubbedStore)
 

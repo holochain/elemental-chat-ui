@@ -3,7 +3,7 @@ import Vuetify from 'vuetify'
 import Vue from 'vue'
 import { within, waitFor, fireEvent } from '@testing-library/vue'
 import { renderAndWaitFullSetup, handleOneWithMarkup, stub, stubElement } from '../../test-utils'
-import { DNA_VERSION_MOCK, mockHolochainState, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, setStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy } from '../../mock-helpers'
+import { DNA_VERSION_MOCK, mockHolochainState, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, getStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy } from '../../mock-helpers'
 import store from '@/store/index'
 import ElementalChat from '@/ElementalChat.vue'
 import wait from 'waait'
@@ -68,13 +68,13 @@ describe('ElementalChat with real store', () => {
     expect(identicon).toBeTruthy()
   })
 
+  // why is element debug cuttoff at end?
   it.skip('Displays App Stats Dialog when clicked', async () => {
     const { getByRole, debug } = await renderAndWaitFullSetup(ElementalChat)
     const statsInfoBtn = getByRole('button', { name: /view app stats/i })
     fireEvent.click(statsInfoBtn)
     await wait(2000)
     console.log('\n\n\n')
-    // why is element debug cuttoff at end?
     debug()
     console.log('\n\n\n')
     const statsModal = await waitFor(() => getByRole('dialog', { name: /"app statistics dialog/i }))
@@ -108,7 +108,7 @@ describe('ElementalChat with store stubs and mocks', () => {
 
   it('Renders agent nickname in appbar', async () => {
     const newAgentNickame = 'Alice Alias'
-    stubbedStore = setStubbedStore({
+    stubbedStore = getStubbedStore({
       needsHandle: false,
       agentHandle: newAgentNickame
     })
@@ -118,7 +118,7 @@ describe('ElementalChat with store stubs and mocks', () => {
   })
 
   it('Renders correct app version info', async () => {
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
     const wrapper = stubElement(ElementalChat, stubbedStore)
     expect(wrapper.is(ElementalChat)).toBe(true)
 
@@ -146,7 +146,7 @@ describe('ElementalChat with store stubs and mocks', () => {
       channels: [createMockChannel(channelTitle, mockAgentState.agentHandle, channelId)],
       currentChannelId: channelId
     }
-    const stubbedStore = setStubbedStore(null, null, mockChatState)
+    const stubbedStore = getStubbedStore(null, null, mockChatState)
     const wrapper = stubElement(ElementalChat, stubbedStore)
     expect(wrapper.is(ElementalChat)).toBe(true)
     expect(wrapper.find('[aria-label="App Statistics Headline"]').text()).toBe('Stats')

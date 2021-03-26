@@ -152,10 +152,10 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       console.log('Stats prior to second agent: ', texts)
 
       // assert that we find the right stats
-      expect(texts[1]).toEqual(' ' + stats.agents + ' 👤 ')
-      expect(texts[3]).toEqual(' ' + stats.active + ' 👤 ')
-      expect(texts[5]).toEqual(' ' + stats.channels + ' 🗨️ ')
-      expect(texts[7]).toEqual(' ' + stats.messages + ' 🗨️ ')
+      expect(texts[1]).toEqual(' ' + stats.agents + ' 👤')
+      expect(texts[3]).toEqual(stats.active + ' 👤')
+      expect(texts[5]).toEqual(stats.channels + ' 🗨️')
+      expect(texts[7]).toEqual(stats.messages + ' 🗨️')
 
       const [closeButton] = await findElementsByText('button', 'Close', page)
       await closeButton.click()
@@ -172,10 +172,10 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       console.log('Stats after second agent: ', texts)
 
       // assert that we find the right stats
-      expect(texts[1]).toEqual(' ' + (stats.agents + 1) + ' 👤 ')
-      expect(texts[3]).toEqual(' ' + (stats.active + 1) + ' 👤 ')
-      expect(texts[5]).toEqual(' ' + stats.channels + ' 🗨️ ')
-      expect(texts[7]).toEqual(' ' + stats.messages + ' 🗨️ ')
+      expect(texts[1]).toEqual(' ' + (stats.agents + 1) + ' 👤')
+      expect(texts[3]).toEqual(stats.active + 1 + ' 👤')
+      expect(texts[5]).toEqual(stats.channels + ' 🗨️')
+      expect(texts[7]).toEqual(stats.messages + ' 🗨️')
 
       await page.click('#close-stats')
       stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }

@@ -119,7 +119,6 @@ export default {
     ...mapState('elementalChat', ['channels']),
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
     showChannelInput () {
-      console.log('showChannelInput ? : ', this.showingAdd || !this.channels.length)
       return this.showingAdd || !this.channels.length
     }
   },

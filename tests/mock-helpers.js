@@ -1,13 +1,13 @@
 /* global jest */
 import { toUint8Array } from '@/utils'
-import holochainComponent from '@/store/holochain'
-import elementalChatComponent from '@/store/elementalChat'
+import holochainStore from '@/store/holochain'
+import elementalChatStore from '@/store/elementalChat'
 import { storeRaw } from '@/store'
 import { v4 as uuidv4 } from 'uuid'
 import Vuex from 'vuex'
 
-const { state: hcState, actions: hcActions, mutations: hcMutations } = holochainComponent
-const { state: chatState, actions: chatActions, mutations: chatMutations } = elementalChatComponent
+const { state: hcState, actions: hcActions, mutations: hcMutations } = holochainStore
+const { state: chatState, actions: chatActions, mutations: chatMutations } = elementalChatStore
 
 export const DNA_VERSION_MOCK = 'uhC0kvrTHaVNrHaYMBEBbP9nQDA8xdat45mfQb9NtklMJ1ZOfqmZh'
 export const DNA_HASH_MOCK = toUint8Array(Buffer.from(DNA_VERSION_MOCK, 'base64'))
@@ -122,7 +122,7 @@ export const resetAgentState = () => {
 }
 
 export let stubbedActions = {}
-export const setStubbedActions = (actionStubs = {}) => {
+export const getStubbedActions = (actionStubs = {}) => {
   const actions = {
     chat: { ...actionStubs.chat, ...chatActions },
     holochain: { ...actionStubs.holochain, ...hcActions },
@@ -133,7 +133,7 @@ export const setStubbedActions = (actionStubs = {}) => {
 }
 
 export let stubbedMutations = {}
-export const setStubbedMutations = (mutationStubs = {}) => {
+export const getStubbedMutations = (mutationStubs = {}) => {
   const mutations = {
     chat: { ...mutationStubs.chat, ...chatMutations },
     holochain: { ...mutationStubs.holochain, ...hcMutations },
@@ -143,13 +143,13 @@ export const setStubbedMutations = (mutationStubs = {}) => {
   return stubbedMutations
 }
 
-export const setStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, actions = stubbedActions, mutations = stubbedMutations, opts = {}) => {
+export const getStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, actions = stubbedActions, mutations = stubbedMutations, opts = {}) => {
   const { callLoading, additionalChannels } = opts
   if (JSON.stringify(actions) === '{}') {
-    actions = setStubbedActions()
+    actions = getStubbedActions()
   }
   if (JSON.stringify(mutations) === '{}') {
-    mutations = setStubbedMutations()
+    mutations = getStubbedMutations()
   }
   const channelsList = chatState.channels
   if (additionalChannels) {
@@ -173,7 +173,7 @@ export const setStubbedStore = (agentState = mockAgentState, holochainState = mo
         getters: {
           createMessageLoading: () => callLoading || false,
           channel: () => getCurrentChannel(chatState)
-          // channel: elementalChatComponent.getters.channel.mockImplementation(() => getCurrentChannel(chatState))
+          // channel: elementalChatStore.getters.channel.mockImplementation(() => getCurrentChannel(chatState))
         }
       },
       holochain: {

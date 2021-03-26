@@ -98,7 +98,7 @@
               Total peers:
             </v-col>
             <v-col class="display-1" cols="6">
-              <span aria-label="App Total Peers"> {{ stats.agentCount === undefined ? "--" : stats.agentCount }}</span> <span aria-label="Peer Icon">👤</span>
+              <span aria-label="App Total Peers">{{ stats.agentCount === undefined ? "--" : stats.agentCount }}</span> <span aria-label="Peer Icon">👤</span>
             </v-col>
           </v-row>
           <v-row align="center">

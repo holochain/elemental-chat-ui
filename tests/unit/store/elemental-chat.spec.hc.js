@@ -1,5 +1,5 @@
 /* global jest, it, describe, expect, beforeEach */
-import { setStubbedStore } from '../../mock-helpers'
+import { getStubbedStore } from '../../mock-helpers'
 import Vuex from 'vuex'
 import { createLocalVue } from '@vue/test-utils'
 import store from '@/store/index'
@@ -27,7 +27,7 @@ describe('elementalChat store', () => {
   let stubbedStore
   beforeEach(async () => {
     createLocalVue().use(Vuex)
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
   })
 
   it('manages storeChannelUnseen count', async () => {

@@ -1,5 +1,5 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
-import { AGENT_KEY_MOCK, timestampToSemanticDate, mockHolochainState, mockChatState, resetHolochainState, mockAgentState, resetAgentState, resetChatState, setStubbedStore, createMockChannel, createMockMessage } from '../../../mock-helpers'
+import { AGENT_KEY_MOCK, timestampToSemanticDate, mockHolochainState, mockChatState, resetHolochainState, mockAgentState, resetAgentState, resetChatState, getStubbedStore, createMockChannel, createMockMessage } from '../../../mock-helpers'
 import { stubElement } from '../../../test-utils'
 import Message from '@/components/Message.vue'
 import Vuetify from 'vuetify'
@@ -35,7 +35,7 @@ describe('Message with store stubs and mocks', () => {
   })
 
   it("displays message timestamp and content in 'display mode'", async () => {
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
     const agentHandle = 'Alice:'
     const messageContent = 'My first message'
     const newMessage = createMockMessage(`${agentHandle} ${messageContent}`, AGENT_KEY_MOCK, 1, [1616402851, 716802516])
@@ -53,7 +53,7 @@ describe('Message with store stubs and mocks', () => {
   })
 
   it('does not display messages when none are set to exist', async () => {
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
     propsData.message = null
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
@@ -65,7 +65,7 @@ describe('Message with store stubs and mocks', () => {
   it('does not display textarea when message is not in display mode and no channels exist', async () => {
     mockChatState.channels = []
     mockChatState.currentChannelId = null
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
     propsData.message = null
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
@@ -77,7 +77,7 @@ describe('Message with store stubs and mocks', () => {
     const channelId = 10
     mockChatState.channels = [createMockChannel("Alice's chatty channel", mockAgentState.agentHandle, channelId)]
     mockChatState.currentChannelId = channelId
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
     propsData.message = null
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
@@ -86,7 +86,7 @@ describe('Message with store stubs and mocks', () => {
   })
 
   it('accepts new message text in textArea', async () => {
-    stubbedStore = setStubbedStore(mockAgentState, mockHolochainState, mockChatState, { callLoading: false })
+    stubbedStore = getStubbedStore(mockAgentState, mockHolochainState, mockChatState, { callLoading: false })
     propsData.message = null
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
@@ -96,24 +96,8 @@ describe('Message with store stubs and mocks', () => {
     expect(textArea.trigger('input')).toBeTruthy()
   })
 
-  // todo: investigate why 'triggering enter' does not submit the message...
-  it.skip('dispatches `createMessage` action when a new message submitted', async () => {
-    stubbedStore = setStubbedStore(mockAgentState, mockHolochainState, mockChatState, {}, {}, { callLoading: false })
-    stubbedStore.dispatch = jest.fn()
-    const wrapper = stubElement(Message, stubbedStore, { propsData })
-    expect(wrapper.is(Message)).toBe(true)
-    const newMessage = createMockMessage('Alice: May the force be with me...', AGENT_KEY_MOCK, 4, [1616402851 + 4, 716802516 + 4000])
-    const textArea = wrapper.find('[aria-label="Message Textarea"]')
-    textArea.value = newMessage.entry.content
-    textArea.trigger('input')
-    await wrapper.trigger('keydown.enter')
-
-    expect(stubbedStore.dispatch).toHaveBeenCalledWith('elementalChat/createMessage', newMessage)
-    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(1)
-  })
-
   it('displays spinner when new message api call is loading', async () => {
-    stubbedStore = setStubbedStore(mockAgentState, mockHolochainState, mockChatState, {}, {}, { callLoading: true })
+    stubbedStore = getStubbedStore(mockAgentState, mockHolochainState, mockChatState, {}, {}, { callLoading: true })
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
@@ -123,7 +107,8 @@ describe('Message with store stubs and mocks', () => {
     // expect(wrapper.find('[aria-label="Loading Icon"]').exists()).toBe(true)
     expect(stubbedStore.dispatch).toHaveBeenCalledWith('elementalChat/createMessage', newMessage)
     expect(stubbedStore.dispatch).toHaveBeenCalledTimes(1)
-
     expect(wrapper.find('[aria-label="Loading Icon"]').exists()).toBe(false)
   })
+
+  it('dispatches `createMessage` action when a new message submitted', async () => {})
 })

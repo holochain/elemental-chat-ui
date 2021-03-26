@@ -182,8 +182,7 @@ export default {
             let newChannels = []
             newChannels = result.channels
 
-            // ADD NOTE about what this case is for...
-            // LOOK INTO...
+            // if current channel is the empty channel, join the first channel in the channel list
             if (getters.channel.info.name === '' && result.channels.length > 0) {
               dispatch('joinChannel', result.channels[0].entry.uuid)
             }

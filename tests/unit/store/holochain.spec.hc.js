@@ -1,6 +1,6 @@
 /* global jest, it, describe, expect, beforeAll, afterAll */
 import { createLocalVue } from '@vue/test-utils'
-import { setStubbedStore, DNA_HASH_MOCK, AGENT_KEY_MOCK, setStubbedMutations } from '../../mock-helpers'
+import { getStubbedStore, DNA_HASH_MOCK, AGENT_KEY_MOCK, getStubbedMutations } from '../../mock-helpers'
 import { isHoloHosted } from '@/utils'
 import Vuex from 'vuex'
 import wait from 'waait'
@@ -22,12 +22,12 @@ describe('holochain store in holochain env', () => {
   beforeAll(async () => {
     appConductor = new MockConductor(9999, 8888)
     createLocalVue().use(Vuex)
-    setStubbedMutations({
+    getStubbedMutations({
       holochain: {
         setReconnecting: jest.fn()
       }
     })
-    stubbedStore = setStubbedStore()
+    stubbedStore = getStubbedStore()
     appConductor.any(MOCK_CELL_DATA)
   })
 
@@ -44,7 +44,6 @@ describe('holochain store in holochain env', () => {
   })
 
   it('creates the correct in Holochain Environment flag for zomeCalls', async () => {
-    expect(process.env.VUE_APP_CONTEXT).toBe('holochain')
     expect(isHoloHosted()).toBe(false)
   })
 
@@ -54,6 +53,6 @@ describe('holochain store in holochain env', () => {
     await wait(3000)
     expect(stubbedStore.state.holochain.conductorDisconnected).toEqual(true)
     // check reconnect countdown (it begins at 15 but the tests can take a few seconds to check the state)
-    expect(stubbedStore.state.holochain.reconnectingIn > 10).toBe(true)
+    expect(stubbedStore.state.holochain.reconnectingIn > 1).toBe(true)
   })
 })
