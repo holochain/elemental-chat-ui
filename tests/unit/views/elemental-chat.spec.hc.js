@@ -108,7 +108,8 @@ describe('ElementalChat with store stubs and mocks', () => {
 
   it('Renders agent nickname in appbar', async () => {
     const newAgentNickame = 'Alice Alias'
-    stubbedStore = getStubbedStore({
+    stubbedStore = getStubbedStore(null, null, {
+      ...defaultChatState,
       needsHandle: false,
       agentHandle: newAgentNickame
     })

@@ -171,7 +171,7 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
     modules: {
       elementalChat: {
         namespaced: true,
-        state: {...chatState, ...agentState},
+        state: chatState,
         actions: { ...actions.chat, listChannels: () => Promise.resolve(channelsList) },
         mutations: { ...mutations.chat },
         getters: {
