@@ -15,5 +15,6 @@ module.exports = {
     '@/utils/(.*)$': '<rootDir>/utils/$1'
   },
   collectCoverage: false,
-  collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**']
+  collectCoverageFrom: ['**/*.{js,vue}', '!**/node_modules/**'],
+  testMatch: ['<rootDir>/tests/**/unit/**/*.spec.hc.{js,jsx,ts,tsx}']
 }

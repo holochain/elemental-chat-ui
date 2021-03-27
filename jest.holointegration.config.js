@@ -1,6 +1,6 @@
-const holochainConfig = require('./jest.hcintegration.config')
+const holochainIntegrationConfig = require('./jest.hcintegration.config')
 
 module.exports = {
-  ...holochainConfig,
+  ...holochainIntegrationConfig,
   testMatch: ['<rootDir>/tests/**/integration/**/*.spec.holo.{js,jsx,ts,tsx}']
 }

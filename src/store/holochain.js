@@ -180,12 +180,14 @@ export default {
   },
   actions: {
     initialize ({ commit, dispatch, state }) {
+      commit('setFirstConnect', true)
       initializeClient(commit, dispatch, state)
       setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
             commit('setReconnecting', state.reconnectingIn - 1)
           } else {
+            commit('setFirstConnect', false)
             initializeClient(commit, dispatch, state)
           }
         }
@@ -244,6 +246,9 @@ export default {
     },
     setDnaHash (state, payload) {
       state.dnaHash = payload
+    },
+    setFirstConnect (state, payload) {
+      state.firstConnect = payload
     },
     setReconnecting (state, payload) {
       state.firstConnect = false
