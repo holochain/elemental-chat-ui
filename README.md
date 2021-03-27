@@ -27,24 +27,54 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
    2. In another terminal window serve the UI with:
 
    ```shell
-   npm install
-   VUE_APP_INSTALLED_APP_ID=elemental-chat-test npm run serve:develop
+   yarn install
+   VUE_APP_INSTALLED_APP_ID=elemental-chat-test yarn run serve-develop
    ```
 
 3. When you're done and you want to clean up all the holochain databases that `hc` created in `/tmp`, run `hc clean`
 
+## How to run automated tests:
+For all tests
+- `yarn test`
+
+For unit tests
+- `yarn test:unit`
+
+For integration tests
+- In a holochain environment `yarn test:integration-hc`
+- In a holo environment `yarn test:integration-holo`
+
+
 ## Build:
 
-For hosted context:
+For holochain context:
 
 ```shell
-npm run build
+yarn run build-holochain
 ```
 
 For self-hosted context:
 
 ```shell
-npm run build-self-hosted
+yarn run build-self-hosted
+```
+
+For production hosted context:
+
+```shell
+yarn run build-holo-hosted
+```
+
+For development hosted context:
+
+```shell
+yarn run build-holo-dev
+```
+
+For test hosted context:
+
+```shell
+build-holo-scale-test
 ```
 
 ## Contribute

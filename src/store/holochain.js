@@ -60,13 +60,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
   const appInfo = await holoClient.appInfo()
   const [cell] = appInfo.cell_data
-  let cellId, dnaAlias
-  if (Array.isArray(cell)) {
-    [cellId, dnaAlias] = cell
-  } else {
-    cellId = cell.cell_id
-    dnaAlias = cell.cell_nick
-  }
+  const { cell_id: cellId, cell_nick: dnaAlias } = cell
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
@@ -104,22 +98,14 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, signal =>
+    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
       handleSignal(signal, dispatch))
-
     const appInfo = await holochainClient.appInfo({
       installed_app_id: INSTALLED_APP_ID
     })
 
-    const cell = appInfo.cell_data[0]
-
-    let cellId
-    if (Array.isArray(cell)) {
-      [cellId] = cell
-    } else {
-      cellId = cell.cell_id
-    }
-    const agentId = cellId[1]
+    const cellId = appInfo.cell_data[0].cell_id
+    const [_, agentId] = cellId
     console.log('agent key', arrayBufferToBase64(agentId))
     commit('setAgentKey', agentId)
     commit('setAppInterface', {
@@ -137,8 +123,10 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     dispatch('elementalChat/refreshChatter', null, { root: true })
 
     holochainClient.client.socket.onclose = function (e) {
-      // whenever we disconnect from conductor (in dev setup - running 'holochain-run-dna'),
-      // we create new keys... therefore the identity shouold not be held inbetween sessions
+      // TODO: decide if we would like to remove this clause:
+      // whenever we disconnect from conductor (in dev setup - running 'holochain-conductor-api'),
+      // we create new keys... therefore the identity shouold not be held inbetween sessions 
+      // ^^ NOTE: this no longer true with hc cli.
       commit('resetConnectionState')
       console.log(
         `Socket is closed. Reconnect will be attempted in ${RECONNECT_SECONDS} seconds.`,
@@ -193,7 +181,6 @@ export default {
   actions: {
     initialize ({ commit, dispatch, state }) {
       initializeClient(commit, dispatch, state)
-
       setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
@@ -270,6 +257,7 @@ export default {
     },
     setHoloClientAndDnaAlias (state, payload) {
       const { holoClient, dnaAlias } = payload
+      console.log('HOLO DNA ALIAS : ', dnaAlias)
       state.dnaAlias = dnaAlias
       state.holoClient = holoClient
       state.reconnectingIn = -1

@@ -7,7 +7,7 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn
-            id="add-channel"
+            id="refresh"
             color="action"
             icon
             v-bind="attrs"

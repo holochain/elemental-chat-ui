@@ -8,7 +8,7 @@
       <v-spacer></v-spacer>
 
       <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout">
-        Logout
+        <span>Logout</span>
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
@@ -33,7 +33,7 @@
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
-              id="update-handle"
+              id="get-stats"
               color="action"
               icon
               v-bind="attrs"
@@ -49,7 +49,7 @@
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
-              id="update-handle"
+              id="version"
               color="action"
               icon
               v-bind="attrs"
@@ -129,7 +129,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="showingStats = false">
+          <v-btn text @click="showingStats = false" id="close-stats">
             Close
           </v-btn>
         </v-card-actions>
