@@ -64,7 +64,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
   const [dnaHash] = cellId
   commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
-  dispatch('elementalChat/refreshChatter', null, { root: true })
 
   if (!state.isHoloSignedIn) {
     try {
@@ -93,6 +92,8 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   }
 
   isInitializingHolo = false
+
+  dispatch('elementalChat/refreshChatter', null, { root: true })
 }
 
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
