@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
-    <div id="container" class="chat-container rounded" @scroll="onScroll">
-      <ul class="pb-10 pl-0">
+    <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
+      <ul class="pb-10 pl-0" aria-label="Message List">
         <li
           v-for="message in messages"
           :key="message.entry.uuid"
@@ -15,7 +15,7 @@
         </li>
       </ul>
     </div>
-    <v-card-actions class="pa-0 pt-1">
+    <v-card-actions class="pa-0 pt-1" aria-label="New Message Card">
       <Message :handleCreateMessage="handleCreateMessage" />
     </v-card-actions>
   </v-card>
@@ -23,11 +23,12 @@
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex'
 import { arrayBufferToBase64 } from '@/store/utils'
+import Message from './Message.vue'
 
 export default {
   name: 'Messages',
   components: {
-    Message: () => import('./Message.vue')
+    Message
   },
   data () {
     return {

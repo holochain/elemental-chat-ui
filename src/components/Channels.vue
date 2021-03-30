@@ -1,19 +1,20 @@
 <template>
   <v-col cols="5" md="3">
-    <v-toolbar dense dark tile class="mb-1">
+    <v-toolbar dense dark tile class="mb-1" aria-label="Channel Bar">
       <v-toolbar-title class="channel-title">Channels</v-toolbar-title>
       <Spinner v-if='channelsLoading' size='18px' />
       <v-spacer></v-spacer>
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn
-            id="add-channel"
+            id="refresh"
             color="action"
             icon
             v-bind="attrs"
             v-on="on"
             @click="listChannels({ category: 'General' })"
             small
+            aria-label="Refresh App"
           >
             <v-icon>mdi-refresh</v-icon>
           </v-btn>
@@ -30,6 +31,7 @@
             v-on="on"
             @click="showingAdd = true"
             small
+            aria-label="Add New Channel"
           >
             <v-icon>mdi-chat-plus-outline</v-icon>
           </v-btn>
@@ -42,7 +44,7 @@
         <v-col cols="12">
           <v-text-field
             id="channel-name"
-            v-if="showEmptyMessage"
+            v-if="showChannelInput"
             v-model="actionChannel.info.name"
             label="Channel Name"
             dense
@@ -52,11 +54,12 @@
             append-icon="mdi-plus-box-outline"
             @click:append="handleCreateChannel(actionChannel)"
           />
-          <v-list v-if="channels.length" dense :key='refreshKey'>
+          <v-list v-if="channels.length" dense :key='refreshKey' role='list' aria-label="Channel List">
             <v-list-item
               v-for="(channel, i) in channels"
               :key="i"
               @click="openChannel(channel.entry.uuid)"
+              aria-label="Channel List Items"
             >
               <v-list-item-icon class='channel-icons'>
                 <v-icon>mdi-chat-processing-outline</v-icon>
@@ -76,7 +79,6 @@
 <script>
 
 import { mapState, mapGetters, mapActions } from 'vuex'
-import Spinner from './Spinner.vue'
 import { v4 as uuidv4 } from 'uuid'
 
 const makeEmptyChannel = () => ({
@@ -95,7 +97,7 @@ export default {
     }
   },
   components: {
-    Spinner
+    Spinner: () => require('./Spinner.vue'),
   },
   methods: {
     ...mapActions('elementalChat', [
@@ -116,7 +118,7 @@ export default {
   computed: {
     ...mapState('elementalChat', ['channels']),
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
-    showEmptyMessage () {
+    showChannelInput () {
       return this.showingAdd || !this.channels.length
     }
   },

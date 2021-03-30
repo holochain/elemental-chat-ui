@@ -182,6 +182,7 @@ export default {
             let newChannels = []
             newChannels = result.channels
 
+            // if current channel is the empty channel, join the first channel in the channel list
             if (getters.channel.info.name === '' && result.channels.length > 0) {
               dispatch('joinChannel', result.channels[0].entry.uuid)
             }
@@ -238,20 +239,19 @@ export default {
       }
 
       commit('addMessagesToChannel', { channelId: payload.channel.entry.uuid, messages: [message] })
-
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
       const channel = payload.channel
       channel.info.created_by = toUint8Array(channel.info.created_by)
-      channel.activeChatters = channel.activeChatters.map((c)=>toUint8Array(c))
+      channel.activeChatters = channel.activeChatters.map(c => toUint8Array(c))
+
       channel.messages = channel.messages.map((msg) => {
         msg.createdBy = toUint8Array(msg.createdBy)
         msg.entryHash = toUint8Array(msg.entryHash)
         msg.createdBy = toUint8Array(msg.createdBy)
         return msg
       })
-      const chatters = payload.channel.activeChatters.map((c)=>toUint8Array(c))
-      console.log("Chatter:", chatters);
+      const chatters = payload.channel.activeChatters.map(c => toUint8Array(c))
       dispatch('signalSpecificChatters', {
         signal_message_data: {
           messageData: message,
@@ -380,7 +380,6 @@ export default {
     },
     addChannels (state, newChannels) {
       const channels = state.channels
-
       // order is important in this uniqBy because we want existing copy of the channel to win
       state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.entry.uuid))
         .map(c => ({

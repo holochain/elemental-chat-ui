@@ -1,23 +1,43 @@
-export const callZome = async (_, __, zomeName, fnName, payload) => {
-  console.log('calling mock callZome with', zomeName, fnName, payload)
-
+export const callZome = async (_, rootState, zomeName, fnName, payload) => {
+  console.log(`calling mock callZome with ${zomeName}.${fnName}() with payload : `, payload)
   switch (fnName) {
-    case 'create_channel':
+    case 'agent_stats':
       return {
-        ...payload,
+        active: 1,
+        agents: 1
+      }
+    case 'create_channel':
+      /* eslint-disable no-case-declarations */
+      const { name, ...channel } = payload
+      return {
+        ...channel,
         info: {
-          ...payload.info,
-          createdAt: [0, 0]
+          name,
+          created_by: Buffer.from('uhCAkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64')
         }
       }
+
+    case 'list_channels':
+      return rootState.elementalChat.channels.map(channel => {
+        /* eslint-disable no-unused-vars */
+        const { messages, activeChatters, unseen, dnaChannel } = channel
+        return { ...dnaChannel, latest_chunk: 0 }
+      })
+
+    case 'list_messages':
+      const messageChannel = rootState.elementalChat.channels.find(c => c.entry.uuid === payload.channel.uuid)
+      return messageChannel.messages
+
     case 'create_message':
       return {
         ...payload,
         createdAt: [0, 0],
-        entryHash: '',
-        createdBy: ''
+        entryHash: Buffer.from('uhCEkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64'),
+        createdBy: rootState.holochain.agentKey || Buffer.from('agent public key')
       }
     case 'signal_specific_chatters':
+      return null
+    case 'refresh_chatter':
       return null
     default:
       throw new Error(`mock callZome called with unknown fnName: ${fnName}`)

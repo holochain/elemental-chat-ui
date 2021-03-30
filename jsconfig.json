@@ -1,0 +1,9 @@
+{
+  "typeAcquisition": {
+    "include": [
+      "jest",
+      "jest-puppeteer"
+    ]
+  },
+  "exclude": ["node_modules"]
+}

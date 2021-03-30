@@ -2,10 +2,10 @@
   <v-app>
     <v-app-bar app dense dark />
     <v-main>
-      <v-dialog v-model="shouldDisplayNickPrompt" persistent max-width="320">
+      <v-dialog v-model="shouldDisplayNickPrompt" persistent max-width="320" role='dialog' aria-label="Agent Handle Dialog">
         <v-card>
           <v-card-title class="headline">
-            Tell us your nick name 😎
+            <span>Tell us your nick name 😎</span>
           </v-card-title>
           <v-card-text
             >As a super simple way to see who wrote a message your nick name or
@@ -23,11 +23,12 @@
               @keydown.enter="agentHandleEntered"
               append-icon="mdi-face-agent"
               @click:append="agentHandleEntered"
+              aria-label="Agent Handle Input"
             />
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn text @click="agentHandleEntered">
+            <v-btn text @click="agentHandleEntered" aria-label="Submit Agent Handle Button">
               Let's Go
             </v-btn>
           </v-card-actions>
@@ -37,6 +38,8 @@
         v-model="shouldDisplayHoloConnecting"
         persistent
         max-width="320"
+        role='dialog'
+        aria-label="Connecting to Holochain Dialog"
       >
         <v-card>
           <v-card-title class="headline">
@@ -45,7 +48,7 @@
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="shouldShowErrorMessage" persistent max-width="460">
+      <v-dialog v-model="shouldShowErrorMessage" persistent max-width="460" role='dialog' aria-label="Error Message Dialog">
         <v-card>
           <v-card-title class="headline">
             Hm... Something doesn't look right.
@@ -53,13 +56,13 @@
           <v-card-text>{{ errorMessage }}</v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn text @click="clearErrorMessage">
+            <v-btn text @click="clearErrorMessage" aria-label="Clear Error Message Button">
               Ok
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="shouldDisplayDisconnected" persistent max-width="460">
+      <v-dialog v-model="shouldDisplayDisconnected" persistent max-width="460" role='dialog' aria-label="Reconnecting to Holochain Dialog">
         <v-card>
           <v-card-title class="headline">
             Establishing connection..
@@ -73,7 +76,7 @@
           >
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn text @click="retryNow">
+            <v-btn text @click="retryNow" aria-label="Reconnect Now Button">
               Retry Now
             </v-btn>
           </v-card-actions>
