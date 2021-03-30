@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
-import { arrayBufferToBase64 } from '@/store/utils'
+import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
 
 function pollMessages (dispatch, activeChatter, channel) {
@@ -306,7 +306,7 @@ export default {
         .catch(error => log('listMessages zome done', error))
     },
     refreshChatter ({ dispatch, rootState }) {
-      callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000)
+      retryIfSourceChainHeadMoved(() => callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000))
     },
     joinChannel ({ commit }, payload) {
       commit('setCurrentChannelId', payload)
@@ -315,7 +315,7 @@ export default {
       const args = {
         nickname: payload
       }
-      callZome(dispatch, rootState, 'profile', 'update_my_profile', args, 30000)
+      retryIfSourceChainHeadMoved(() => callZome(dispatch, rootState, 'profile', 'update_my_profile', args, 30000))
       commit('setAgentHandle', payload)
     },
     async getProfile ({ commit, dispatch, rootState }) {
