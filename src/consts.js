@@ -4,8 +4,8 @@ export const RECONNECT_SECONDS = 15
 
 export const APP_VERSION = process.env.VUE_APP_UI_VERSION
 
-export const DNA_VERSION = 'alpha19'
-export const DNA_UUID = '0001'
+export const DNA_VERSION = '0_1_0_alpha2'
+export const DNA_UUID = 'develop'
 
 export const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
   ? process.env.VUE_APP_INSTALLED_APP_ID
