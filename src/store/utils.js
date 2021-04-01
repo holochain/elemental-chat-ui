@@ -30,6 +30,7 @@ export const retryIfSourceChainHeadMoved = async call => {
   while (true) {
     const val = await call()
     const isHeadMovedError =
+      val &&
       val.type === 'error' &&
       val.payload &&
       val.payload.message &&
