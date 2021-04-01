@@ -1052,9 +1052,20 @@
   dependencies:
     "@holo-host/comb" "^0.2.0"
 
-"@holochain/conductor-api@^0.0.1", "@holochain/conductor-api@git://github.com/holochain/holochain-conductor-api.git#94a5cf1c755f82ab3f6110ade005293a90bd03f4":
+"@holochain/conductor-api@^0.0.1":
   version "0.0.1"
   resolved "git://github.com/holochain/holochain-conductor-api.git#94a5cf1c755f82ab3f6110ade005293a90bd03f4"
+  dependencies:
+    "@msgpack/msgpack" "2.4.0"
+    "@types/ws" "^7.2.4"
+    isomorphic-ws "^4.0.1"
+    nanoid "^3.1.9"
+    ws "^7.3.0"
+
+"@holochain/conductor-api@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.0.2.tgz#054c17e0ed03ba8fdbbf358b1e83ec4cafddda95"
+  integrity sha512-kZxtIV99btLnJ2y3WRl6ORNSZkdzSWAA4I9aTsYupDK0a/0q/RNv8UF3YocahIVL2o93cC9QLKxGo7bjLigFWA==
   dependencies:
     "@msgpack/msgpack" "2.4.0"
     "@types/ws" "^7.2.4"
