@@ -36,13 +36,12 @@
     "clear:env": "yarn clear:hc && yarn clear:lair",
     "run:chaperone": "yarn chaperone-server --config ./chaperone.json",
     "run:dna": "hc sandbox clean && hc sandbox generate ./tests/integration/setup/bundle/elemental-chat.happ -r=8888 -a='elemental-chat:alpha19:0001'",
-    "correct:hc-conductor-api-build": "cd node_modules/@holochain/conductor-api && npm i",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "@babel/preset-env": "^7.13.8",
     "@holo-host/web-sdk": "0.5.0",
-    "@holochain/conductor-api": "git://github.com/holochain/holochain-conductor-api.git#94a5cf1c755f82ab3f6110ade005293a90bd03f4",
+    "@holochain/conductor-api": "^0.0.2",
     "@testing-library/jest-dom": "^5.11.9",
     "@whi/stdlog": "^0.3.4",
     "async-wait-until": "^1.2.6",
