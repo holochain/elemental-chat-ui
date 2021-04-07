@@ -10,6 +10,6 @@ build () {
     rm elemental-chat-for-dna-$1-$2.zip
     mv dist/elemental-chat.zip elemental-chat-for-dna-$1-$2.zip
 }
-build 0_1_0_alpha3 0002
-build 0_1_0_alpha3 0001
-build 0_1_0_alpha3 develop
+build 0_2_0_alpha3 0002
+build 0_2_0_alpha3 0001
+build 0_2_0_alpha3 develop
