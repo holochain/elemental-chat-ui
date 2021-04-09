@@ -4,8 +4,8 @@ export const RECONNECT_SECONDS = 15
 
 export const APP_VERSION = process.env.VUE_APP_UI_VERSION
 
-export const DNA_VERSION = 'alpha19'
-export const DNA_UUID = '0001'
+export const DNA_VERSION = process.env.VUE_APP_DNA_VERSION
+export const DNA_UID = process.env.VUE_APP_DNA_UID
 
 export const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
   ? process.env.VUE_APP_INSTALLED_APP_ID
@@ -13,7 +13,7 @@ export const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
     ? 'elemental-chat-1'
     : process.env.VUE_APP_WEB_CLIENT_PORT === '9999'
       ? 'elemental-chat-2'
-      : `elemental-chat:${DNA_VERSION}${DNA_UUID ? ':' + DNA_UUID : ''}` // default to elemental-chat:<dna version number>:<uuid> (appId format for holo self-hosted)
+      : `elemental-chat:${DNA_VERSION}${DNA_UID ? ':' + DNA_UID : ''}` // default to elemental-chat:<dna version number>:<uuid> (appId format for holo self-hosted)
 
 export const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888
 
