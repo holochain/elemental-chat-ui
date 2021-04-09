@@ -1,15 +1,17 @@
 #!/bin/bash
 build () {
-    sed -i "s/const DNA_UUID = \'.*\'/const DNA_UUID = \'$1\'/" src/consts.js
-    sed -i "s/const DNA_VERSION = \'.*\'/const DNA_VERSION = \'$2\'/" src/consts.js
-    npm run build-self-hosted
+    export VUE_APP_DNA_VERSION=$1
+    export VUE_APP_DNA_UID=$2
+    npm run build:self-hosted
     cd dist
     rm service-worker.js
     zip -r elemental-chat.zip .
     cd ..
-    rm elemental-chat-for-dna-$2-$1.zip
-    mv dist/elemental-chat.zip elemental-chat-for-dna-$2-$1.zip
+    rm elemental-chat-for-dna-$1-$2.zip
+    mv dist/elemental-chat.zip elemental-chat-for-dna-$1-$2.zip
 }
-build 0002 alpha21
-build develop alpha21
-build 0001 alpha21
+DNA_VERSION=0_2_0_alpha3
+#build $DNA_VERSION 0002
+#build $DNA_VERSION 0001
+#build $DNA_VERSION develop
+build $DNA_VERSION
