@@ -12,6 +12,9 @@ node_modules
 .cargo
 .hc
 
+# release artifacts
+*.zip
+
 # local env files
 .env
 .env.local
