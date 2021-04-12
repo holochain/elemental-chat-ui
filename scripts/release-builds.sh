@@ -10,7 +10,7 @@ build () {
     rm elemental-chat-for-dna-$1-$2.zip
     mv dist/elemental-chat.zip elemental-chat-for-dna-$1-$2.zip
 }
-DNA_VERSION=0_2_0_alpha3
+DNA_VERSION=0_2_0_alpha4
 #build $DNA_VERSION 0002
 #build $DNA_VERSION 0001
 #build $DNA_VERSION develop
