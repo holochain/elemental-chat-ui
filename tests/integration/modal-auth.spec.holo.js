@@ -1,11 +1,12 @@
 /* global it, describe, expect, beforeAll, afterAll */
-import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, WEB_LOGGING } from './setup/globals'
+import wait from 'waait'
+import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, CHAPERONE_URL_REGEX_HCC, WEB_LOGGING } from './setup/globals'
 import { findIframe, holoAuthenticateUser, findElementsByText } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
 const chaperoneUrlCheck = {
   production: CHAPERONE_URL_REGEX,
-  develop: CHAPERONE_URL_REGEX_DEV
+  local: CHAPERONE_URL_REGEX_HCC
 }
 
 describe('Authentication Flow', () => {
@@ -51,7 +52,7 @@ describe('Authentication Flow', () => {
     // *********
     // wait for the modal to load
     await page.waitForSelector('iframe')
-    const iframe = await findIframe(page, chaperoneUrlCheck.production)
+    const iframe = await findIframe(page, chaperoneUrlCheck.local)
     const chaperoneModal = await iframe.evaluateHandle(() => document)
 
     const [loginTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
@@ -66,6 +67,8 @@ describe('Authentication Flow', () => {
     expect(passwordValue).toBe(HOSTED_AGENT.password)
     expect(confirmationValue).toEqual(passwordValue)
 
+
+    await wait(5000)
     // *********
     // Evaluate Main Frame
     // *********
