@@ -13,7 +13,7 @@ export const INSTALLED_APP_ID = process.env.VUE_APP_INSTALLED_APP_ID
     ? 'elemental-chat-1'
     : process.env.VUE_APP_WEB_CLIENT_PORT === '9999'
       ? 'elemental-chat-2'
-      : `elemental-chat:${DNA_VERSION}${DNA_UID ? ':' + DNA_UID : ''}` // default to elemental-chat:<dna version number>:<uuid> (appId format for holo self-hosted)
+      : `elemental-chat:${DNA_VERSION}${DNA_UID ? '::' + DNA_UID : ''}` // default to elemental-chat:<dna version number>::<uuid> (appId format for holo self-hosted)
 
 export const WEB_CLIENT_PORT = process.env.VUE_APP_WEB_CLIENT_PORT || 8888
 
