@@ -11,9 +11,8 @@ import {
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
 
-console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
+console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
-console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
@@ -36,6 +35,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   let holoClient
 
   if (!state.holoClient) {
+    console.log('CHAPERONE_SERVER_URL : ', process.env.VUE_APP_CHAPERONE_SERVER_URL)
     const webSdkConnection = new WebSdkConnection(
       process.env.VUE_APP_CHAPERONE_SERVER_URL,
       signal => handleSignal(signal, dispatch),
@@ -58,13 +58,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     return
   }
 
-  const appInfo = await holoClient.appInfo()
-  const [cell] = appInfo.cell_data
-  const { cell_id: cellId, cell_nick: dnaAlias } = cell
-  commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
-  const [dnaHash] = cellId
-  commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
-
   if (!state.isHoloSignedIn) {
     try {
       await holoClient.signIn()
@@ -73,16 +66,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
-
     const appInfo = await holoClient.appInfo()
     const [cell] = appInfo.cell_data
-    let cellId
-    if (Array.isArray(cell)) {
-      [cellId] = cell
-    } else {
-      cellId = cell.cell_id
-    }
-    const agentId = cellId[1]
+    const { cell_id: cellId, cell_nick: dnaAlias } = cell
+
+    commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
+    const [dnaHash, agentId] = cellId
+    commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
 
     console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
     commit('setAgentKey', Buffer.from(agentId))
@@ -92,13 +82,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   }
 
   isInitializingHolo = false
-
   dispatch('elementalChat/refreshChatter', null, { root: true })
 }
 
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
+    console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
     const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
       handleSignal(signal, dispatch))
     const appInfo = await holochainClient.appInfo({

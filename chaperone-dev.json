@@ -1,0 +1,11 @@
+{
+  "app_id": "uhCkk2eL-bMIPPn7XyvwSMDtrbn5EVeQf_Qvu3zjtqepvoHBuvOYB",
+  "log_level": true,
+  "connection": {
+    "secure": false,
+    "host": "1hwlrsdplus240337m3tqf02q81lvaygghvsqz99ib694vcwpz",
+    "port": 4656,
+    "path": "/hosting/"
+  },
+  "mode": 1
+}

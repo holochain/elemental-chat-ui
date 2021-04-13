@@ -10,7 +10,7 @@ node_modules
 
 /target/
 .cargo
-.hc
+.hc*
 
 # local env files
 .env

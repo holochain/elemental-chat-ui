@@ -1,15 +1,18 @@
 import { isHoloHosted, log } from '@/utils'
 import { logZomeCall, actionType } from '@/store/utils'
 
-const callZomeHolo = (_, state, zomeName, fnName, payload) =>
-  state.holoClient.zomeCall(
+const callZomeHolo = (_, state, zomeName, fnName, payload) => {
+  if (!state.holoClient) return console.error('Attempted callZomeHolo before holoClient is defined')
+  return state.holoClient.zomeCall(
     state.dnaAlias,
     zomeName,
     fnName,
     payload)
+}
 
-const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) =>
-  state.holochainClient.callZome({
+const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
+  if (!state.holochainClient) return console.error('Attempted callZomeLocal before holochainClient is defined')
+  return state.holochainClient.callZome({
     cap: null,
     cell_id: state.appInterface.cellId,
     zome_name: zomeName,
@@ -18,6 +21,7 @@ const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) =>
     payload
   },
   timeout)
+}
 
 const LOG_ZOME_CALLS = (typeof process.env.VUE_APP_LOG_ZOME_CALLS === 'string')
   ? process.env.VUE_APP_LOG_ZOME_CALLS.toLowerCase() === 'true'
