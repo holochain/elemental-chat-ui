@@ -10,8 +10,8 @@ build () {
     rm elemental-chat-for-dna-$1-$2.zip
     mv dist/elemental-chat.zip elemental-chat-for-dna-$1-$2.zip
 }
-DNA_VERSION=0_2_0_alpha4
-#build $DNA_VERSION 0002
-#build $DNA_VERSION 0001
-#build $DNA_VERSION develop
+DNA_VERSION=0_2_0_alpha5
+build $DNA_VERSION 0002
+build $DNA_VERSION 0001
+build $DNA_VERSION develop
 build $DNA_VERSION 0000 # should match DEV_UID_OVERRIDE in holo-nixpkgs for dev!
