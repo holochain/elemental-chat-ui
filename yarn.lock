@@ -989,15 +989,15 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@holo-host/chaperone@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@holo-host/chaperone/-/chaperone-2.0.0.tgz#c54eec6420208f0daf2c3177892348be6c73fd0f"
-  integrity sha512-oMwAt+FAhSb++Fd4P1BRUdYN0cPJ2aoDl514cq/w2TGjCJnSumJ1pBMo2PPDIAe9MvBu65qDo15msUgKIqj8hg==
+"@holo-host/chaperone@7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@holo-host/chaperone/-/chaperone-7.0.0.tgz#54f22d1f911f3696aefc1822cbd9ac756f871e8d"
+  integrity sha512-FwfiKNHOce4oaEou7vWnhxEffOeka64vsYHnRCtbFIE2G0XDeIEjBS+209FpgwtM7zfgsq65nfdduJ9wRngsCA==
   dependencies:
     "@holo-host/comb" "^0.2.0"
     "@holo-host/cryptolib" "^0.3.0"
     "@holo-host/data-translator" "^0.1.1"
-    "@holo-host/mock-conductor" "^0.3.0"
+    "@holo-host/mock-conductor" "^0.3.1"
     "@whi/http_utils" "^0.1.0"
     "@whi/printf" "^1.0.0"
     "@whi/stdlog" "^0.3.1"
@@ -1030,7 +1030,7 @@
   resolved "https://registry.yarnpkg.com/@holo-host/data-translator/-/data-translator-0.1.1.tgz#aefab77086e2a65d88e77f32b1f6a7f18352fdd9"
   integrity sha512-WIg0RDj+VT2yCJPAWJWJdq5e7mfU2Xm3sSc1s6jyT+DlPzKynZ1QeE282DuwuMWeqhNyyW2haGtADTnom5oKuw==
 
-"@holo-host/mock-conductor@^0.3.0":
+"@holo-host/mock-conductor@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@holo-host/mock-conductor/-/mock-conductor-0.3.1.tgz#8e6397cc2f3eabdd7db869d532b1a3e0ed6d4d31"
   integrity sha512-IaKKYyYAdPaFLOUINa+aU5CltYgZ7VfvwRmJbXBhPL0rHK6FF9P1y9SggGwTPDEUWZMI1w4RmnEG3wP+FCF6gQ==
@@ -1051,7 +1051,7 @@
   dependencies:
     "@holo-host/comb" "^0.2.0"
 
-"@holochain/conductor-api@^0.0.2":
+"@holochain/conductor-api@0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.0.2.tgz#054c17e0ed03ba8fdbbf358b1e83ec4cafddda95"
   integrity sha512-kZxtIV99btLnJ2y3WRl6ORNSZkdzSWAA4I9aTsYupDK0a/0q/RNv8UF3YocahIVL2o93cC9QLKxGo7bjLigFWA==
@@ -5179,9 +5179,9 @@ ejs@^2.6.1:
   integrity sha512-7vmuyh5+kuUyJKePhQfRQBhXV5Ce+RnaeeQArKu1EAMpL3WbgMt5WG6uQZpEVvYSSsxMXRKOewtDk9RaTKXRlA==
 
 electron-to-chromium@^1.3.712:
-  version "1.3.712"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.712.tgz#ae467ffe5f95961c6d41ceefe858fc36eb53b38f"
-  integrity sha512-3kRVibBeCM4vsgoHHGKHmPocLqtFAGTrebXxxtgKs87hNUzXrX2NuS3jnBys7IozCnw7viQlozxKkmty2KNfrw==
+  version "1.3.713"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.713.tgz#4583efb17f2d1e9ec07a44c8004ea73c013ad146"
+  integrity sha512-HWgkyX4xTHmxcWWlvv7a87RHSINEcpKYZmDMxkUlHcY+CJcfx7xEfBHuXVsO1rzyYs1WQJ7EgDp2CoErakBIow==
 
 elegant-spinner@^1.0.1:
   version "1.0.1"

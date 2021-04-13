@@ -66,10 +66,10 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
-
     const appInfo = await holoClient.appInfo()
     const [cell] = appInfo.cell_data
     const { cell_id: cellId, cell_nick: dnaAlias } = cell
+
     commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
     const [dnaHash, agentId] = cellId
     commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
@@ -82,7 +82,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   }
 
   isInitializingHolo = false
-
   dispatch('elementalChat/refreshChatter', null, { root: true })
 }
 
