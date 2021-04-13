@@ -2,7 +2,7 @@ import { isHoloHosted, log } from '@/utils'
 import { logZomeCall, actionType } from '@/store/utils'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
-  if (!state.holoClient) return console.error('Attempted callZomeHolo before holoClient is defined')
+  if (!state.holoClient) throw new Error('Attempted callZomeHolo before holoClient is defined')
   return state.holoClient.zomeCall(
     state.dnaAlias,
     zomeName,
@@ -11,7 +11,7 @@ const callZomeHolo = (_, state, zomeName, fnName, payload) => {
 }
 
 const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
-  if (!state.holochainClient) return console.error('Attempted callZomeLocal before holochainClient is defined')
+  if (!state.holochainClient) throw new Error('Attempted callZomeLocal before holochainClient is defined')
   return state.holochainClient.callZome({
     cap: null,
     cell_id: state.appInterface.cellId,
