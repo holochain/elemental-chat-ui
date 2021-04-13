@@ -122,7 +122,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     holochainClient.client.socket.onclose = function (e) {
       // TODO: decide if we would like to remove this clause:
       // whenever we disconnect from conductor (in dev setup - running 'holochain-conductor-api'),
-      // we create new keys... therefore the identity shouold not be held inbetween sessions 
+      // we create new keys... therefore the identity shouold not be held inbetween sessions
       // ^^ NOTE: this no longer true with hc cli.
       commit('resetConnectionState')
       console.log(
@@ -203,11 +203,13 @@ export default {
       if (!state.holoClient) return
 
       await state.holoClient.signOut()
+      commit('setIsChaperoneDisconnected', false)
       try {
         await state.holoClient.signIn()
 
         commit('setIsHoloSignedIn', true)
 
+        const appInfo = await state.holoClient.appInfo()
         const [cell] = appInfo.cell_data
         let cellId
         if (Array.isArray(cell)) {
