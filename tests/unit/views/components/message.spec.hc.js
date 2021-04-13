@@ -103,11 +103,9 @@ describe('Message with store stubs and mocks', () => {
     expect(wrapper.is(Message)).toBe(true)
     const newMessage = createMockMessage('Alice: 5th time and going on strong', AGENT_KEY_MOCK, 5, [1616402851 + 5, 716802516 + 5000])
     await stubbedStore.dispatch('elementalChat/createMessage', newMessage)
-    // todo: investigate why spinner returns false here
-    // expect(wrapper.find('[aria-label="Loading Icon"]').exists()).toBe(true)
     expect(stubbedStore.dispatch).toHaveBeenCalledWith('elementalChat/createMessage', newMessage)
     expect(stubbedStore.dispatch).toHaveBeenCalledTimes(1)
-    expect(wrapper.find('[aria-label="Loading Icon"]').exists()).toBe(false)
+    expect(wrapper.find('[aria-label="Loading Icon"]').exists()).toBe(true)
   })
 
   it('dispatches `createMessage` action when a new message submitted', async () => {})

@@ -14,6 +14,14 @@ import { handleSignal } from './elementalChat'
 console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
 
+if (process.env.VUE_APP_CHAPERONE_SERVER_URL !== undefined) {
+  console.log('CHAPERONE_SERVER_URL', process.env.VUE_APP_CHAPERONE_SERVER_URL)
+}
+
+if (WEB_CLIENT_URI !== undefined) {
+  console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
+}
+
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
   return {
@@ -35,7 +43,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   let holoClient
 
   if (!state.holoClient) {
-    console.log('CHAPERONE_SERVER_URL : ', process.env.VUE_APP_CHAPERONE_SERVER_URL)
     const webSdkConnection = new WebSdkConnection(
       process.env.VUE_APP_CHAPERONE_SERVER_URL,
       signal => handleSignal(signal, dispatch),
@@ -88,7 +95,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
     const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
       handleSignal(signal, dispatch))
     const appInfo = await holochainClient.appInfo({
