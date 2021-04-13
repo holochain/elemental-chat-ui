@@ -5,10 +5,10 @@
     "secure": false,
     "host": "localhost",
     "port": 42233,
-    "path": "/"
+    "path": "/hosting/"
   },
   "mode": 2,
   "web_user_legend": {
-    "test@test.com": "uhCAkxvz31JVoy7iNGyuF9LHzGLD6s6xSlTLESsWdsu8Z2X3a0dvc"
+    "test@holo.host": "uhCAk-Q9cK_DXlsO2q3W88SxBB3r-EgrAlYZ34AZUEduaNr6Q-kKw"
   }
 }
