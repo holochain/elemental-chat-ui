@@ -1,9 +1,9 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
 import Vuetify from 'vuetify'
 import Vue from 'vue'
-import { within, waitFor, fireEvent } from '@testing-library/vue'
-import { renderAndWaitFullSetup, handleOneWithMarkup, stub, stubElement } from '../../test-utils'
-import { DNA_VERSION_MOCK, mockHolochainState, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, getStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy } from '../../mock-helpers'
+import { within, fireEvent } from '@testing-library/vue'
+import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../test-utils'
+import { DNA_VERSION_MOCK, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, getStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy } from '../../mock-helpers'
 import store from '@/store/index'
 import ElementalChat from '@/ElementalChat.vue'
 import wait from 'waait'
@@ -21,6 +21,7 @@ describe('ElementalChat with real store', () => {
     const { getByRole } = await renderAndWaitFullSetup(ElementalChat)
     const title = getByRole('title', { name: /page title/i })
     expect(title).toBeTruthy()
+    expect(title.innerHTML.trim()).toEqual('Elemental Chat')
   })
 
   it('Displays a banner with correct text and link which opens correct page in new tab', async () => {
