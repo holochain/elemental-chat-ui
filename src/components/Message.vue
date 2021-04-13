@@ -36,12 +36,14 @@
 </template>
 <script>
 import { mapState, mapMutations, mapGetters } from 'vuex'
+import Spinner from './Spinner'
+import Identicon from './Identicon'
 
 export default {
   name: 'Message',
   components: {
-    Spinner: () => require('./Spinner.vue'),
-    Identicon: () => require('./Identicon.vue')
+    Spinner,
+    Identicon
   },
   props: {
     message: Object,
