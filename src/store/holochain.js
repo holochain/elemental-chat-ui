@@ -59,6 +59,8 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   }
 
   const appInfo = await holoClient.appInfo()
+  console.log("appInfo call result")
+  console.log(appInfo)
   const [cell] = appInfo.cell_data
   const { cell_id: cellId, cell_nick: dnaAlias } = cell
   commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
@@ -126,7 +128,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     holochainClient.client.socket.onclose = function (e) {
       // TODO: decide if we would like to remove this clause:
       // whenever we disconnect from conductor (in dev setup - running 'holochain-conductor-api'),
-      // we create new keys... therefore the identity shouold not be held inbetween sessions 
+      // we create new keys... therefore the identity shouold not be held inbetween sessions
       // ^^ NOTE: this no longer true with hc cli.
       commit('resetConnectionState')
       console.log(

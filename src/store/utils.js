@@ -34,7 +34,7 @@ export const retryIfSourceChainHeadMoved = async call => {
       val.type === 'error' &&
       val.payload &&
       val.payload.message &&
-      val.payload.message.includes('head moved')
+      val.payload.message.includes('source chain head has moved')
     console.log('isHeadMovedError', isHeadMovedError)
     if (isHeadMovedError) {
       intervalMs *= (2 + Math.random())
