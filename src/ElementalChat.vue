@@ -211,7 +211,14 @@ export default {
   },
   watch: {
     conductorDisconnected (val) {
-      if (!val) this.listChannels({ category: 'General' })
+      if (!val) {
+        // TODO: rather than just catching and logging this error, we should properly be waiting for holoClient to be ready before calling this.
+        try {
+          this.listChannels({ category: 'General' })
+        } catch (e) {
+          console.error('Error calling listChannels', e)
+        }
+      }
     }
   }
 }
@@ -241,7 +248,7 @@ export default {
   width: 30px;
   margin-right: 5px;
 }
-.handle {  
+.handle {
   font-size: 14px;
   margin-left: 12px;
   margin-right: 10px;

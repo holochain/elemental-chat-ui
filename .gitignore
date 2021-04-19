@@ -10,7 +10,10 @@ node_modules
 
 /target/
 .cargo
-.hc
+.hc*
+
+# release artifacts
+*.zip
 
 # local env files
 .env

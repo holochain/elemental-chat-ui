@@ -11,9 +11,16 @@ import {
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
 
-console.log('process.env.VUE_APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
+console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
-console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
+
+if (process.env.VUE_APP_CHAPERONE_SERVER_URL !== undefined) {
+  console.log('CHAPERONE_SERVER_URL', process.env.VUE_APP_CHAPERONE_SERVER_URL)
+}
+
+if (WEB_CLIENT_URI !== undefined) {
+  console.log('WEB_CLIENT_URI : ', WEB_CLIENT_URI)
+}
 
 // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
 function createHoloClient (webSdkConnection) {
@@ -59,13 +66,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     return
   }
 
-  const appInfo = await holoClient.appInfo()
-  const [cell] = appInfo.cell_data
-  const { cell_id: cellId, cell_nick: dnaAlias } = cell
-  commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
-  const [dnaHash] = cellId
-  commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
-
   if (!state.isHoloSignedIn) {
     try {
       await holoClient.signIn()
@@ -74,16 +74,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
-
     const appInfo = await holoClient.appInfo()
     const [cell] = appInfo.cell_data
-    let cellId
-    if (Array.isArray(cell)) {
-      [cellId] = cell
-    } else {
-      cellId = cell.cell_id
-    }
-    const agentId = cellId[1]
+    const { cell_id: cellId, cell_nick: dnaAlias } = cell
+
+    commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
+    const [dnaHash, agentId] = cellId
+    commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
 
     console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
     commit('setAgentKey', Buffer.from(agentId))
@@ -93,7 +90,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   }
 
   isInitializingHolo = false
-
   dispatch('elementalChat/refreshChatter', null, { root: true })
 }
 
@@ -127,7 +123,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     holochainClient.client.socket.onclose = function (e) {
       // TODO: decide if we would like to remove this clause:
       // whenever we disconnect from conductor (in dev setup - running 'holochain-conductor-api'),
-      // we create new keys... therefore the identity shouold not be held inbetween sessions 
+      // we create new keys... therefore the identity shouold not be held inbetween sessions
       // ^^ NOTE: this no longer true with hc cli.
       commit('resetConnectionState')
       console.log(
@@ -208,11 +204,13 @@ export default {
       if (!state.holoClient) return
 
       await state.holoClient.signOut()
+      commit('setIsChaperoneDisconnected', false)
       try {
         await state.holoClient.signIn()
 
         commit('setIsHoloSignedIn', true)
 
+        const appInfo = await state.holoClient.appInfo()
         const [cell] = appInfo.cell_data
         let cellId
         if (Array.isArray(cell)) {
