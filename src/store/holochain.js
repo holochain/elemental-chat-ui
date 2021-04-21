@@ -39,6 +39,7 @@ function createHoloClient (webSdkConnection) {
 let isInitializingHolo = false
 const initializeClientHolo = async (commit, dispatch, state) => {
   if (isInitializingHolo) return
+
   isInitializingHolo = true
   let holoClient
 

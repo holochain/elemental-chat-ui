@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
-import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
+import { arrayBufferToBase64, retryIfSourceChainHeadMoved, retryUntilClientIsDefined } from './utils'
 import { callZome } from './callZome'
 
 function pollMessages (dispatch, activeChatter, channel) {
@@ -118,17 +118,8 @@ export default {
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
       }
-      dispatch('initializeAgent')
-    },
-    initializeAgent ({ dispatch, rootState }) {
-      const tryToGetProfile = () => {
-        if (rootState.holochain.conductorDisconnected) {
-          setTimeout(tryToGetProfile, 1000)
-        } else {
-          dispatch('getProfile')
-        }
-      }
-      tryToGetProfile()
+      dispatch('getProfile')
+      dispatch('listChannels')
     },
     getStats: async ({ rootState, dispatch, commit }) => {
       commit('setStatsLoading', true)
@@ -175,7 +166,7 @@ export default {
         .catch(error => log('createChannel zome error', error))
     },
     listChannels ({ commit, rootState, dispatch, getters }, payload) {
-      callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
+      retryUntilClientIsDefined(() => callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000))
         .then(async result => {
           if (result) {
             commit('addChannels', result.channels)
@@ -319,7 +310,7 @@ export default {
       commit('setAgentHandle', payload)
     },
     async getProfile ({ commit, dispatch, rootState }) {
-      const profile = await callZome(dispatch, rootState, 'profile', 'get_my_profile', null, 30000)
+      const profile = await retryUntilClientIsDefined(() => callZome(dispatch, rootState, 'profile', 'get_my_profile', null, 30000))
       if (profile && profile.nickname) {
         commit('setAgentHandle', profile.nickname)
       } else {
