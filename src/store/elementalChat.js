@@ -118,17 +118,8 @@ export default {
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
       }
-      dispatch('initializeAgent')
-    },
-    initializeAgent ({ dispatch, rootState }) {
-      const tryToGetProfile = () => {
-        if (rootState.holochain.conductorDisconnected) {
-          setTimeout(tryToGetProfile, 1000)
-        } else {
-          dispatch('getProfile')
-        }
-      }
-      tryToGetProfile()
+      dispatch('getProfile')
+      dispatch('listChannels')
     },
     getStats: async ({ rootState, dispatch, commit }) => {
       commit('setStatsLoading', true)
@@ -175,7 +166,7 @@ export default {
         .catch(error => log('createChannel zome error', error))
     },
     listChannels ({ commit, rootState, dispatch, getters }, payload) {
-      callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
+      retryUntilClientIsDefined(() => callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000))
         .then(async result => {
           if (result) {
             commit('addChannels', result.channels)
