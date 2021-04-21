@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
-import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
+import { arrayBufferToBase64, retryIfSourceChainHeadMoved, retryUntilClientIsDefined } from './utils'
 import { callZome } from './callZome'
 
 function pollMessages (dispatch, activeChatter, channel) {
@@ -319,7 +319,7 @@ export default {
       commit('setAgentHandle', payload)
     },
     async getProfile ({ commit, dispatch, rootState }) {
-      const profile = await callZome(dispatch, rootState, 'profile', 'get_my_profile', null, 30000)
+      const profile = await retryUntilClientIsDefined(() => callZome(dispatch, rootState, 'profile', 'get_my_profile', null, 30000))
       if (profile && profile.nickname) {
         commit('setAgentHandle', profile.nickname)
       } else {
