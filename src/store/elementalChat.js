@@ -113,13 +113,20 @@ export default {
     needsHandle: false
   },
   actions: {
-    initialize ({ dispatch }) {
+    initialize ({ rootState, dispatch }) {
       const currentChannelId = window.localStorage.getItem('currentChannelId')
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
       }
-      dispatch('getProfile')
-      dispatch('listChannels')
+      const tryToMakeZomeCalls = () => {
+        if (rootState.holochain.conductorDisconnected) {
+          setTimeout(tryToMakeZomeCalls, 1000)
+        } else {
+          dispatch('getProfile')
+          dispatch('listChannels')
+        }
+      }
+      tryToMakeZomeCalls()
     },
     getStats: async ({ rootState, dispatch, commit }) => {
       commit('setStatsLoading', true)
