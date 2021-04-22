@@ -1,8 +1,8 @@
 import { isHoloHosted, log } from '@/utils'
-import { logZomeCall, actionType } from '@/store/utils'
+import { logZomeCall, actionType, UndefinedClientError } from '@/store/utils'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
-  if (!state.holoClient) throw new Error('Attempted callZomeHolo before holoClient is defined')
+  if (!state.holoClient) throw new UndefinedClientError('Attempted callZomeHolo before holoClient is defined')
   return state.holoClient.zomeCall(
     state.dnaAlias,
     zomeName,
@@ -11,7 +11,7 @@ const callZomeHolo = (_, state, zomeName, fnName, payload) => {
 }
 
 const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
-  if (!state.holochainClient) throw new Error('Attempted callZomeLocal before holochainClient is defined')
+  if (!state.holochainClient) throw new UndefinedClientError('Attempted callZomeLocal before holochainClient is defined')
   return state.holochainClient.callZome({
     cap: null,
     cell_id: state.appInterface.cellId,
@@ -59,6 +59,9 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
     if (e === 'Error: Socket is not open') {
       return dispatch('resetConnectionState', null, { root: true })
+    }
+    if (e instanceof UndefinedClientError) {
+      throw e
     }
   } finally {
     dispatch('holochain/callIsNotLoading', fnName, { root: true })
