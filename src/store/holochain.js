@@ -54,13 +54,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       }
     )
 
-    webSdkConnection.addListener('disconnected', () =>
+    webSdkConnection.addEventListener('disconnected', () =>
       commit('setIsChaperoneDisconnected', true)
     )
-    webSdkConnection.addListener('signin', () =>
+    webSdkConnection.addEventListener('signin', () =>
       commit('setIsChaperoneDisconnected', false)
     )
-    webSdkConnection.addListener('signup', () =>
+    webSdkConnection.addEventListener('signup', () =>
       commit('setIsChaperoneDisconnected', false)
     )
 
