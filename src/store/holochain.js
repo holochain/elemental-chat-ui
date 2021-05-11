@@ -54,13 +54,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       }
     )
 
-    webSdkConnection.on('disconnected', () =>
+    webSdkConnection.addListener('disconnected', () =>
       commit('setIsChaperoneDisconnected', true)
     )
-    webSdkConnection.on('signin', () =>
+    webSdkConnection.addListener('signin', () =>
       commit('setIsChaperoneDisconnected', false)
     )
-    webSdkConnection.on('signup', () =>
+    webSdkConnection.addListener('signup', () =>
       commit('setIsChaperoneDisconnected', false)
     )
 
@@ -231,7 +231,7 @@ export default {
         const [cell] = appInfo.cell_data
         let cellId
         if (Array.isArray(cell)) {
-          [cellId] = cell
+          ;[cellId] = cell
         } else {
           cellId = cell.cell_id
         }
