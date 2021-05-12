@@ -53,6 +53,17 @@ const initializeClientHolo = async (commit, dispatch, state) => {
         info_link: 'https://holo.host/faq-tag/elemental-chat'
       }
     )
+
+    webSdkConnection.addListener('disconnected', () =>
+      commit('setIsChaperoneDisconnected', true)
+    )
+    webSdkConnection.addListener('signin', () =>
+      commit('setIsChaperoneDisconnected', false)
+    )
+    webSdkConnection.addListener('signup', () =>
+      commit('setIsChaperoneDisconnected', false)
+    )
+
     holoClient = createHoloClient(webSdkConnection)
   } else {
     holoClient = state.holoClient
@@ -82,7 +93,10 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     const [dnaHash, agentId] = cellId
     commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
 
-    console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
+    console.log(
+      'setting signed in agent key',
+      Buffer.from(agentId).toString('base64')
+    )
     commit('setAgentKey', Buffer.from(agentId))
 
     const { url } = await holoClient.holoInfo()
@@ -96,8 +110,11 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
-      handleSignal(signal, dispatch))
+    const holochainClient = await AppWebsocket.connect(
+      WEB_CLIENT_URI,
+      20000,
+      signal => handleSignal(signal, dispatch)
+    )
     const appInfo = await holochainClient.appInfo({
       installed_app_id: INSTALLED_APP_ID
     })
@@ -214,13 +231,16 @@ export default {
         const [cell] = appInfo.cell_data
         let cellId
         if (Array.isArray(cell)) {
-          [cellId] = cell
+          ;[cellId] = cell
         } else {
           cellId = cell.cell_id
         }
         const agentId = cellId[1]
 
-        console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
+        console.log(
+          'setting signed in agent key',
+          Buffer.from(agentId).toString('base64')
+        )
         commit('setAgentKey', Buffer.from(agentId))
 
         dispatch('elementalChat/initializeAgent', null, { root: true })
@@ -237,9 +257,7 @@ export default {
   },
   mutations: {
     setAgentKey (state, payload) {
-      state.agentKey = payload
-        ? toUint8Array(payload)
-        : null
+      state.agentKey = payload ? toUint8Array(payload) : null
     },
     setAppInterface (state, payload) {
       state.appInterface = payload
