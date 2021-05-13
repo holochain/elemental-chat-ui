@@ -68,6 +68,9 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
   if (!state.isHoloSignedIn) {
     try {
+      console.log('!!!!!!!!!!!! Calling sign-up... no holoClient');
+      console.log('!!!!!!!!!!!! holoClient', holoClient );
+
       await holoClient.signIn()
       commit('setIsHoloSignedIn', true)
     } catch (e) {
@@ -75,6 +78,9 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       return
     }
     const appInfo = await holoClient.appInfo()
+
+    console.log('>>>>>>> App Info: ', appInfo)
+
     const [cell] = appInfo.cell_data
     const { cell_id: cellId, cell_nick: dnaAlias } = cell
 
