@@ -92,14 +92,12 @@ export const handleSignal = (signal, dispatch) => {
 }
 
 const handleListMessagesResult = (commit, channelId, messages) => {
-  messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
-  messages = messages.map((msg) => {
-    msg.createdBy = toUint8Array(msg.createdBy)
-    return msg
-  })
   commit('addMessagesToChannel', {
     channelId,
-    messages
+    messages: messages.map((msg) => {
+      msg.createdBy = toUint8Array(msg.createdBy)
+      return msg
+    }).sort((a, b) => a.createdAt[0] - b.createdAt[0])
   })
 }
 
