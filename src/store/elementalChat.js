@@ -181,7 +181,7 @@ export default {
       callZome(dispatch, rootState, 'chat', 'list_all_messages', payload, 50000)
         .then(async result => {
           if (result) {
-            let channels = result.channelMessages.map( (e) => e.channel)
+            let channels = result.map( (e) => e.channel)
             commit('addChannels', channels)
 
             // if current channel is the empty channel, join the first channel in the channel list
@@ -189,7 +189,7 @@ export default {
               dispatch('joinChannel', channels[0].entry.uuid)
             }
 
-            result.channelMessages.forEach((e) => {
+            result.forEach((e) => {
               handleListMessagesResult(commit, e.channel.entry.uuid, e.messages)
             })
           }
