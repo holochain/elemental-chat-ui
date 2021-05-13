@@ -77,6 +77,13 @@ For test hosted context:
 build-holo-scale-test
 ```
 
+## Self-hosted release:
+1. Edit `scripts/release-builds.sh` for correct DNA id
+1. Run: `scripts/release-builds.sh`
+1. Create release on github and upload created `.zip` artifacts
+1. Edit release URL value in holo-nixpkgs and create branch
+1. Test on holoport after hydra builds
+
 ## Contribute
 
 Holochain is an open source project. We welcome all sorts of participation and are actively working on increasing surface area to accept it. Please see our [contributing guidelines](/CONTRIBUTING.md) for our general practices and protocols on participating in the community, as well as specific expectations around things like code formatting, testing practices, continuous integration, etc.

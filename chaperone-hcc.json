@@ -1,0 +1,14 @@
+{
+  "app_id": "uhCkk2eL-bMIPPn7XyvwSMDtrbn5EVeQf_Qvu3zjtqepvoHBuvOYB",
+  "log_level": true,
+  "connection": {
+    "secure": false,
+    "host": "localhost",
+    "port": 42233,
+    "path": "/hosting/"
+  },
+  "mode": 2,
+  "web_user_legend": {
+    "test@holo.host": "uhCAk-Q9cK_DXlsO2q3W88SxBB3r-EgrAlYZ34AZUEduaNr6Q-kKw"
+  }
+}

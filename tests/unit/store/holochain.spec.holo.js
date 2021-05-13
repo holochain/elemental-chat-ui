@@ -1,13 +1,16 @@
 /* global jest, it, describe, expect, beforeAll, afterAll */
 import { createLocalVue } from '@vue/test-utils'
 import { getStubbedStore, DNA_HASH_MOCK, AGENT_KEY_MOCK } from '../../mock-helpers'
+import { Connection } from '@holo-host/web-sdk'
 import { isHoloHosted } from '@/utils'
 import Vuex from 'vuex'
 import wait from 'waait'
 
-jest.mock('@/store/callZome')
-
 const MockConductor = require('@holo-host/mock-conductor')
+
+jest.mock('@/store/callZome')
+jest.genMockFromModule('@holo-host/web-sdk')
+jest.mock('@holo-host/web-sdk')
 
 describe('holochain store in holo env', () => {
   let stubbedStore, appConductor
@@ -28,14 +31,22 @@ describe('holochain store in holo env', () => {
 
   afterAll(async () => {
     await appConductor.close()
+    jest.clearAllMocks()
   })
 
   it('handles initalizing Holo Client', async () => {
-    await stubbedStore.dispatch('holochain/initialize') // mock init
+    Connection.mockImplementation(() => ({
+      ready: jest.fn((_) => Promise.resolve(true)),
+      appInfo: jest.fn((_) => Promise.resolve({ cell_data: [{ cell_id: 'cellId', cell_nick: 'dnaAlias' }] })),
+      addListener: jest.fn(() => {})
+    }))
+    // mock init fn
+    await stubbedStore.dispatch('holochain/initialize')
     await wait(1000)
     expect(stubbedStore.state.holochain.agentKey).toEqual(AGENT_KEY_MOCK)
     await wait(2000)
-    expect(stubbedStore.state.holochain.isHoloSignedIn).toEqual(true)
+    expect(Connection.mock.calls.length).toEqual(1)
+    expect(Connection.mock.instances.length).toEqual(1)
   })
 
   it('creates the correct in Holo Environment flag for initialize fn and zomeCalls', async () => {

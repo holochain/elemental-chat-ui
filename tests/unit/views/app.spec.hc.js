@@ -25,7 +25,7 @@ describe('App with store stubs and mocks', () => {
   }
 
   beforeAll(() => {
-    appConductor = new MockConductor(9090, 8080)
+    appConductor = new MockConductor(9090, 9091)
     appConductor.any(MOCK_CELL_DATA)
     createLocalVue().use(Vuex)
     getStubbedMutations({
@@ -41,7 +41,7 @@ describe('App with store stubs and mocks', () => {
       firstConnect: false,
       reconnectingIn: 0,
       appInterface: {
-        port: 8080,
+        port: 9091,
         appId: 'elemental-chat',
         cellId: [DNA_HASH_MOCK, AGENT_KEY_MOCK],
         appVersion: process.env.VUE_APP_UI_VERSION

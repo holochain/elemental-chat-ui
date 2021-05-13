@@ -1,3 +1,5 @@
+import wait from 'waait'
+
 export const arrayBufferToBase64 = buffer => {
   let binary = ''
   const bytes = new Uint8Array(buffer)
@@ -34,13 +36,38 @@ export const retryIfSourceChainHeadMoved = async call => {
       val.type === 'error' &&
       val.payload &&
       val.payload.message &&
-      val.payload.message.includes('head moved')
+      val.payload.message.includes('source chain head has moved')
     console.log('isHeadMovedError', isHeadMovedError)
     if (isHeadMovedError) {
       intervalMs *= (2 + Math.random())
-      await delay(intervalMs)
+      await wait(intervalMs)
     } else {
       return val
+    }
+  }
+}
+
+export class UndefinedClientError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'UndefinedClientError'
+  }
+}
+
+export const retryUntilClientIsDefined = async (call, maxTries = 20) => {
+  let tries = 0
+  while (true) {
+    let val
+    try {
+      tries++
+      val = await call()
+      return val
+    } catch (e) {
+      if (e instanceof UndefinedClientError && tries < maxTries) {
+        await wait(500)
+      } else {
+        return val
+      }
     }
   }
 }

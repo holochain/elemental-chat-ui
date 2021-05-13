@@ -11,7 +11,7 @@ module.exports = {
     "\\.(p12|pdf|otf|ttf)$": "<rootDir>/config/bufferTransform.js"
   },
   transformIgnorePatterns: [
-    "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",
+    "/node_modules/(?!vue-loading-spinner)",
     "^.+\\.module\\.(css|sass|scss)$"
   ],
   modulePaths: ["<rootDir>/src/", "<rootDir>"],
