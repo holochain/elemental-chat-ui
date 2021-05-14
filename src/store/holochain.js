@@ -28,8 +28,11 @@ function createHoloClient (webSdkConnection) {
   return {
     signUp: (...args) => webSdkConnection.signUp(...args),
     signIn: (...args) => {
-      console.log('^^^^^^^^^ calling signin inside holoClient', webSdkConnection.signIn)
-      webSdkConnection.signIn(...args)
+      console.log(
+        '^^^^^^^^^ calling signin inside holoClient',
+        webSdkConnection.signIn
+      )
+      return webSdkConnection.signIn(...args)
     },
     signOut: (...args) => webSdkConnection.signOut(...args),
     appInfo: (...args) => webSdkConnection.appInfo(...args),
@@ -84,7 +87,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   if (!state.isHoloSignedIn) {
     try {
       console.log('^^^^^^^^^^^ EC-UI about to signin - initialize')
-      const result = await state.holoClient.signIn()
+      const result = await holoClient.signIn()
       console.log('^^^^^^^^^^^ EC-UI finished signin - initialize', result)
       commit('setIsHoloSignedIn', true)
     } catch (e) {
