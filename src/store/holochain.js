@@ -80,7 +80,9 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
   if (!state.isHoloSignedIn) {
     try {
-      await holoClient.signIn()
+      console.log('^^^^^^^^^^^ EC-UI about to signin - initialize')
+      const result = await state.holoClient.signIn()
+      console.log('^^^^^^^^^^^ EC-UI finished signin - initialize', result)
       commit('setIsHoloSignedIn', true)
     } catch (e) {
       commit('setIsChaperoneDisconnected', true)
@@ -225,9 +227,15 @@ export default {
       commit('setAgentKey', null)
       if (!state.holoClient) return
 
-      await state.holoClient.signOut()
+      console.log('^^^^^^^^^^^ EC-UI about to signout')
+      const result = await state.holoClient.signOut()
+      console.log('^^^^^^^^^^^ EC-UI finished signout', result)
+
       commit('setIsChaperoneDisconnected', false)
       try {
+        console.log('^^^^^^^^^^^ EC-UI about to signin')
+        const result = await state.holoClient.signIn()
+        console.log('^^^^^^^^^^^ EC-UI finished signin', result)
         await state.holoClient.signIn()
 
         commit('setIsHoloSignedIn', true)
@@ -250,6 +258,7 @@ export default {
 
         dispatch('elementalChat/initializeAgent', null, { root: true })
       } catch (e) {
+        console.log('error signing in after logout', inspect(e))
         commit('setIsChaperoneDisconnected', true)
       }
     },
