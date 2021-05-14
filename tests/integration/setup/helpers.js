@@ -4,21 +4,31 @@ import { INSTALLED_APP_ID } from '@/consts'
 import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
 
-export const waitForState = async (stateChecker, desiredState, pollingInterval = 1000) => {
-  return new Promise(resolve => {
-    const poll = setInterval(() => {
-      const currentState = stateChecker()
-      if (currentState === desiredState) {
-        console.log('State polling complete...')
-        clearInterval(poll)
-        resolve(currentState)
-      }
-      if (stateChecker() === undefined) {
-        console.log('Current state is undefined. Verify that the zomeCall fn name is accurate and check to see that the call logs are still being output to the console.')
-      }
-      console.log(`Polling again. Current State: ${stateChecker()} | Desired state: ${desiredState}`)
-    }, pollingInterval)
-  })
+export const waitForState = async (stateChecker, desiredState, callName, callRegistryCb = () => null, pollingInterval = 1000, timeout = 9000) => {
+  return Promise.race([
+    new Promise(resolve => {
+      const poll = setInterval(() => {
+        const currentState = stateChecker()
+        if (currentState === desiredState) {
+          console.log('State polling complete...')
+          clearInterval(poll)
+          resolve(currentState)
+        }
+        if (stateChecker() === undefined) {
+          const registry = callRegistryCb()
+          console.log('callRegistry : ', registry)
+          console.log(`Current state for ${callName} is undefined. Verify that the zomeCall fn name is accurate and check to see that the call logs are still being output to the console.`)
+        }
+        console.log(`Polling again for ${callName}. Current State: ${stateChecker()} | Desired state: ${desiredState}`)
+      }, pollingInterval)
+    }),
+    new Promise((resolve, reject) => {
+      let waitId = setTimeout(() => {
+        clearTimeout(waitId);
+        resolve(new Error(`Unsuccessfully polled call state of ${callName} for ${timeout} ms.`))
+      }, timeout)
+    })
+  ])
 }
 
 /// Puppeteer helpers:

@@ -34,7 +34,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     stats = { ...stats, channels: stats.channels + 1 }
     // wait for refresh chatter call response (initiated on page load)
     const checkRefreshChatterState = () => callRegistry['chat.refresh_chatter']
-    await waitForState(checkRefreshChatterState, 'done')
+    await waitForState(checkRefreshChatterState, 'done', 'chat.refresh_chatter')
     stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
 
     const installedApps = await conductor.adminWs().listActiveApps()
@@ -120,7 +120,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // wait for create call response / load
       const checkNewChannelState = () => callRegistry['chat.create_channel']
-      await waitForState(checkNewChannelState, 'done')
+      await waitForState(checkNewChannelState, 'done', 'chat.create_channel')
 
       // check for new channel title on page
       const channels = await page.$eval('.channels-container', el => el.children)
@@ -212,10 +212,11 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       await page.focus('textarea')
       await page.keyboard.type(newMessageContent(), { delay: 100 })
       // press 'Enter' to submit
+
       page.keyboard.press(String.fromCharCode(13))
 
       const checkNewMessageState = () => callRegistry['chat.create_message']
-      await waitForState(checkNewMessageState, 'done')
+      await waitForState(checkNewMessageState, 'done', 'chat.create_message', () => callRegistry)
 
       // bobbo (tryorama node) verifies new message is in list of messages from the dht
       const createNewMessage = async () => await bobboChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
