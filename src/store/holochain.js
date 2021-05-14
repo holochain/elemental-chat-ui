@@ -84,7 +84,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   if (!state.isHoloSignedIn) {
     try {
       console.log('^^^^^^^^^^^ EC-UI about to signin - initialize')
-      const result = await state.holoClient.signIn()
+      const result = await holoClient.signIn()
       console.log('^^^^^^^^^^^ EC-UI finished signin - initialize', result)
       commit('setIsHoloSignedIn', true)
     } catch (e) {
