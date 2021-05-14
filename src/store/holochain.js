@@ -28,8 +28,11 @@ function createHoloClient (webSdkConnection) {
   return {
     signUp: (...args) => webSdkConnection.signUp(...args),
     signIn: (...args) => {
-      console.log('^^^^^^^^^ calling signin inside holoClient', webSdkConnection.signIn)
-      webSdkConnection.signIn(...args)
+      console.log(
+        '^^^^^^^^^ calling signin inside holoClient',
+        webSdkConnection.signIn
+      )
+      return webSdkConnection.signIn(...args)
     },
     signOut: (...args) => webSdkConnection.signOut(...args),
     appInfo: (...args) => webSdkConnection.appInfo(...args),
