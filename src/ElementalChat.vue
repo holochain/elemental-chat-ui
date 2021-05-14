@@ -160,7 +160,7 @@ export default {
   methods: {
     ...mapMutations('elementalChat', ['setNeedsHandle']),
     ...mapActions('elementalChat', [
-      'listChannels',
+      'listAllMessages',
       'getStats',
       'getProfile',
       'updateProfile'
@@ -214,9 +214,9 @@ export default {
       if (!val) {
         // TODO: rather than just catching and logging this error, we should properly be waiting for holoClient to be ready before calling this.
         try {
-          this.listChannels({ category: 'General' })
+          this.listAllMessages()
         } catch (e) {
-          console.error('Error calling listChannels', e)
+          console.error('Error calling listAllMessages', e)
         }
       }
     }
