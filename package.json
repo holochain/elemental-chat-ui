@@ -74,7 +74,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.13.1",
-    "@holo-host/chaperone": "file:/home/liza/Documents/old-gitrepos/holo/rust-compatible/holo-web-arch/chaperone",
+    "@holo-host/chaperone": "file:/home/liza/Documents/gitrepos/holochain/holo/chaperone",
     "@holochain/tryorama": "^0.4.1",
     "@testing-library/vue": "^5.6.1",
     "@vue/cli-plugin-babel": "~4.5.0",
