@@ -10,6 +10,7 @@ import {
 } from '@/consts'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
+import { inspect } from 'util'
 
 console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
@@ -85,7 +86,11 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
+
     const appInfo = await holoClient.appInfo()
+    if (appInfo.type === 'error') {
+      throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
+    }
     const [cell] = appInfo.cell_data
     const { cell_id: cellId, cell_nick: dnaAlias } = cell
 
