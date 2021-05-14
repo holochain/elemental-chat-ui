@@ -27,7 +27,10 @@ if (WEB_CLIENT_URI !== undefined) {
 function createHoloClient (webSdkConnection) {
   return {
     signUp: (...args) => webSdkConnection.signUp(...args),
-    signIn: (...args) => webSdkConnection.signIn(...args),
+    signIn: (...args) => {
+      console.log('^^^^^^^^^ calling signin inside holoClient', webSdkConnection.signIn)
+      webSdkConnection.signIn(...args)
+    },
     signOut: (...args) => webSdkConnection.signOut(...args),
     appInfo: (...args) => webSdkConnection.appInfo(...args),
     ready: (...args) => webSdkConnection.ready(...args),
