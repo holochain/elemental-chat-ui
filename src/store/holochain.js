@@ -80,9 +80,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
   if (!state.isHoloSignedIn) {
     try {
-      console.log('^^^^^^^^^^^ EC-UI about to signin - initialize')
-      const result = await holoClient.signIn()
-      console.log('^^^^^^^^^^^ EC-UI finished signin - initialize', result)
+      await holoClient.signIn()
       commit('setIsHoloSignedIn', true)
     } catch (e) {
       commit('setIsChaperoneDisconnected', true)
@@ -227,15 +225,10 @@ export default {
       commit('setAgentKey', null)
       if (!state.holoClient) return
 
-      console.log('^^^^^^^^^^^ EC-UI about to signout')
-      const result = await state.holoClient.signOut()
-      console.log('^^^^^^^^^^^ EC-UI finished signout', result)
+      await state.holoClient.signOut()
 
       commit('setIsChaperoneDisconnected', false)
       try {
-        console.log('^^^^^^^^^^^ EC-UI about to signin')
-        const result = await state.holoClient.signIn()
-        console.log('^^^^^^^^^^^ EC-UI finished signin', result)
         await state.holoClient.signIn()
 
         commit('setIsHoloSignedIn', true)
