@@ -31,6 +31,14 @@ export const waitForState = async (stateChecker, desiredState, callName, callReg
   ])
 }
 
+export const handleZomeCall = async (fn, params) => {
+  try {
+    return await fn(...params)
+  } catch (error) {
+    throw new Error(`Error when calling ${params[0]}.${params[1]}: ${error.toString()}`)
+  }
+}
+
 /// Puppeteer helpers:
 // --------------------
 export const takeScreenshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` })
