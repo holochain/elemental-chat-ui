@@ -208,11 +208,10 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       newMessage.channel = channelInFocus.entry
       newMessage.entry.content = 'Hello from Alice, the native holochain user on the shared network. :)'
 
-      // alice (web) sends a message
+      // alice (web) sends a message      
       await page.focus('textarea')
       await page.keyboard.type(newMessageContent(), { delay: 100 })
       // press 'Enter' to submit
-
       page.keyboard.press(String.fromCharCode(13))
 
       const checkNewMessageState = () => callRegistry['chat.create_message']
