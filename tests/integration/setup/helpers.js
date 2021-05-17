@@ -15,10 +15,10 @@ export const waitForState = async (stateChecker, desiredState, callName, callReg
           resolve(currentState)
         }
         if (stateChecker() === undefined) {
-          const registry = callRegistryCb()
-          console.log('callRegistry : ', registry)
           console.log(`Current state for ${callName} is undefined. Verify that the zomeCall fn name is accurate and check to see that the call logs are still being output to the console.`)
         }
+        const registry = callRegistryCb()
+        console.log('callRegistry : ', registry)
         console.log(`Polling again for ${callName}. Current State: ${stateChecker()} | Desired state: ${desiredState}`)
       }, pollingInterval)
     }),
