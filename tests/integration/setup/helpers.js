@@ -24,7 +24,6 @@ export const waitForState = async (stateChecker, desiredState, callName, callReg
     }),
     new Promise((resolve, reject) => {
       let waitId = setTimeout(() => {
-        clearTimeout(waitId);
         resolve(new Error(`Unsuccessfully polled call state of ${callName} for ${timeout} ms.`))
       }, timeout)
     })
