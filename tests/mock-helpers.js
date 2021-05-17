@@ -148,7 +148,7 @@ export const getStubbedMutations = (mutationStubs = {}) => {
 }
 
 export const getStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, actions = stubbedActions, mutations = stubbedMutations, opts = {}) => {
-  const { callLoading, additionalChannels } = opts
+  const { callLoading, additionalChannels, currentChannel } = opts
   if (JSON.stringify(actions) === '{}') {
     actions = getStubbedActions()
   }
@@ -172,7 +172,7 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
       elementalChat: {
         namespaced: true,
         state: chatState,
-        actions: { ...actions.chat, listChannels: () => Promise.resolve(channelsList) },
+        actions: { ...actions.chat, listChannels: () => Promise.resolve(channelsList), listAllMessages: () => Promise.resolve(channelsList.map(channel => ({ channel, messages: channel.messages })))  },
         mutations: { ...mutations.chat },
         getters: {
           createMessageLoading: () => callLoading || false,
