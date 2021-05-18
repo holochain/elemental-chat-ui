@@ -35,11 +35,12 @@ jobs:
       run: nix-shell --command "holochain -V"
     - name: Install node-modules
       run: yarn install
-    - name: Run unit tests ENV=holochain
-      run: yarn test:ci-unit-hc
     - name: Run unit tests ENV=holo
       run: yarn test:ci-unit-holo
-    - name: Run integration tests ENV=holochain
-      run: nix-shell --run 'yarn test:ci-integration-hc'
+    - name: Run unit tests ENV=holochain
+      run: yarn test:ci-unit-hc
     - name: Run integration tests ENV=holo
       run: yarn test:ci-integration-holo
+    - name: Run integration tests ENV=holochain
+      run: nix-shell --run 'yarn test:ci-integration-hc'
+

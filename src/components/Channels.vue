@@ -12,7 +12,7 @@
             icon
             v-bind="attrs"
             v-on="on"
-            @click="listChannels({ category: 'General' })"
+            @click="listAllMessages()"
             small
             aria-label="Refresh App"
           >
@@ -102,7 +102,7 @@ export default {
   methods: {
     ...mapActions('elementalChat', [
       'createChannel',
-      'listChannels',
+      'listAllMessages',
       'joinChannel'
     ]),
     handleCreateChannel (input) {

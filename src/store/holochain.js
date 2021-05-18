@@ -10,6 +10,7 @@ import {
 } from '@/consts'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
+import { inspect } from 'util'
 
 console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
@@ -53,6 +54,17 @@ const initializeClientHolo = async (commit, dispatch, state) => {
         info_link: 'https://holo.host/faq-tag/elemental-chat'
       }
     )
+
+    webSdkConnection.addListener('disconnected', () =>
+      commit('setIsChaperoneDisconnected', true)
+    )
+    webSdkConnection.addListener('signin', () =>
+      commit('setIsChaperoneDisconnected', false)
+    )
+    webSdkConnection.addListener('signup', () =>
+      commit('setIsChaperoneDisconnected', false)
+    )
+
     holoClient = createHoloClient(webSdkConnection)
   } else {
     holoClient = state.holoClient
@@ -77,10 +89,14 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       commit('setIsChaperoneDisconnected', true)
       return
     }
+
     const appInfo = await holoClient.appInfo()
 
     console.log('>>>>>>> App Info: ', appInfo)
 
+    if (appInfo.type === 'error') {
+      throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
+    }
     const [cell] = appInfo.cell_data
     const { cell_id: cellId, cell_nick: dnaAlias } = cell
 
@@ -88,7 +104,10 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     const [dnaHash, agentId] = cellId
     commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
 
-    console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
+    console.log(
+      'setting signed in agent key',
+      Buffer.from(agentId).toString('base64')
+    )
     commit('setAgentKey', Buffer.from(agentId))
 
     const { url } = await holoClient.holoInfo()
@@ -102,8 +121,11 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    const holochainClient = await AppWebsocket.connect(WEB_CLIENT_URI, 20000, signal =>
-      handleSignal(signal, dispatch))
+    const holochainClient = await AppWebsocket.connect(
+      WEB_CLIENT_URI,
+      20000,
+      signal => handleSignal(signal, dispatch)
+    )
     const appInfo = await holochainClient.appInfo({
       installed_app_id: INSTALLED_APP_ID
     })
@@ -210,6 +232,7 @@ export default {
       if (!state.holoClient) return
 
       await state.holoClient.signOut()
+
       commit('setIsChaperoneDisconnected', false)
       try {
         await state.holoClient.signIn()
@@ -220,17 +243,21 @@ export default {
         const [cell] = appInfo.cell_data
         let cellId
         if (Array.isArray(cell)) {
-          [cellId] = cell
+          ;[cellId] = cell
         } else {
           cellId = cell.cell_id
         }
         const agentId = cellId[1]
 
-        console.log('setting signed in agent key', Buffer.from(agentId).toString('base64'))
+        console.log(
+          'setting signed in agent key',
+          Buffer.from(agentId).toString('base64')
+        )
         commit('setAgentKey', Buffer.from(agentId))
 
         dispatch('elementalChat/initializeAgent', null, { root: true })
       } catch (e) {
+        console.log('error signing in after logout', inspect(e))
         commit('setIsChaperoneDisconnected', true)
       }
     },
@@ -243,9 +270,7 @@ export default {
   },
   mutations: {
     setAgentKey (state, payload) {
-      state.agentKey = payload
-        ? toUint8Array(payload)
-        : null
+      state.agentKey = payload ? toUint8Array(payload) : null
     },
     setAppInterface (state, payload) {
       state.appInterface = payload

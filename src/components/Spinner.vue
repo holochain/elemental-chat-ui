@@ -3,12 +3,12 @@
 </template>
 
 <script>
-// const { Circle2 } = require('vue-loading-spinner')
+const { Circle2 } = require('vue-loading-spinner')
 
 export default {
   name: 'Spinner',
   components: {
-    Circle2: () => require('vue-loading-spinner')
+    Circle2
   },
   props: {
     size: String
