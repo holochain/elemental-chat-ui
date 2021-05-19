@@ -126,6 +126,10 @@ export default {
       const tryToGetProfile = () => {
         if (rootState.holochain.conductorDisconnected) {
           setTimeout(tryToGetProfile, 1000)
+        } else if (!rootState.holochain.dnaAlias) {
+          // Note: it is possible for the condcutor to be connected, but the dnaAlias not yet defined
+          //  ** we must wait dnaAlias to exist in order to make a valid call
+          setTimeout(tryToGetProfile, 1000)
         } else {
           dispatch('getProfile')
         }
