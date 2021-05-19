@@ -1,6 +1,6 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
 import { stubElement } from '../../test-utils'
-import { AGENT_KEY_MOCK, DNA_HASH_MOCK, getStubbedActions, getStubbedMutations, resetHolochainState, resetAgentState, resetChatState, getStubbedStore, mockChatState } from '../../mock-helpers'
+import { AGENT_KEY_MOCK, DNA_HASH_MOCK, createNewChannel, getStubbedActions, getStubbedMutations, resetHolochainState, resetAgentState, resetChatState, getStubbedStore, mockChatState } from '../../mock-helpers'
 import { createLocalVue } from '@vue/test-utils'
 import Vuex from 'vuex'
 import Vue from 'vue'
@@ -90,5 +90,51 @@ describe('App with store stubs and mocks', () => {
     await wrapper.find('[aria-label="Reconnect Now Button"]').vm.$emit('click')
     await wait(2000)
     expect(stubbedStore.dispatch.mock.calls[2][0]).toEqual('holochain/skipBackoff')
+  })
+
+  it('displays proper modal when reconnecting to holochain ', async () => {
+    const disconnectedHolochainState = {
+      ...holochainState,
+      conductorDisconnected: true,
+      firstConnect: false,
+      reconnectingIn: 0,
+      holoClient: null,
+      isHoloSignedIn: true,
+      isChaperoneDisconnected: false
+    }
+    stubbedStore = getStubbedStore(null, disconnectedHolochainState)
+    stubbedStore.dispatch = jest.fn()
+    const wrapper = stubElement(App, stubbedStore)
+    await wait(2000)
+    expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
+
+    await stubbedStore.dispatch('holochain/resetConnectionState')
+    expect(stubbedStore.dispatch).toHaveBeenCalledWith('holochain/resetConnectionState')
+    // check that reconnecting modal appears
+    const reconnectionModal = await wrapper.find('[aria-label="Reconnecting to Holochain Dialog"]')
+    expect(reconnectionModal).toBeTruthy()
+  })
+
+  it('displays proper modal when unable to connect to holoport ', async () => {
+    const disconnectedHolochainState = {
+      ...holochainState,
+      conductorDisconnected: true,
+      firstConnect: false,
+      reconnectingIn: 0,
+      holoClient: null,
+      isHoloSignedIn: true,
+      isChaperoneDisconnected: false
+    }
+    stubbedStore = getStubbedStore(null, disconnectedHolochainState)
+    stubbedStore.dispatch = jest.fn()
+    const wrapper = stubElement(App, stubbedStore)
+    await wait(2000)
+    expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
+
+    await stubbedStore.dispatch('holochain/signalHoloDisconnect')
+    expect(stubbedStore.dispatch).toHaveBeenCalledWith('holochain/signalHoloDisconnect')
+    // check that hp disconnection modal appears
+    const disconnectedModal = await wrapper.find('[aria-label="Connecting to Holo Dialog"]')
+    expect(disconnectedModal).toBeTruthy()
   })
 })
