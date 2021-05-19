@@ -8,8 +8,9 @@ const signalHoloDisconnect = async (state, dispatch) => {
   dispatch('holochain/resetConnectionState', null, { root: true })
   // give time for reconnect (convert to ms)
   await wait(RECONNECT_SECONDS * 1000)
-  if (state.holoClient) return
-  else return dispatch('holochain/signalHoloDisconnect', null, { root: true })
+  if (!state.holoClient) {
+    dispatch('holochain/signalHoloDisconnect', null, { root: true })
+  }
 }
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {

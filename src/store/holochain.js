@@ -44,7 +44,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   let holoClient
 
   if (!state.holoClient) {
-    log('establishing connecting to holoClient')
+    log('establishing connection to holoClient')
     let webSdkConnection
     try {
       webSdkConnection = new WebSdkConnection(
