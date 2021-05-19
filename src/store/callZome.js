@@ -1,5 +1,16 @@
 import { isHoloHosted, log } from '@/utils'
 import { logZomeCall, actionType, UndefinedClientError } from '@/store/utils'
+import { RECONNECT_SECONDS } from '@/consts'
+import wait from 'waait'
+
+let undefinedClientCount = 0
+const signalHoloDisconnect = async (state, dispatch) => {
+  dispatch('holochain/resetConnectionState', null, { root: true })
+  // give time for reconnect (convert to ms)
+  await wait(RECONNECT_SECONDS * 1000)
+  if (state.holoClient) return
+  else return dispatch('holochain/signalHoloDisconnect', null, { root: true })
+}
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
   if (!state.holoClient) throw new UndefinedClientError('Attempted callZomeHolo before holoClient is defined')
@@ -51,16 +62,30 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     // Note: Do not remove this log. See /store/utils fore more info.
     logZomeCall(zomeName, fnName, actionType.DONE)
 
+    if (result?.type === 'error') {
+      throw new Error(result.payload.message)
+    }
+
     if (LOG_ZOME_CALLS) {
       log(`${zomeName}.${fnName} result`, result)
     }
     return result
   } catch (e) {
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
-    if (e === 'Error: Socket is not open') {
-      return dispatch('resetConnectionState', null, { root: true })
+    if (e.toString().includes('Socket is not open')) {
+      log('Socket is not open. Resetting connection state...')
+      return dispatch('holochain/resetConnectionState', null, { root: true })
     }
     if (e instanceof UndefinedClientError) {
+      undefinedClientCount++
+      if (state.isHoloSignedIn) {
+        log('holoClient should be defined but is not found.  Resetting connection state...')
+        return await signalHoloDisconnect(state, dispatch)
+      } else if (undefinedClientCount > 5) {
+        undefinedClientCount = 0
+        log('Consistently unable to connect to holoClient.  Resetting connection state...')
+        return await signalHoloDisconnect(state, dispatch)
+      }
       throw e
     }
   } finally {

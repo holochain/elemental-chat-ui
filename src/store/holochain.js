@@ -40,20 +40,27 @@ function createHoloClient (webSdkConnection) {
 let isInitializingHolo = false
 const initializeClientHolo = async (commit, dispatch, state) => {
   if (isInitializingHolo) return
-
   isInitializingHolo = true
   let holoClient
 
   if (!state.holoClient) {
-    const webSdkConnection = new WebSdkConnection(
-      process.env.VUE_APP_CHAPERONE_SERVER_URL,
-      signal => handleSignal(signal, dispatch),
-      {
-        logo_url: 'img/ECLogoWhiteMiddle.png',
-        app_name: 'Elemental Chat',
-        info_link: 'https://holo.host/faq-tag/elemental-chat'
-      }
-    )
+    log('establishing connecting to holoClient')
+    let webSdkConnection
+    try {
+      webSdkConnection = new WebSdkConnection(
+        process.env.VUE_APP_CHAPERONE_SERVER_URL,
+        signal => handleSignal(signal, dispatch),
+        {
+          logo_url: 'img/ECLogoWhiteMiddle.png',
+          app_name: 'Elemental Chat',
+          info_link: 'https://holo.host/faq-tag/elemental-chat'
+        }
+      )
+    } catch (e) {
+      console.error('unable to complete websdk connection. Error: ', e)
+      commit('setIsChaperoneDisconnected', true)
+      return
+    }
 
     webSdkConnection.addListener('disconnected', () =>
       commit('setIsChaperoneDisconnected', true)
@@ -73,11 +80,13 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   try {
     await holoClient.ready()
   } catch (e) {
-    console.error(e)
+    console.error('holoClient failed to complete ready(). Error: ', e)
     commit('setIsChaperoneDisconnected', true)
     return
   }
 
+  // this assumes that all cases will be signed-in
+  // TODO: update to handle anonymous
   if (!state.isHoloSignedIn) {
     try {
       await holoClient.signIn()
@@ -87,6 +96,8 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       return
     }
 
+    commit('setHoloClient', holoClient)
+
     const appInfo = await holoClient.appInfo()
     if (appInfo.type === 'error') {
       throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
@@ -94,7 +105,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     const [cell] = appInfo.cell_data
     const { cell_id: cellId, cell_nick: dnaAlias } = cell
 
-    commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
+    commit('setDnaAlias', dnaAlias)
     const [dnaHash, agentId] = cellId
     commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
 
@@ -213,6 +224,11 @@ export default {
         }
       }, 1000)
     },
+    signalHoloDisconnect ({ commit }) {
+      if (!isHoloHosted()) return log('Attemtped to signal Holo as disconnected when not in Holo Context')
+        commit('setReconnecting', 0)
+        commit('setIsChaperoneDisconnected', true)
+    },
     skipBackoff ({ commit }) {
       commit('setReconnecting', 0)
     },
@@ -285,13 +301,15 @@ export default {
       state.reconnectingIn = -1
       state.firstConnect = false
     },
-    setHoloClientAndDnaAlias (state, payload) {
-      const { holoClient, dnaAlias } = payload
-      console.log('HOLO DNA ALIAS : ', dnaAlias)
-      state.dnaAlias = dnaAlias
-      state.holoClient = holoClient
+    setHoloClient (state, payload) {
+      console.log('holo client: ', payload)
+      state.holoClient = payload
       state.reconnectingIn = -1
       state.firstConnect = false
+    },
+    setDnaAlias (state, payload) {
+      console.log('holo dna alias : ', payload)
+      state.dnaAlias = payload
     },
     setIsHoloSignedIn (state, payload) {
       state.isHoloSignedIn = payload
