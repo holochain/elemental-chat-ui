@@ -47,12 +47,18 @@ export const retryIfSourceChainHeadMoved = async call => {
   }
 }
 
-export class UndefinedClientError extends Error {
-  constructor (message) {
-    super(message)
-    this.name = 'UndefinedClientError'
+class CustomError extends Error {
+  constructor(...params) {
+    super(...params)
+    this.name = this.constructor.name
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor)
+    }
   }
 }
+
+export class UndefinedClientError extends CustomError {}
+export class HoloError extends CustomError {}
 
 export const retryUntilClientIsDefined = async (call, maxTries = 20) => {
   let tries = 0

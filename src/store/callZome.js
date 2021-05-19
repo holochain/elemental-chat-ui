@@ -1,5 +1,5 @@
 import { isHoloHosted, log } from '@/utils'
-import { logZomeCall, actionType, UndefinedClientError } from '@/store/utils'
+import { logZomeCall, actionType, UndefinedClientError, HoloError } from '@/store/utils'
 import { RECONNECT_SECONDS } from '@/consts'
 import wait from 'waait'
 
@@ -15,7 +15,7 @@ const signalHoloDisconnect = async (state, dispatch) => {
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
   if (!state.holoClient) throw new UndefinedClientError('Attempted callZomeHolo before holoClient is defined')
-  else if (!state.dnaAlias) throw new UndefinedClientError('Attempted callZomeHolo before dnaAlias is defined')
+  else if (!state.dnaAlias) throw new HoloError('Attempted callZomeHolo before dnaAlias is defined')
   return state.holoClient.zomeCall(
     state.dnaAlias,
     zomeName,
