@@ -15,6 +15,7 @@ const signalHoloDisconnect = async (state, dispatch) => {
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
   if (!state.holoClient) throw new UndefinedClientError('Attempted callZomeHolo before holoClient is defined')
+  else if (!state.dnaAlias) throw new UndefinedClientError('Attempted callZomeHolo before dnaAlias is defined')
   return state.holoClient.zomeCall(
     state.dnaAlias,
     zomeName,
