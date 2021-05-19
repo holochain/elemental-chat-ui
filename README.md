@@ -31,7 +31,7 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
    2. Thereafter, in the same window, run the dna for the host agent: `yarn hc-host:run`
    3. After the command from step 2 completes, serve the UI for the host agent: `yarn serve:self-hosted`
 ### holo hosting web environment:
-   1. In a second terminal window, spin up your conductor server.  This server can be two options: HCC or DEVELOP.
+   1. In a second terminal window, spin up your Chaperone server.  This server can be two options: HCC or DEVELOP.
        - HCC: Use this mode when connecting to chaperone, but circumventing holo-envoy. The UI will still behave as though in holo-network, but will instead use a local connection to conductor. 
             - This mode requires steps 2 & 3 below. 
             - To spin up chaperone in HCC mode, run: `run:chaperone-hcc`
