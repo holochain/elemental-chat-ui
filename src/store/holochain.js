@@ -307,7 +307,7 @@ export default {
       state.firstConnect = false
     },
     setDnaAlias (state, payload) {
-      console.log('holo dna alias : ', payload)
+      log('holo dna alias : ', payload)
       state.dnaAlias = payload
     },
     setIsHoloSignedIn (state, payload) {
