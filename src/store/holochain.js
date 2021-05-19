@@ -301,7 +301,6 @@ export default {
       state.firstConnect = false
     },
     setHoloClient (state, payload) {
-      console.log('holo client: ', payload)
       state.holoClient = payload
       state.reconnectingIn = -1
       state.firstConnect = false
