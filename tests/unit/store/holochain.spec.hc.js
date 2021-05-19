@@ -47,6 +47,7 @@ describe('holochain store in holochain env', () => {
     expect(isHoloHosted()).toBe(false)
   })
 
+  // tech-debt: update test to follow approach that is not based on timing / system dependant
   it('attempts to reconnect after disconnection ', async () => {
     await appConductor.close()
     stubbedStore.dispatch = jest.fn()
