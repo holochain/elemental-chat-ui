@@ -24,16 +24,23 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
    1. In one terminal window, install and configure the happs for 2 agents: `yarn hc:gen-agents`
    2a. Thereafter, in the same window, run the dna for agent 1: `yarn hc:run-agent-1`
       2b. Optionally, in a second window run the dna for agent 2: `yarn hc:run-agent-2`
-   3a. In another terminal window, serve the UI for agent 1 with: `yarn serve:hc-agent-1`
-      3b. Optionally, in forth terminal window serve the UI for agent 2 with: `yarn serve:hc-agent-2`
+   3a. After the command from step 2 completes, serve the UI for agent 1: `yarn serve:hc-agent-1`
+      3b. Optionally, in the corresponding terminal for agent 2, serve the UI for agent 2: `yarn serve:hc-agent-2`
 ### holo host (self-hosted) environment:
    1. In one terminal window, install and configure the happs for the host agent: `yarn hc-host:gen-agent`
    2. Thereafter, in the same window, run the dna for the host agent: `yarn hc-host:run`
-   3. In a second terminal window, serve the UI for the host agent with: `yarn serve:self-hosted`
+   3. After the command from step 2 completes, serve the UI for the host agent: `yarn serve:self-hosted`
 ### holo hosting web environment:
-   1. In one terminal window, install and configure the happs for the holo-hosted (web user) agent: `yarn hc-holo:gen-agent`
-   2. Thereafter, in the same window, run the dna for the holo-hosted agent: `yarn hc-holo:run`
-   3. In a second terminal window, serve the UI for the host agent with: `yarn serve:self-hosted`
+   1. In a second terminal window, spin up your conductor server.  This server can be two options: HCC or DEVELOP.
+       - HCC: Use this mode when connecting to chaperone, but circumventing holo-envoy. The UI will still behave as though in holo-network, but will instead use a local connection to conductor. 
+            - This mode requires steps 2 & 3 below. 
+            - To spin up chaperone in HCC mode, run: `run:chaperone-hcc`
+       - DEVELOP: Use this mode when connecting to chaperone and envoy, but circumventing the resolvers to assign a host.  You may instead update the host setting in `chaperone-dev.json` file to the address of the holoport you wish to connect to for envoy (and holochain). 
+            - This mode skips steps 2 & 3 below. 
+            - To spin up chaperone in DEVLEOP mode, run: `run:chaperone-dev` 
+   2. ONLY IN HHC MODE: In a second terminal window, install and configure the happs for the holo-hosted (web user) agent: `yarn hc-holo:gen-agent`
+   3. ONLY IN HHC MODE: Thereafter, in the same window, run the dna for the holo-hosted agent: `yarn hc-holo:run`
+   4. In a new terminal window, serve the UI for the host agent in the same terminal window: `yarn serve:self-hosted`
 
 3. When you're done and you want to clean up all the holochain databases that `hc` created in `/tmp`, run one of the following depending on your prior context:
   - holochain: `yarn clear:hc && yarn clear:lair`
