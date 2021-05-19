@@ -62,7 +62,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="shouldDisplayDisconnected" persistent max-width="460" role='dialog' aria-label="Reconnecting to Holochain Dialog">
+      <v-dialog v-model="shouldDisplayHolochainConnecting" persistent max-width="460" role='dialog' aria-label="Reconnecting to Holochain Dialog">
         <v-card>
           <v-card-title class="headline">
             Establishing connection..
@@ -143,7 +143,7 @@ export default {
         !this.shouldDisplayHoloConnecting
       )
     },
-    shouldDisplayDisconnected () {
+    shouldDisplayHolochainConnecting () {
       return this.conductorDisconnected && !this.firstConnect && !this.isChaperoneDisconnected
     },
     shouldDisplayHoloConnecting () {
