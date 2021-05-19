@@ -225,7 +225,6 @@ export default {
       }, 1000)
     },
     signalHoloDisconnect ({ commit }) {
-      if (!isHoloHosted()) return log('Attemtped to signal Holo as disconnected when not in Holo Context')
         commit('setReconnecting', 0)
         commit('setIsChaperoneDisconnected', true)
     },
