@@ -251,16 +251,16 @@ export default {
         }
       }, 1000)
 
-      // timeout initalize client attempt loop at 30min
+      // give up after 30 mins
       const initalizeClientTimeout = 1_800_000 // 30min in ms
       const timeoutId = setTimeout(() => {
-        if (!(state.holochainClient || state.holoClient)){
+        if (state.holochainClient || state.holoClient) {
+          clearTimeout(timeoutId)
+        } else {
           console.error(`Could not initialize ${isHoloHosted() ? 'holo' : 'holochain'} client. Timed out at ${initalizeClientTimeout} ms`)
           clearInterval(intervalId)
           commit('resetConnectionState')
           commit('setReconnecting', 0)
-        } else {
-          clearTimeout(timeoutId)
         }
       }, initalizeClientTimeout);
     },
