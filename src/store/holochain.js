@@ -281,6 +281,7 @@ export default {
       commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
       commit('setAgentKey', null)
+      commit('setDnaHash', null)
 
       if (!state.holoClient) return
 
