@@ -250,7 +250,7 @@ export default {
         }
       }, 1000)
 
-      // timeout initalize client attempt loop at 30min
+      // give up after 30 mins
       const initalizeClientTimeout = 1_800_000 // 30min in ms
       const timeoutId = setTimeout(() => {
         if (!(state.holochainClient || state.holoClient)){
