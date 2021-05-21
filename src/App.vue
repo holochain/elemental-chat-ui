@@ -52,7 +52,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn v-if="isChaperoneDisconnected" text @click="disconnectedHoloLogout" class="logout" aria-label="Logout with Holo">
-              Clear Personal Data
+              Clear Page Data
             </v-btn>
           </v-card-actions>
         </v-card>
