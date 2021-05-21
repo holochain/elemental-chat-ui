@@ -8,6 +8,7 @@ import {
   WEB_CLIENT_PORT,
   WEB_CLIENT_URI
 } from '@/consts'
+import { TimeoutError } from '@/store/utils'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
 import { inspect } from 'util'
@@ -42,7 +43,6 @@ const initializeClientHolo = async (commit, dispatch, state) => {
   if (isInitializingHolo) return
   isInitializingHolo = true
   let holoClient
-
   if (!state.holoClient) {
     log('establishing connection to holoClient')
     let webSdkConnection
@@ -62,7 +62,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       return
     }
 
-    webSdkConnection.addListener('disconnected', () =>
+    webSdkConnection.addListener('disconnected', () => 
       commit('setIsChaperoneDisconnected', true)
     )
     webSdkConnection.addListener('signin', () =>
@@ -77,15 +77,33 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     holoClient = state.holoClient
   }
 
+  const chaperoneReadyTimeout = 5000
   try {
-    await holoClient.ready()
+    // timeout and reset isInitializingHolo - in event where connection went down, allow auto-reconnect
+    await Promise.race([
+      holoClient.ready(),
+      new Promise((resolve, reject) => {
+        let waitId = setTimeout(() => {
+          clearTimeout(waitId)
+          reject(new TimeoutError(`Call to holoClient.ready() timed out after ${chaperoneReadyTimeout / 1000} seconds.`))
+        }, chaperoneReadyTimeout)
+      })
+    ])
   } catch (e) {
+    if (e instanceof TimeoutError || e.toString().includes('TimeoutError')) {
+      if (!state.isChaperoneDisconnected) {
+        log('holoClient failed to complete ready(). Signaling Holo Network as disconnected')
+        dispatch('signalHoloDisconnect')
+      } else {
+        isInitializingHolo = false
+      }
+    }
     console.error('holoClient failed to complete ready(). Error: ', e)
     commit('setIsChaperoneDisconnected', true)
     return
   }
 
-  // this assumes that all cases will be signed-in
+  // tech-debt: this assumes that all cases will be signed-in
   // TODO: update to handle anonymous
   if (!state.isHoloSignedIn) {
     try {
@@ -238,14 +256,19 @@ export default {
       commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
       commit('setAgentKey', null)
+
       if (!state.holoClient) return
 
       await state.holoClient.signOut()
-
       commit('setIsChaperoneDisconnected', false)
-      try {
-        await state.holoClient.signIn()
 
+      try {
+        // tech-debt: this assumes that all use cases will be signed-in
+        // note: isHoloSignedIn can be set prior to this line when in disconnected state
+        //  ** after successful login
+        if (!state.isHoloSignedIn) {
+          await state.holoClient.signIn()
+        }
         commit('setIsHoloSignedIn', true)
 
         const appInfo = await state.holoClient.appInfo()

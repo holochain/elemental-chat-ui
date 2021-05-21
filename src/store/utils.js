@@ -57,6 +57,7 @@ class CustomError extends Error {
   }
 }
 
+export class TimeoutError extends CustomError {}
 export class UndefinedClientError extends CustomError {}
 export class HoloError extends CustomError {}
 
