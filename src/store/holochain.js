@@ -124,6 +124,7 @@ const initializeClientHolo = async (commit, dispatch, state) => {
         throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
       }
     } catch (e) {
+      console.error('appInfo error: ', e)
       commit('setIsChaperoneDisconnected', true)
       return
     }

@@ -136,10 +136,10 @@ export default {
       this.skipBackoff()
     },
     disconnectedHoloLogout () {
-      log('refreshed page to lose display of data')
       window.history.go(0)
+      log('refreshed page')
       this.holoLogout()
-      log('cleared localStorage')
+      log('cleared page data')
     }
   },
   computed: {
