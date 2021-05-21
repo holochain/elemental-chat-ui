@@ -3,6 +3,8 @@ import { logZomeCall, actionType, UndefinedClientError, HoloError } from '@/stor
 import { RECONNECT_SECONDS } from '@/consts'
 import wait from 'waait'
 
+let holoErrorTimeoutId, isTimeoutSet;
+let holoZomeCallErrorCount = 0
 let undefinedClientCount = 0
 const signalHoloDisconnect = async (state, dispatch) => {
   dispatch('holochain/resetConnectionState', null, { root: true })
@@ -16,6 +18,10 @@ const signalHoloDisconnect = async (state, dispatch) => {
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
   if (!state.holoClient) throw new UndefinedClientError('Attempted callZomeHolo before holoClient is defined')
   else if (!state.dnaAlias) throw new HoloError('Attempted callZomeHolo before dnaAlias is defined')
+  else if (holoErrorTimeoutId) {
+    clearTimeout(holoErrorTimeoutId)
+    isTimeoutSet = false
+  }
   return state.holoClient.zomeCall(
     state.dnaAlias,
     zomeName,
@@ -64,7 +70,7 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     // Note: Do not remove this log. See /store/utils fore more info.
     logZomeCall(zomeName, fnName, actionType.DONE)
 
-    if (result?.type === 'error') {
+    if (result instanceof Error || result?.type === 'error') {
       throw new Error(result.payload.message)
     }
 
@@ -74,11 +80,10 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     return result
   } catch (e) {
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
-    if (e.toString().includes('Socket is not open')) {
+    if (e.toString().includes('Socket is not open') || e.toString().includes('Socket not ready') || e.toString().includes('Waited for')) {
       log('Socket is not open. Resetting connection state...')
       return dispatch('holochain/resetConnectionState', null, { root: true })
-    }
-    if (e instanceof UndefinedClientError) {
+    } else if (e instanceof UndefinedClientError) {
       undefinedClientCount++
       if (state.isHoloSignedIn) {
         log('holoClient should be defined but is not found.  Resetting connection state...')
@@ -88,8 +93,25 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
         log('Consistently unable to connect to holoClient.  Resetting connection state...')
         return await signalHoloDisconnect(state, dispatch)
       }
-      throw e
+    } else if (e instanceof HoloError) {
+      holoZomeCallErrorCount++
+      if (holoZomeCallErrorCount === 5) {
+        holoZomeCallErrorCount = 0
+        // create timeout for error loop at 15min
+        if (!isTimeoutSet) {
+          const errorTimeout = 900_000 // 15min in ms
+          holoErrorTimeoutId = setTimeout(() => {
+            console.error(`Could not connect to DNA via holoClient. Timed out at ${errorTimeout} ms`)
+            dispatch('holochain/skipBackoff', null, { root: true })
+            dispatch('holochain/resetConnectionState', null, { root: true })
+          }, errorTimeout)
+          isTimeoutSet = true
+        }
+        log('Consistently unable to make zome call via holoClient.  Signaling Holo disconnection error.')
+        return dispatch('holochain/signalHoloDisconnect', null, { root: true })
+      }
     }
+    throw e
   } finally {
     dispatch('holochain/callIsNotLoading', fnName, { root: true })
   }
