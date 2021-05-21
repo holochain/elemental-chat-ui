@@ -116,10 +116,18 @@ const initializeClientHolo = async (commit, dispatch, state) => {
 
     commit('setHoloClient', holoClient)
 
-    const appInfo = await holoClient.appInfo()
-    if (appInfo.type === 'error') {
-      throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
+    let appInfo
+    try {
+      appInfo = await holoClient.appInfo()
+
+      if (appInfo.type === 'error') {
+        throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
+      }
+    } catch (e) {
+      commit('setIsChaperoneDisconnected', true)
+      return
     }
+
     const [cell] = appInfo.cell_data
     const { cell_id: cellId, cell_nick: dnaAlias } = cell
 
