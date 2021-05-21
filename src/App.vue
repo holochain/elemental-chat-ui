@@ -151,7 +151,7 @@ export default {
       return (
         this.needsHandle &&
         !this.errorMessage &&
-        !this.conductorDisconnected &&
+        !this.shouldDisplayHolochainConnecting &&
         !this.shouldDisplayHoloConnecting
       )
     },
@@ -159,9 +159,10 @@ export default {
       return this.conductorDisconnected && !this.firstConnect && !this.isChaperoneDisconnected
     },
     shouldDisplayHoloConnecting () {
-      return (
-        isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected)
-      )
+      if (!this.firstConnect) {
+        // tech-debt: this follows the current state logic, assumes all agents must be logged in to particpate in app
+        return (isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected))
+      }
     },
     shouldShowErrorMessage () {
       return this.errorMessage.length > 0
