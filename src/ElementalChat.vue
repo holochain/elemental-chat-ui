@@ -185,9 +185,11 @@ export default {
       'conductorDisconnected',
       'appInterface',
       'isHoloSignedIn',
+      'isChaperoneDisconnected',
       'dnaHash',
       'hostUrl',
-      'agentKey']),
+      'agentKey',
+      'dnaAlias']),
     ...mapState('elementalChat', [
       'stats',
       'statsLoading',
@@ -212,12 +214,20 @@ export default {
   watch: {
     conductorDisconnected (val) {
       if (!val) {
-        // TODO: rather than just catching and logging this error, we should properly be waiting for holoClient to be ready before calling this.
-        try {
-          this.listAllMessages()
-        } catch (e) {
-          console.error('Error calling listAllMessages', e)
+        const tryToGetAllMessages = () => {
+          // Note: it is possible for the conductor to be connected, but the dnaAlias not yet defined
+          //  ** we therfore wait for dnaAlias to exist in order to make a valid call
+          if (isHoloHosted() && (!this.dnaAlias || this.isChaperoneDisconnected)) {
+            setTimeout(tryToGetAllMessages, 1000)
+          } else {
+            try {
+              this.listAllMessages()
+            } catch (e) {
+              console.error('Error calling listAllMessages', e)
+            }
+          }
         }
+        tryToGetAllMessages()
       }
     }
   }
