@@ -5,10 +5,10 @@
       <v-dialog v-model="shouldDisplayNickPrompt" persistent max-width="320" role='dialog' aria-label="Agent Handle Dialog">
         <v-card>
           <v-card-title class="headline">
-            <span>Tell us your nick name 😎</span>
+            <span>Tell us your nickname 😎</span>
           </v-card-title>
           <v-card-text
-            >As a super simple way to see who wrote a message your nick name or
+            >As a super simple way to see who wrote a message, your nickname or
             handle will be prepended to your messages.</v-card-text
           >
           <v-card-text>
@@ -28,6 +28,9 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
+            <v-btn text @click="closeModal" aria-label="Close Handle Modal Button">
+              Close
+            </v-btn>
             <v-btn text @click="agentHandleEntered" aria-label="Submit Agent Handle Button">
               Let's Go
             </v-btn>
@@ -117,10 +120,14 @@ export default {
     ...mapActions('elementalChat', ['setChannelPolling', 'updateProfile']),
     ...mapActions('holochain', ['skipBackoff', 'holoLogout']),
     ...mapMutations(['setAgentHandle', 'setErrorMessage']),
+    ...mapMutations('elementalChat', ['setNeedsHandle']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
       this.updateProfile(this.internalAgentHandle)
       this.dialog = false
+    },
+    closeModal () {
+      this.setNeedsHandle(false)
     },
     clearErrorMessage () {
       this.setErrorMessage('')
