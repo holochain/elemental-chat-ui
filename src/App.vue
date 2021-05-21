@@ -28,7 +28,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn text @click="closeModal" aria-label="Close Handle Modal Button">
+            <v-btn text v-if="agentHandle" @click="closeModal" aria-label="Close Handle Modal Button">
               Close
             </v-btn>
             <v-btn text @click="agentHandleEntered" aria-label="Submit Agent Handle Button">
