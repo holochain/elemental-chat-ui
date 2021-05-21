@@ -43,9 +43,15 @@
       >
         <v-card>
           <v-card-title class="headline">
-            Connecting to HoloPort
+            Connecting to a HoloPort
           </v-card-title>
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn v-if="isChaperoneDisconnected" text @click="disconnectedHoloLogout" class="logout" aria-label="Logout with Holo">
+              Clear Personal Data
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-dialog>
       <v-dialog v-model="shouldShowErrorMessage" persistent max-width="460" role='dialog' aria-label="Error Message Dialog">
@@ -93,7 +99,7 @@
 
 <script>
 import { mapState, mapActions, mapMutations } from 'vuex'
-import { isHoloHosted } from '@/utils'
+import { isHoloHosted, log } from '@/utils'
 import ElementalChat from './ElementalChat.vue'
 
 export default {
@@ -109,7 +115,7 @@ export default {
   },
   methods: {
     ...mapActions('elementalChat', ['setChannelPolling', 'updateProfile']),
-    ...mapActions('holochain', ['skipBackoff']),
+    ...mapActions('holochain', ['skipBackoff', 'holoLogout']),
     ...mapMutations(['setAgentHandle', 'setErrorMessage']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
@@ -121,6 +127,12 @@ export default {
     },
     retryNow () {
       this.skipBackoff()
+    },
+    disconnectedHoloLogout () {
+      log('refreshed page to lose display of data')
+      window.history.go(0)
+      this.holoLogout()
+      log('cleared localStorage')
     }
   },
   computed: {
@@ -156,10 +168,26 @@ export default {
     },
     holoConnectionMessage () {
       if (this.isChaperoneDisconnected) {
-        return "Can't connect to HoloPort. Please check your internet connection and refresh this page."
+        return "Can't connect to a HoloPort. Please check your internet connection and refresh this page."
       } else {
-        return 'Connecting to HoloPort...'
+        return 'Connecting to a HoloPort...'
       }
+    }
+  },
+  watch: {
+    isChaperoneDisconnected (isDisconnected) {
+      // manage logout case where agent signaled logout while chaperone was disconnected / in bad state
+      // console.log('window.localStorage.getItem(shouldLogoutHolo) : ', window.localStorage.getItem('shouldLogoutHolo'));
+      // console.log('isDisconnected && window.localStorage.getItem(shouldLogoutHolo): ', !!(isDisconnected && window.localStorage.getItem('shouldLogoutHolo')));
+      // if (!!(isDisconnected && window.localStorage.getItem('shouldLogoutHolo'))) {
+      //   console.log('ABOUT TO LOG OUT....')
+      //   console.log('this.isHoloSignedIn : ', this.isHoloSignedIn)
+      //   if (this.isHoloSignedIn) {
+      //     this.holoLogout()
+      //   }        
+      //   log('Should have LOGGED OUT....')
+      //   window.localStorage.removeItem('shouldLogoutHolo')
+      // }
     }
   },
   created () {
@@ -168,6 +196,14 @@ export default {
   },
   mounted () {
     this.setChannelPolling()
+  
+  // // manage logout case where agent signaled logout while chaperone was disconnected / in bad state
+  //  if (!!window.localStorage.getItem('shouldLogoutHolo')) {
+  //     console.log('ABOUT TO LOG OUT....')
+  //     this.holoLogout()
+  //     console.log('Should have LOGGED OUT....')
+  //     window.localStorage.removeItem('shouldLogoutHolo')
+  //   }
   }
 }
 </script>
