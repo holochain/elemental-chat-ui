@@ -167,7 +167,7 @@ export default {
     },
     shouldDisplayHoloConnecting () {
       if (!this.firstConnect) {
-        // tech-debt: this follows the current state logic, assumes all agents must be logged in to particpate in app
+        // tech-debt: this follows the current state logic, assumes all agents must be logged in to participate in app
         return (isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected))
       }
     },
