@@ -182,36 +182,12 @@ export default {
       }
     }
   },
-  watch: {
-    isChaperoneDisconnected (isDisconnected) {
-      // manage logout case where agent signaled logout while chaperone was disconnected / in bad state
-      // console.log('window.localStorage.getItem(shouldLogoutHolo) : ', window.localStorage.getItem('shouldLogoutHolo'));
-      // console.log('isDisconnected && window.localStorage.getItem(shouldLogoutHolo): ', !!(isDisconnected && window.localStorage.getItem('shouldLogoutHolo')));
-      // if (!!(isDisconnected && window.localStorage.getItem('shouldLogoutHolo'))) {
-      //   console.log('ABOUT TO LOG OUT....')
-      //   console.log('this.isHoloSignedIn : ', this.isHoloSignedIn)
-      //   if (this.isHoloSignedIn) {
-      //     this.holoLogout()
-      //   }        
-      //   log('Should have LOGGED OUT....')
-      //   window.localStorage.removeItem('shouldLogoutHolo')
-      // }
-    }
-  },
   created () {
     this.$store.dispatch('initializeStore')
     this.$vuetify.theme.dark = true
   },
   mounted () {
     this.setChannelPolling()
-  
-  // // manage logout case where agent signaled logout while chaperone was disconnected / in bad state
-  //  if (!!window.localStorage.getItem('shouldLogoutHolo')) {
-  //     console.log('ABOUT TO LOG OUT....')
-  //     this.holoLogout()
-  //     console.log('Should have LOGGED OUT....')
-  //     window.localStorage.removeItem('shouldLogoutHolo')
-  //   }
   }
 }
 </script>
