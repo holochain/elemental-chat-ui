@@ -10,7 +10,7 @@ License: [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blu
 Vue based user interface for [elemental-chat DNA](https://github.com/holochain/elemental-chat)
 
 ## For dev testing:
-
+ 
 1. Install these as per their READMEs:
    - [`holochain`](https://github.com/holochain/holochain)
    - [`hc`](https://github.com/holochain/holochain/tree/develop/crates/hc)
