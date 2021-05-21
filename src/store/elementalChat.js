@@ -3,6 +3,9 @@ import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved, retryUntilClientIsDefined } from './utils'
 import { callZome } from './callZome'
+import { isHoloHosted } from '../utils'
+
+let recallProfileAttempts = 0
 
 function sortChannels (val) {
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1))
@@ -122,11 +125,17 @@ export default {
       }
       dispatch('initializeAgent')
     },
-    initializeAgent ({ dispatch, rootState }) {
+    initializeAgent ({ state, dispatch, rootState }) {
       const tryToGetProfile = () => {
-        if (rootState.holochain.conductorDisconnected) {
+        const clientNotConnected = rootState.holochain.conductorDisconnected || (isHoloHosted() && !rootState.holochain.dnaAlias)
+        if (clientNotConnected) {
           setTimeout(tryToGetProfile, 1000)
-        } else {
+        } else if (!state.agentHandle && !rootState.holochain.firstConnect && recallProfileAttempts < 3) {
+          recallProfileAttempts++
+          // setup recovery case to reattempt profile call in event where call failed 
+          setTimeout(tryToGetProfile, 2000)
+          dispatch('getProfile')
+        } else if (!state.agentHandle) {
           dispatch('getProfile')
         }
       }
