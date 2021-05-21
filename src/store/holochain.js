@@ -231,7 +231,7 @@ export default {
     initialize ({ commit, dispatch, state }) {
       commit('setFirstConnect', true)
       initializeClient(commit, dispatch, state)
-      setInterval(function () {
+      const intervalId = setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
             commit('setReconnecting', state.reconnectingIn - 1)
@@ -241,10 +241,27 @@ export default {
           }
         }
       }, 1000)
+
+      // timeout initalize client attempt loop at 30min
+      const initalizeClientTimeout = 1_800_000 // 30min in ms
+      const timeoutId = setTimeout(() => {
+        if (!(state.holochainClient || state.holoClient)){
+          console.error(`Could not initialize ${isHoloHosted() ? 'holo' : 'holochain'} client. Timed out at ${initalizeClientTimeout} ms`)
+          clearInterval(intervalId)
+          commit('resetConnectionState')
+          commit('setReconnecting', 0)
+        } else {
+          clearTimeout(timeoutId)
+        }
+      }, initalizeClientTimeout);
     },
     signalHoloDisconnect ({ commit }) {
         commit('setReconnecting', 0)
         commit('setIsChaperoneDisconnected', true)
+        if (isInitializingHolo) {
+          log('setting isInitializingHolo to false');
+          isInitializingHolo = false
+        }
     },
     skipBackoff ({ commit }) {
       commit('setReconnecting', 0)
