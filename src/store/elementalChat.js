@@ -3,14 +3,9 @@ import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved, retryUntilClientIsDefined } from './utils'
 import { callZome } from './callZome'
+import { isHoloHosted } from '../utils'
 
-function pollMessages (dispatch, activeChatter, channel) {
-  dispatch('listMessages', {
-    channel: channel,
-    chunk: { start: 0, end: 0 },
-    active_chatter: activeChatter
-  })
-}
+let recallProfileAttempts = 0
 
 function sortChannels (val) {
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1))
@@ -99,6 +94,16 @@ export const handleSignal = (signal, dispatch) => {
   }
 }
 
+const handleListMessagesResult = (commit, channelId, messages) => {
+  commit('addMessagesToChannel', {
+    channelId,
+    messages: messages.map((msg) => {
+      msg.createdBy = toUint8Array(msg.createdBy)
+      return msg
+    }).sort((a, b) => a.createdAt[0] - b.createdAt[0])
+  })
+}
+
 let listChannelsIntervalId = 0
 
 export default {
@@ -118,10 +123,19 @@ export default {
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
       }
-      const tryToMakeZomeCalls = () => {
-        if (rootState.holochain.conductorDisconnected) {
-          setTimeout(tryToMakeZomeCalls, 1000)
-        } else {
+      dispatch('initializeAgent')
+    },
+    initializeAgent ({ state, dispatch, rootState }) {
+      const tryToGetProfile = () => {
+        const clientNotConnected = rootState.holochain.conductorDisconnected || (isHoloHosted() && !rootState.holochain.dnaAlias)
+        if (clientNotConnected) {
+          setTimeout(tryToGetProfile, 1000)
+        } else if (!state.agentHandle && !rootState.holochain.firstConnect && recallProfileAttempts < 3) {
+          recallProfileAttempts++
+          // setup recovery case to reattempt profile call in event where call failed
+          setTimeout(tryToGetProfile, 2000)
+          dispatch('getProfile')
+        } else if (!state.agentHandle) {
           dispatch('getProfile')
           dispatch('listChannels')
         }
@@ -149,8 +163,8 @@ export default {
     setChannelPolling: async ({ dispatch }) => {
       clearInterval(listChannelsIntervalId)
       listChannelsIntervalId = setInterval(function () {
-        dispatch('listChannels', { category: 'General' })
-      }, 300000) // Polling every 5mins
+        dispatch('listAllMessages')
+      }, 3600000) // Polling every hour
     },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       const holochainPayload = {
@@ -172,23 +186,37 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    listChannels ({ commit, rootState, dispatch, getters }, payload) {
-      retryUntilClientIsDefined(() => callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000))
+    listAllMessages ({ commit, rootState, dispatch, getters }) {
+      const payload = { category: 'General', chunk:  { start: 0, end: 0 } }
+      callZome(dispatch, rootState, 'chat', 'list_all_messages', payload, 50000)
+        .then(async result => {
+          if (result) {
+            let channels = result.map( (e) => e.channel)
+            commit('addChannels', channels)
+
+            // if current channel is the empty channel, join the first channel in the channel list
+            if (getters.channel.info.name === '' && channels.length > 0) {
+              dispatch('joinChannel', channels[0].entry.uuid)
+            }
+
+            result.forEach((e) => {
+              handleListMessagesResult(commit, e.channel.entry.uuid, e.messages)
+            })
+          }
+        })
+        .catch(error => log('listAllMessages zome error', error))
+    },
+    listChannels ({ commit, rootState, dispatch, getters }) {
+      const payload = { category: 'General' }
+      callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
         .then(async result => {
           if (result) {
             commit('addChannels', result.channels)
-            let newChannels = []
-            newChannels = result.channels
 
             // if current channel is the empty channel, join the first channel in the channel list
             if (getters.channel.info.name === '' && result.channels.length > 0) {
               dispatch('joinChannel', result.channels[0].entry.uuid)
             }
-
-            // Get messages for the newChannels without active_chatter
-            newChannels.forEach(channel =>
-              pollMessages(dispatch, false, channel)
-            )
           }
         })
         .catch(error => log('listChannels zome error', error))
@@ -287,6 +315,7 @@ export default {
               Message: messageHash
             }
           }
+          handleListMessagesResult(commit, payload.channel.entry.uuid, [...result.messages])
 
           let messages = [...result.messages]
 

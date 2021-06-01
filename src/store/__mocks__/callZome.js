@@ -27,6 +27,10 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
     case 'list_messages':
       const messageChannel = rootState.elementalChat.channels.find(c => c.entry.uuid === payload.channel.uuid)
       return messageChannel.messages
+    
+    case 'list_all_messages':
+      const allMessages = rootState.elementalChat.channels.map(c => ({ channel: c, messages: c.messages }))
+      return allMessages
 
     case 'create_message':
       return {

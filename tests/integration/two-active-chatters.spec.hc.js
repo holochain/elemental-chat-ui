@@ -3,7 +3,7 @@ import 'regenerator-runtime/runtime.js'
 import wait from 'waait'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
-import { waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup } from './setup/helpers'
+import { handleZomeCall, waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup } from './setup/helpers'
 import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
 
@@ -29,12 +29,12 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     await wait(EXTENDED_WAITTIME)
     // scenario setup:
     console.log('Setting up default channel...')
-    channelInFocus = await aliceChat.call('chat', 'create_channel', newChannel)
+    channelInFocus = await handleZomeCall(aliceChat.call, ['chat', 'create_channel', newChannel])
     console.log('starting channel : ', channelInFocus)
     stats = { ...stats, channels: stats.channels + 1 }
     // wait for refresh chatter call response (initiated on page load)
     const checkRefreshChatterState = () => callRegistry['chat.refresh_chatter']
-    await waitForState(checkRefreshChatterState, 'done')
+    await waitForState(checkRefreshChatterState, 'done', 'chat.refresh_chatter')
     stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
 
     const installedApps = await conductor.adminWs().listActiveApps()
@@ -58,7 +58,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
   const checkAgentsState = async () => {
     if (stats.active !== 2) {
-      await bobboChat.call('chat', 'refresh_chatter', null)
+      await handleZomeCall(bobboChat.call, ['chat', 'refresh_chatter', null])
       stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
       await wait(EXTENDED_WAITTIME)
     }
@@ -120,7 +120,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // wait for create call response / load
       const checkNewChannelState = () => callRegistry['chat.create_channel']
-      await waitForState(checkNewChannelState, 'done')
+      await waitForState(checkNewChannelState, 'done', 'chat.create_channel')
 
       // check for new channel title on page
       const channels = await page.$eval('.channels-container', el => el.children)
@@ -132,7 +132,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       expect(newChannelHTML).toContain(newChannel.name)
 
       // alice (as tryorama node) verifies new channel is in list of channels from the dht
-      const { channels: newChannels } = await aliceChat.call('chat', 'list_channels', { category: 'General' })
+      const { channels: newChannels } = await handleZomeCall(aliceChat.call, ['chat', 'list_channels', { category: 'General' }])
       channelInFocus = newChannels.find(channel => channel.info.name === newChannel.name)
       console.log('New Channel : ', channelInFocus)
       expect(channelInFocus).toBeTruthy()
@@ -175,7 +175,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       await closeButton.click()
 
       // bobbo (tryorama node) declares self as chatter
-      await bobboChat.call('chat', 'refresh_chatter', null)
+      await handleZomeCall(bobboChat.call, ['chat', 'refresh_chatter', null])
       await wait(EXTENDED_WAITTIME)
 
       await page.click('#get-stats')
@@ -208,17 +208,17 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       newMessage.channel = channelInFocus.entry
       newMessage.entry.content = 'Hello from Alice, the native holochain user on the shared network. :)'
 
-      // alice (web) sends a message
+      // alice (web) sends a message      
       await page.focus('textarea')
       await page.keyboard.type(newMessageContent(), { delay: 100 })
       // press 'Enter' to submit
       page.keyboard.press(String.fromCharCode(13))
 
       const checkNewMessageState = () => callRegistry['chat.create_message']
-      await waitForState(checkNewMessageState, 'done')
+      await waitForState(checkNewMessageState, 'done', 'chat.create_message', () => callRegistry)
 
       // bobbo (tryorama node) verifies new message is in list of messages from the dht
-      const createNewMessage = async () => await bobboChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
+      const createNewMessage = async () => await handleZomeCall(bobboChat.call, ['chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } }])
       const { messages } = await awaitZomeResult(createNewMessage, 90000, 10000)
       console.log('message list : ', messages)
       expect(messages[0].entry.content).toContain(newMessageContent())
@@ -232,7 +232,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       expect(newMessageHTML).toContain(webUserNick)
 
       // bobbo checks stats after message
-      newStats = await bobboChat.call('chat', 'stats', { category: 'General' })
+      newStats = await handleZomeCall(bobboChat.call, ['chat', 'stats', { category: 'General' }])
       expect(newStats).toEqual({ ...stats, messages: stats.messages + 1 })
       stats = newStats
     })
@@ -245,7 +245,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // bobbo (tryorama node) creates channel
       // **creating channel at tryorama level - simulating channel created by another agent
-      channelInFocus = await bobboChat.call('chat', 'create_channel', newChannel)
+      channelInFocus = await handleZomeCall(bobboChat.call, ['chat', 'create_channel', newChannel])
       // bobbo checks stats
       newStats = await callStats(bobboChat)
       expect(newStats).toEqual({ ...stats, channels: stats.channels + 1 })
@@ -277,7 +277,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       await checkChannelState()
       await checkAgentsState()
       // bobbo checks channels
-      const { channels } = await bobboChat.call('chat', 'list_channels', { category: 'General' })
+      const { channels } = await handleZomeCall(bobboChat.call, ['chat', 'list_channels', { category: 'General' }])
       console.log('channel list', channels)
       channelInFocus = channels.find(channel => channel.info.name === newChannel.name)
 
@@ -285,7 +285,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       newMessage.channel = channelInFocus.entry
       newMessage.entry.content = 'Hello from Bob, the Tryorama player.'
       newMessage.entry.uuid = uuidv4()
-      const messageResponse = await bobboChat.call('chat', 'create_message', newMessage)
+      const messageResponse = await handleZomeCall(bobboChat.call, ['chat', 'create_message', newMessage])
       expect(messageResponse.entry).toEqual(newMessage.entry)
 
       // bobbo sends signal
@@ -293,7 +293,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
         messageData: messageResponse,
         channelData: channelInFocus
       }
-      const signalResult = await bobboChat.call('chat', 'signal_chatters', signalMessageData)
+      const signalResult = await handleZomeCall(bobboChat.call, ['chat', 'signal_chatters', signalMessageData])
       console.log('signal result', signalResult)
       expect(signalResult.sent.length).toEqual(1)
 
@@ -304,7 +304,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       await newChannelElement.click()
 
       // alice (node) verifies new message is in list of messages from the dht
-      const createNewMessage = async () => await aliceChat.call('chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } })
+      const createNewMessage = async () => await handleZomeCall(aliceChat.call, ['chat', 'list_messages', { channel: channelInFocus.entry, active_chatter: true, chunk: { start: 0, end: 1 } }])
       const { messages } = await awaitZomeResult(createNewMessage, 90000, 10000)
       expect(messages[0].entry.content).toContain(newMessageContent())
 
@@ -328,7 +328,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       newMessage.entry.content = 'Hello, there! Nice to speak with you.'
 
       // alice (node) creates channel - which will not display on ui but will be logged in chain
-      const messageResponse = await aliceChat.call('chat', 'create_message', newMessage)
+      const messageResponse = await handleZomeCall(aliceChat.call, ['chat', 'create_message', newMessage])
       expect(messageResponse.entry).toEqual(newMessage.entry)
 
       // alice (web) refreshes channel list to fetch all messages

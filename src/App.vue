@@ -5,10 +5,10 @@
       <v-dialog v-model="shouldDisplayNickPrompt" persistent max-width="320" role='dialog' aria-label="Agent Handle Dialog">
         <v-card>
           <v-card-title class="headline">
-            <span>Tell us your nick name 😎</span>
+            <span>Tell us your nickname 😎</span>
           </v-card-title>
           <v-card-text
-            >As a super simple way to see who wrote a message your nick name or
+            >As a super simple way to see who wrote a message, your nickname or
             handle will be prepended to your messages.</v-card-text
           >
           <v-card-text>
@@ -28,6 +28,9 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
+            <v-btn text v-if="agentHandle" @click="closeModal" aria-label="Close Handle Modal Button">
+              Close
+            </v-btn>
             <v-btn text @click="agentHandleEntered" aria-label="Submit Agent Handle Button">
               Let's Go
             </v-btn>
@@ -39,13 +42,19 @@
         persistent
         max-width="320"
         role='dialog'
-        aria-label="Connecting to Holochain Dialog"
+        aria-label="Connecting to Holo Dialog"
       >
         <v-card>
           <v-card-title class="headline">
-            Connecting to HoloPort
+            Connecting to a HoloPort
           </v-card-title>
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn v-if="isChaperoneDisconnected" text @click="disconnectedHoloLogout" class="logout" aria-label="Logout with Holo">
+              Clear Page Data
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-dialog>
       <v-dialog v-model="shouldShowErrorMessage" persistent max-width="460" role='dialog' aria-label="Error Message Dialog">
@@ -62,7 +71,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="shouldDisplayDisconnected" persistent max-width="460" role='dialog' aria-label="Reconnecting to Holochain Dialog">
+      <v-dialog v-model="shouldDisplayHolochainConnecting" persistent max-width="460" role='dialog' aria-label="Reconnecting to Holochain Dialog">
         <v-card>
           <v-card-title class="headline">
             Establishing connection..
@@ -93,7 +102,7 @@
 
 <script>
 import { mapState, mapActions, mapMutations } from 'vuex'
-import { isHoloHosted } from '@/utils'
+import { isHoloHosted, log } from '@/utils'
 import ElementalChat from './ElementalChat.vue'
 
 export default {
@@ -109,18 +118,28 @@ export default {
   },
   methods: {
     ...mapActions('elementalChat', ['setChannelPolling', 'updateProfile']),
-    ...mapActions('holochain', ['skipBackoff']),
+    ...mapActions('holochain', ['skipBackoff', 'holoLogout']),
     ...mapMutations(['setAgentHandle', 'setErrorMessage']),
+    ...mapMutations('elementalChat', ['setNeedsHandle']),
     agentHandleEntered () {
       if (this.internalAgentHandle === '') return
       this.updateProfile(this.internalAgentHandle)
       this.dialog = false
+    },
+    closeModal () {
+      this.setNeedsHandle(false)
     },
     clearErrorMessage () {
       this.setErrorMessage('')
     },
     retryNow () {
       this.skipBackoff()
+    },
+    disconnectedHoloLogout () {
+      window.history.go(0)
+      log('refreshed page')
+      this.holoLogout()
+      log('cleared page data')
     }
   },
   computed: {
@@ -139,26 +158,27 @@ export default {
       return (
         this.needsHandle &&
         !this.errorMessage &&
-        !this.conductorDisconnected &&
+        !this.shouldDisplayHolochainConnecting &&
         !this.shouldDisplayHoloConnecting
       )
     },
-    shouldDisplayDisconnected () {
-      return this.conductorDisconnected && !this.firstConnect
+    shouldDisplayHolochainConnecting () {
+      return this.conductorDisconnected && !this.firstConnect && !this.isChaperoneDisconnected
     },
     shouldDisplayHoloConnecting () {
-      return (
-        isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected)
-      )
+      if (!this.firstConnect) {
+        // tech-debt: this follows the current state logic, assumes all agents must be logged in to participate in app
+        return (isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected))
+      }
     },
     shouldShowErrorMessage () {
       return this.errorMessage.length > 0
     },
     holoConnectionMessage () {
       if (this.isChaperoneDisconnected) {
-        return "Can't connect to HoloPort. Please check your internet connection and refresh this page."
+        return "Can't connect to a HoloPort. Please check your internet connection and refresh this page."
       } else {
-        return 'Connecting to HoloPort...'
+        return 'Connecting to a HoloPort...'
       }
     }
   },

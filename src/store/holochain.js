@@ -8,6 +8,7 @@ import {
   WEB_CLIENT_PORT,
   WEB_CLIENT_URI
 } from '@/consts'
+import { TimeoutError } from '@/store/utils'
 import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
 import { inspect } from 'util'
@@ -40,21 +41,28 @@ function createHoloClient (webSdkConnection) {
 let isInitializingHolo = false
 const initializeClientHolo = async (commit, dispatch, state) => {
   if (isInitializingHolo) return
-
   isInitializingHolo = true
   let holoClient
-
   if (!state.holoClient) {
-    const webSdkConnection = new WebSdkConnection(
-      process.env.VUE_APP_CHAPERONE_SERVER_URL,
-      signal => handleSignal(signal, dispatch),
-      {
-        logo_url: 'img/ECLogoWhiteMiddle.png',
-        app_name: 'Elemental Chat',
-        info_link: 'https://holo.host/faq-tag/elemental-chat'
-      }
-    )
-    window.webSdkConnection = webSdkConnection
+
+    log('establishing connection to holoClient')
+    let webSdkConnection
+    try {
+      webSdkConnection = new WebSdkConnection(
+        process.env.VUE_APP_CHAPERONE_SERVER_URL,
+        signal => handleSignal(signal, dispatch),
+        {
+          logo_url: 'img/ECLogoWhiteMiddle.png',
+          app_name: 'Elemental Chat',
+          info_link: 'https://holo.host/faq-tag/elemental-chat'
+        }
+      )
+      window.webSdkConnection = webSdkConnection
+    } catch (e) {
+      console.error('unable to complete websdk connection. Error: ', e)
+      commit('setIsChaperoneDisconnected', true)
+      return
+    }
 
     webSdkConnection.addListener('disconnected', () =>
       commit('setIsChaperoneDisconnected', true)
@@ -71,14 +79,34 @@ const initializeClientHolo = async (commit, dispatch, state) => {
     holoClient = state.holoClient
   }
 
+  const chaperoneReadyTimeout = 5000
   try {
-    await holoClient.ready()
+    // timeout and reset isInitializingHolo - in event where connection went down, allow auto-reconnect
+    await Promise.race([
+      holoClient.ready(),
+      new Promise((resolve, reject) => {
+        let waitId = setTimeout(() => {
+          clearTimeout(waitId)
+          reject(new TimeoutError(`Call to holoClient.ready() timed out after ${chaperoneReadyTimeout / 1000} seconds.`))
+        }, chaperoneReadyTimeout)
+      })
+    ])
   } catch (e) {
-    console.error(e)
+    if (e instanceof TimeoutError || e.toString().includes('TimeoutError')) {
+      if (!state.isChaperoneDisconnected) {
+        log('holoClient failed to complete ready(). Signaling Holo Network as disconnected')
+        dispatch('signalHoloDisconnect')
+      } else {
+        isInitializingHolo = false
+      }
+    }
+    console.error('holoClient failed to complete ready(). Error: ', e)
     commit('setIsChaperoneDisconnected', true)
     return
   }
 
+  // tech-debt: this assumes that all cases will be signed-in
+  // TODO: update to handle anonymous
   if (!state.isHoloSignedIn) {
     try {
       await holoClient.signIn()
@@ -88,14 +116,25 @@ const initializeClientHolo = async (commit, dispatch, state) => {
       return
     }
 
-    const appInfo = await holoClient.appInfo()
-    if (appInfo.type === 'error') {
-      throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
+    commit('setHoloClient', holoClient)
+
+    let appInfo
+    try {
+      appInfo = await holoClient.appInfo()
+
+      if (appInfo.type === 'error') {
+        throw new Error(`Failed to get appInfo: ${inspect(appInfo)}`)
+      }
+    } catch (e) {
+      console.error('appInfo error: ', e)
+      commit('setIsChaperoneDisconnected', true)
+      return
     }
+
     const [cell] = appInfo.cell_data
     const { cell_id: cellId, cell_nick: dnaAlias } = cell
 
-    commit('setHoloClientAndDnaAlias', { holoClient, dnaAlias })
+    commit('setDnaAlias', dnaAlias)
     const [dnaHash, agentId] = cellId
     commit('setDnaHash', 'u' + Buffer.from(dnaHash).toString('base64'))
 
@@ -203,7 +242,7 @@ export default {
     initialize ({ commit, dispatch, state }) {
       commit('setFirstConnect', true)
       initializeClient(commit, dispatch, state)
-      setInterval(function () {
+      const intervalId = setInterval(function () {
         if (!conductorConnected(state)) {
           if (conductorInBackoff(state)) {
             commit('setReconnecting', state.reconnectingIn - 1)
@@ -213,6 +252,27 @@ export default {
           }
         }
       }, 1000)
+
+      // give up after 30 mins
+      const initalizeClientTimeout = 1_800_000 // 30min in ms
+      const timeoutId = setTimeout(() => {
+        if (state.holochainClient || state.holoClient) {
+          clearTimeout(timeoutId)
+        } else {
+          console.error(`Could not initialize ${isHoloHosted() ? 'holo' : 'holochain'} client. Timed out at ${initalizeClientTimeout} ms`)
+          clearInterval(intervalId)
+          commit('resetConnectionState')
+          commit('setReconnecting', 0)
+        }
+      }, initalizeClientTimeout);
+    },
+    signalHoloDisconnect ({ commit }) {
+        commit('setReconnecting', 0)
+        commit('setIsChaperoneDisconnected', true)
+        if (isInitializingHolo) {
+          log('setting isInitializingHolo to false');
+          isInitializingHolo = false
+        }
     },
     skipBackoff ({ commit }) {
       commit('setReconnecting', 0)
@@ -224,13 +284,20 @@ export default {
       commit('elementalChat/setAgentHandle', null, { root: true })
       commit('setIsHoloSignedIn', false)
       commit('setAgentKey', null)
+      commit('setDnaHash', null)
+
       if (!state.holoClient) return
 
       await state.holoClient.signOut()
       commit('setIsChaperoneDisconnected', false)
-      try {
-        await state.holoClient.signIn()
 
+      try {
+        // tech-debt: this assumes that all use cases will be signed-in
+        // note: isHoloSignedIn can be set prior to this line when in disconnected state
+        //  ** after successful login
+        if (!state.isHoloSignedIn) {
+          await state.holoClient.signIn()
+        }
         commit('setIsHoloSignedIn', true)
 
         const appInfo = await state.holoClient.appInfo()
@@ -251,6 +318,7 @@ export default {
 
         dispatch('elementalChat/initializeAgent', null, { root: true })
       } catch (e) {
+        console.log('error signing in after logout', inspect(e))
         commit('setIsChaperoneDisconnected', true)
       }
     },
@@ -284,13 +352,14 @@ export default {
       state.reconnectingIn = -1
       state.firstConnect = false
     },
-    setHoloClientAndDnaAlias (state, payload) {
-      const { holoClient, dnaAlias } = payload
-      console.log('HOLO DNA ALIAS : ', dnaAlias)
-      state.dnaAlias = dnaAlias
-      state.holoClient = holoClient
+    setHoloClient (state, payload) {
+      state.holoClient = payload
       state.reconnectingIn = -1
       state.firstConnect = false
+    },
+    setDnaAlias (state, payload) {
+      log('holo dna alias : ', payload)
+      state.dnaAlias = payload
     },
     setIsHoloSignedIn (state, payload) {
       state.isHoloSignedIn = payload
