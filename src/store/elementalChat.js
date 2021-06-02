@@ -118,7 +118,7 @@ export default {
     needsHandle: false
   },
   actions: {
-    initialize ({ rootState, dispatch }) {
+    initialize ({ dispatch }) {
       const currentChannelId = window.localStorage.getItem('currentChannelId')
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
@@ -137,10 +137,9 @@ export default {
           dispatch('getProfile')
         } else if (!state.agentHandle) {
           dispatch('getProfile')
-          dispatch('listChannels')
         }
       }
-      tryToMakeZomeCalls()
+      tryToGetProfile()
     },
     getStats: async ({ rootState, dispatch, commit }) => {
       commit('setStatsLoading', true)
