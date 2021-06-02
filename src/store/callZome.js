@@ -80,7 +80,13 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     return result
   } catch (e) {
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
-    if (e.toString().includes('Socket is not open') || e.toString().includes('Socket not ready') || e.toString().includes('Waited for')) {
+    if (e.toString().includes('membrane proof') && e.toString.includes('already used')) {
+      console.log(' ERROR >>>>>>>>>>>>>>>>>>>>', e)
+      console.error('Signed up with previously used jonining code - will now sign user out.')
+      await dispatch('holochain/holoLogout', null, { root: true })
+      const uniqueSigningCodeFailureMsg = 'Failed to sign up with unique joining code.  Please sign out and try again.'
+      return dispatch('setErrorMessage', uniqueSigningCodeFailureMsg, { root: true })
+    } else if (e.toString().includes('Socket is not open') || e.toString().includes('Socket not ready') || e.toString().includes('Waited for')) {
       log('Socket is not open. Resetting connection state...')
       return dispatch('holochain/resetConnectionState', null, { root: true })
     } else if (e instanceof UndefinedClientError) {
