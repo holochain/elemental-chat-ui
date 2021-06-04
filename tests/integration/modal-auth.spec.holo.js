@@ -6,6 +6,7 @@ import httpServers from './setup/setupServers'
 
 const chaperoneUrlCheck = {
   production: CHAPERONE_URL_REGEX,
+  develop: CHAPERONE_URL_REGEX_DEV,
   local: CHAPERONE_URL_REGEX_HCC
 }
 
@@ -67,6 +68,39 @@ describe('Authentication Flow', () => {
     expect(passwordValue).toBe(HOSTED_AGENT.password)
     expect(confirmationValue).toEqual(passwordValue)
 
+    await wait(5000)
+    // *********
+    // Evaluate Main Frame
+    // *********
+    // verify main page has logout button
+    const [logoutButton] = await findElementsByText('span', 'Logout', page)
+    expect(logoutButton).toBeTruthy()
+  })
+
+  it('should see error message and be returned to sign-up/sign-in upon reuse of joining code', async () => {
+    // verify page
+    const pageTitle = await page.title()
+    expect(pageTitle).toBe('Elemental Chat')
+
+    // *********
+    // Sign Up and Log Into hApp
+    // *********
+    // wait for the modal to load
+    await page.waitForSelector('iframe')
+    const iframe = await findIframe(page, chaperoneUrlCheck.local)
+    const chaperoneModal = await iframe.evaluateHandle(() => document)
+
+    const [loginTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
+    expect(loginTitle).toBeTruthy()
+
+    const [createCredentialsLink] = await findElementsByText('a', 'Create credentials', chaperoneModal)
+    await createCredentialsLink.click()
+
+    const { emailValue, passwordValue, confirmationValue } = await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
+
+    expect(emailValue).toBe(HOSTED_AGENT.email)
+    expect(passwordValue).toBe(HOSTED_AGENT.password)
+    expect(confirmationValue).toEqual(passwordValue)
 
     await wait(5000)
     // *********
