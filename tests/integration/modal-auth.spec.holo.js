@@ -6,7 +6,6 @@ import httpServers from './setup/setupServers'
 
 const chaperoneUrlCheck = {
   production: CHAPERONE_URL_REGEX,
-  develop: CHAPERONE_URL_REGEX_DEV,
   local: CHAPERONE_URL_REGEX_HCC
 }
 
