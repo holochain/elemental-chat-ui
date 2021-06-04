@@ -80,7 +80,7 @@ export const callZome = async (dispatch, rootState, zomeName, fnName, payload, t
     return result
   } catch (e) {
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
-    if (e.toString().includes('membrane proof') && e.toString.includes('already used')) {
+    if (e.toString().includes('membrane proof') && e.toString().includes('already used')) {
       console.log(' ERROR >>>>>>>>>>>>>>>>>>>>', e)
       const uniqueSigningCodeFailureMsg = 'Sign-up has failed and the automatic sign-out has been triggered because the provided joining code was already used.  Please reattempt sign-up with a unique joining code or sign-in if a returning user.'
       dispatch('setErrorMessage', uniqueSigningCodeFailureMsg, { root: true })
