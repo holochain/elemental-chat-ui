@@ -1,0 +1,21 @@
+name: Continuous Deployment for Scaletest
+
+on:
+  push:
+    branches:
+      - scaletest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm ci
+      - name: Build site
+        run: 'npm run build:holo-scale-test'
+      - name: Publish to DevNet
+        uses: cloudflare/wrangler-action@1.1.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          environment: scaletest

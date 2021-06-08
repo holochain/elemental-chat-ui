@@ -1,0 +1,21 @@
+name: Continuous Deployment on MainNet
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm ci
+      - name: Build site
+        run: 'npm run build:holo-host'
+      - name: Publish to MainNet
+        uses: cloudflare/wrangler-action@1.1.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          environment: mainnet
