@@ -2,7 +2,7 @@ name = "elemental-chat"
 type = "webpack"
 account_id = "18ff2b4e6205b938652998cfca0d8cff"
 # workers_dev = true
-route = "elemental-chat-top-secret-test-shhhh.holo.host/*"
+route = "elemental-chat.holo.host/*"
 zone_id = "35f34e8f9d04ef8c87283ea9fb812989"
 
 [site]
