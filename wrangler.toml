@@ -1,12 +1,8 @@
 name = "devnet-elemental-chat"
 type = "webpack"
 account_id = "18ff2b4e6205b938652998cfca0d8cff"
-<<<<<<< HEAD
-# workers_dev = true
-route = "elemental-chat.holo.host/*"
-=======
+
 route = "devnet-elemental-chat.holo.host/*"
->>>>>>> d8b0e3a... CD to scaletest, mannet and devnet
 zone_id = "35f34e8f9d04ef8c87283ea9fb812989"
 
 [site]
@@ -19,10 +15,5 @@ route = "elemental-chat.holo.host/*"
 workers_dev = true
 
 [env.scaletest]
-<<<<<<< HEAD
-route = "elemental-chat-scaletest.holohost.dev/*"
-zone_id = "3e835923056a62106ef49ed7228debb3" 
-=======
 name = "scaletest-elemental-chat"
 route = "scaletest-elemental-chat.holo.host/*"
->>>>>>> d8b0e3a... CD to scaletest, mannet and devnet
