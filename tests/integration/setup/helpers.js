@@ -1,0 +1,256 @@
+import path from 'path'
+import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH } from './globals'
+import { INSTALLED_APP_ID } from '@/consts'
+import { conductorConfig } from './tryorama'
+import httpServers from './setupServers'
+
+export const waitForState = async (stateChecker, desiredState, callName, callRegistryCb = () => null, pollingInterval = 1000, timeout = 9000) => {
+  return Promise.race([
+    new Promise(resolve => {
+      const poll = setInterval(() => {
+        const currentState = stateChecker()
+        if (currentState === desiredState) {
+          console.log('State polling complete...')
+          clearInterval(poll)
+          resolve(currentState)
+        }
+        if (stateChecker() === undefined) {
+          console.log(`Current state for ${callName} is undefined. Verify that the zomeCall fn name is accurate and check to see that the call logs are still being output to the console.`)
+        }
+        const registry = callRegistryCb()
+        console.log('callRegistry : ', registry)
+        console.log(`Polling again for ${callName}. Current State: ${stateChecker()} | Desired state: ${desiredState}`)
+      }, pollingInterval)
+    }),
+    new Promise((resolve, reject) => {
+      let waitId = setTimeout(() => {
+        resolve(new Error(`Unsuccessfully polled call state of ${callName} for ${timeout} ms.`))
+      }, timeout)
+    })
+  ])
+}
+
+export const handleZomeCall = async (fn, params) => {
+  try {
+    return await fn(...params)
+  } catch (error) {
+    throw new Error(`Error when calling ${params[0]}.${params[1]}: ${error.toString()}`)
+  }
+}
+
+/// Puppeteer helpers:
+// --------------------
+export const takeScreenshot = async (page, fileName) => page.screenshot({ path: SCREENSHOT_PATH + `/${fileName}.png` })
+export const fetchPerformanceResults = async (page, console) => {
+  // Executes Navigation API within the page context
+  const metrics = await page.evaluate(() => JSON.stringify(window.performance))
+  // Parses the result to JSON
+  console.info(JSON.parse(metrics))
+}
+export const fetchAccesiblitySnapShot = async (page, console) => { // Captures the current state of the accessibility tree
+  const snapshot = await page.accessibility.snapshot()
+  console.info(snapshot)
+  return snapshot
+}
+
+export const getElementProperty = async (element, property) => {
+  return await (await element.getProperty(property)).jsonValue()
+}
+
+const escapeXpathString = str => {
+  const splitedQuotes = str.replace(/'/g, `', "'", '`)
+  return `concat('${splitedQuotes}', '')`
+}
+
+// returns JS DOM Element
+export const findElementsByText = async (element, text, page) => {
+  const cleanedText = escapeXpathString(text).trim()
+  const matches = await page.$x(`//${element}[contains(., ${cleanedText})]`)
+  if (matches.length > 0) return matches
+  else throw Error(`Failed to find a match for element (${element}) with text (${text}) on page (${page}).`)
+}
+
+export const findElementsByClassAndText = async (element, className, text, page) => {
+  const matches = await page.$x(`//${element}[contains(concat(' ', @class, ' '), ' ${className} ') and contains(., '${text}')]`)
+  if (matches.length > 0) return matches[0]
+  else throw Error(`Failed to find a match for element (${element}) with class (${className}) and text (${text}) on page (${page}).`)
+}
+
+export const findIframe = async (page, urlRegex, pollingInterval = 1000) => {
+  return new Promise(resolve => {
+    const poll = setInterval(() => {
+      const iFrame = page.frames().find(frame => urlRegex.test(frame.url()))
+      if (iFrame) {
+        clearInterval(poll)
+        resolve(iFrame)
+      }
+    }, pollingInterval)
+  })
+}
+
+/// Tryorama helpers:
+// -------------------
+export const awaitZomeResult = async (
+  asyncCall,
+  timeout = TIMEOUT,
+  pollingInterval = POLLING_INTERVAL
+) => {
+  let timeoutId
+  const callTimeout = new Promise((resolve, reject) => {
+    timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId)
+      reject(new Error(`Waited for ${timeout / 1000} seconds`))
+    }, timeout)
+  })
+  const fetchList = new Promise((resolve, reject) => {
+    const poll = setInterval(async () => {
+      const callResult = await asyncCall()
+      if (callResult) {
+        clearInterval(poll)
+        clearTimeout(timeoutId)
+        resolve(callResult)
+      }
+    }, pollingInterval)
+  })
+  return Promise.race([fetchList, callTimeout])
+}
+
+/// Holo Test helpers:
+// -------------------
+export const holoAuthenticateUser = async (frame, modalElement, email, password, type = 'signup') => {
+  await frame.type(`#${type}-email`, email, { delay: 100 })
+  const emailValue = await frame.$eval(`#${type}-email`, el => el.value)
+
+  await frame.type(`#${type}-password`, password, { delay: 100 })
+  const passwordValue = await frame.$eval(`#${type}-password`, el => el.value)
+
+  let confirmationValue, submitbuttonText
+  if (type === 'signup') {
+    submitbuttonText = 'Submit'
+    await frame.type(`#${type}-password-confirm`, password, { delay: 100 })
+    confirmationValue = await frame.$eval(`#${type}-password-confirm`, el => el.value)
+  } else {
+    submitbuttonText = 'Login'
+  }
+
+  const [submitButton] = await findElementsByText('button', submitbuttonText, modalElement)
+  await submitButton.click()
+
+  return { emailValue, passwordValue, confirmationValue }
+}
+
+/// Test Setup helpers:
+// -------------------
+export const registerNickname = async (page, webUserNick) => {
+  // add agent nickname
+  await page.keyboard.type(webUserNick, { delay: 200 })
+  const [submitButton] = await findElementsByText('button', 'Let\'s Go', page)
+  await submitButton.click()
+}
+
+const describeJsHandle = (jsHandle) => {
+  return jsHandle.executionContext().evaluate(arg => {
+    if (arg instanceof Error) return arg.message
+    else return arg
+  }, jsHandle)
+}
+
+export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
+  // Tryorama: instantiate player conductor
+  console.log('Setting up players on elemental chat...')
+  const [conductor] = await scenario.players([conductorConfig], false)
+
+  await conductor.startup()
+
+  conductor.setSignalHandler((_) => {
+    console.log('Conductor Received Signal:', _)
+  })
+
+  // Tryorama: install elemental chat on both player conductors
+  const bundlePath = path.join(__dirname, 'bundle', 'elemental-chat.happ')
+
+  const aliceChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, INSTALLED_APP_ID)
+  const bobboChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, 'second_agent')
+
+  // Tryorama: grab chat cell from list of happ cells to use as the agent
+  const [aliceChat] = aliceChatHapp.cells
+  const [bobboChat] = bobboChatHapp.cells
+
+  const startingStats = await aliceChat.call('chat', 'stats', { category: 'General' })
+
+  await aliceChat.call('profile', 'update_my_profile', { nickname: 'Alice' + ' ' })
+
+  // locally spin up ui server only (not holo env)
+  console.log('👉 Spinning up UI server')
+  const { ports, close: closeServer } = httpServers()
+
+  conductor.appWs().client.socket.onclose = async () => {
+    // silence logs upon socket closing
+    page.on('pageerror', _ => {})
+    page.on('console', _ => {})
+  }
+
+  const page = await createPage()
+
+  page.once('domcontentloaded', () => console.info('✅ DOM is ready'))
+  page.once('load', () => console.info('✅ Page is loaded'))
+  page.once('close', () => console.info('✅ Page is closed'))
+  if (WEB_LOGGING) {
+    page.on('pageerror', error => {
+      if (error instanceof Error) {
+        console.log(`❌ ${error.message}`)
+      } else {
+        console.error(`❌ ${error}`)
+      }
+    })
+  }
+  page.on('console', async (message) => {
+    if (WEB_LOGGING) {
+      const args = await Promise.all(message.args().map(arg => describeJsHandle(arg)))
+        .catch(error => {
+          if (error.message.includes('Target closed')) return null
+          console.log(error.message)
+        })
+      if (!args || args.join(' ').includes('Socket is closed')) return
+      console.log('ℹ️  ', ...args)
+    }
+    try {
+      const messageArray = message.text().split(' ')
+      // determine if message is a registered api call
+      if (parseInt(messageArray[0])) {
+        messageArray.shift()
+        const callDesc = messageArray.join(' ')
+        const callAction = messageArray.pop()
+        const isCallAction = callAction === 'start' || callAction === 'done'
+        if (isCallAction) {
+          if (messageArray.length > 1 && !callDesc.includes('zomeCall')) return
+          const callName = messageArray[0]
+          // set the call with most current action state
+          callRegistry[callName] = callAction
+        }
+      }
+    } catch (error) {
+      // if error, do nothing - message is not a logged call
+      return
+    }
+  })
+
+  // Puppeteer: emulate avg desktop viewport
+  await page.setViewport({ width: 952, height: 968 })
+  await Promise.all([
+    page.goto(`http://localhost:${ports.ui}/dist/index.html`),
+    page.waitForNavigation({ waitUntil: 'networkidle0' })
+  ])
+
+  return { aliceChat, bobboChat, page, closeServer, conductor, startingStats }
+}
+
+export const afterAllSetup = async (conductor, closeServer) => {
+  console.log('👉 Shutting down tryorama player conductor(s)...')
+  await conductor.shutdown()
+  console.log('✅ Closed tryorama player conductor(s)')
+
+  console.log('👉 Closing the UI server...')
+  await closeServer()
+  console.log('✅ Closed the UI server...')
+}

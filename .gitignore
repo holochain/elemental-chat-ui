@@ -2,9 +2,18 @@
 node_modules
 /dist
 
-/tests/e2e/videos/
-/tests/e2e/screenshots/
+/tests/integration/setup/screenshots/
+/tests/integration/setup/bundle/elemental-chat.happ
 
+/dnas
+/coverage
+
+/target/
+.cargo
+.hc*
+
+# release artifacts
+*.zip
 
 # local env files
 .env
