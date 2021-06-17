@@ -33,7 +33,7 @@ const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
   if (!state.holochainClient) throw new UndefinedClientError('Attempted callZomeLocal before holochainClient is defined')
   return state.holochainClient.callZome({
     cap: null,
-    cell_id: state.appInterface.cellId,
+    cell_id: [state.dnaHash, state.agentKey],
     zome_name: zomeName,
     fn_name: fnName,
     provenance: state.agentKey,
