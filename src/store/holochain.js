@@ -187,17 +187,14 @@ export default {
       state.holoStatus = 'connecting_to_host'
       log(`disconnected from host; setting holoStatus = ${state.holoStatus}`)
     },
-    setHoloAnonymous (state, anonymous) {
-      state.isHoloAnonymous = anonymous
-      log(`setting isHoloAnonymous = ${state.isHoloAnonymous}`)
-    },
     holoInitialized (state, { anonymous }) {
       if (state.holoStatus === 'connecting_to_host') {
         state.holoStatus = 'holo_initialized'
         log(`holo initialized; setting holoStatus = ${state.holoStatus}`)
       }
       if (state.isHoloAnonymous === null) {
-        commit('setHoloAnonymous', anonymous)
+        state.isHoloAnonymous = anonymous
+        log(`setting isHoloAnonymous = ${state.isHoloAnonymous}`)
       }
     },
     failedToLoadChaperone (state) {
