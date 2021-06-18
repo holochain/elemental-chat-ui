@@ -198,7 +198,6 @@ export default {
       'stats',
       'statsLoading',
       'agentHandle',
-      'getProfile'
     ]),
     ...mapGetters('elementalChat', [
       'channel'
