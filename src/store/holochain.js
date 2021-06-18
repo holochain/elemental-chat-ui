@@ -109,7 +109,7 @@ export default {
         )
 
         commit('createHoloClient', { webSdkConnection })
-        state.holoCient.ready().catch(e => {
+        state.holoClient.ready().catch(e => {
           console.error('Failed to load chaperone:', e)
           commit('failedToLoadChaperone')
         })
@@ -144,7 +144,7 @@ export default {
       let appInfo
       while (!appInfo) {
         try {
-          appInfo = await holoCient.appInfo()
+          appInfo = await holoClient.appInfo()
           break
         } catch (e) {
           console.error(e)
@@ -174,7 +174,7 @@ export default {
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
         )
       }
-      await state.holoCient.signIn()
+      await state.holoClient.signIn()
     },
     callIsLoading ({ commit }, payload) {
       commit('updateIsLoading', { fnName: payload, value: true })
@@ -215,10 +215,10 @@ export default {
       log(`failed to load chaperone; setting holoStatus = ${state.holoStatus}`)
     },
     createHoloClient (state, { webSdkConnection }) {
-      if (state.holoCient) {
+      if (state.holoClient !== null) {
         throw new Error(
           `createHoloClient: unexpected pre-existing holoClient ${inspect(
-            state.holoCient
+            state.holoClient
           )}`
         )
       }
