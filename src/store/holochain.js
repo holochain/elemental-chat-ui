@@ -98,14 +98,14 @@ export default {
         )
         // 'signin'/'signup' gets emitted before 'connected', therefore if connected is emitted without those, we are anonymous.
         webSdkConnection.addListener('connected', () => {
-          dispatch('holoInitialized', { anonymous: true })
+          commit('holoInitialized', { anonymous: true })
           dispatch('loadHoloAppInfo')
         })
         webSdkConnection.addListener('signin', () =>
-          dispatch('holoInitialized', { anonymous: false })
+          commit('holoInitialized', { anonymous: false })
         )
         webSdkConnection.addListener('signup', () =>
-          dispatch('holoInitialized', { anonymous: false })
+          commit('holoInitialized', { anonymous: false })
         )
 
         commit('createHoloClient', { webSdkConnection })
@@ -129,14 +129,6 @@ export default {
     },
     resetHolochainConnectionState ({ commit }) {
       commit('resetHolochainConnectionState')
-    },
-    holoInitialized ({ commit, dispatch, state }, { anonymous }) {
-      commit('holoInitialized')
-      if (state.isHoloAnonymous === null) {
-        commit('setHoloAnonymous', anonymous)
-      }
-
-      dispatch('loadHoloAppInfo')
     },
     async loadHoloAppInfo ({ commit, state }) {
       commit('loadingAppInfo')
@@ -199,10 +191,13 @@ export default {
       state.isHoloAnonymous = anonymous
       log(`setting isHoloAnonymous = ${state.isHoloAnonymous}`)
     },
-    holoInitialized (state) {
+    holoInitialized (state, { anonymous }) {
       if (state.holoStatus === 'connecting_to_host') {
         state.holoStatus = 'holo_initialized'
         log(`holo initialized; setting holoStatus = ${state.holoStatus}`)
+      }
+      if (state.isHoloAnonymous === null) {
+        commit('setHoloAnonymous', anonymous)
       }
     },
     failedToLoadChaperone (state) {
@@ -242,7 +237,7 @@ export default {
     },
     loadingAppInfo (state) {
       if (state.holoStatus !== 'holo_initialized') {
-        throw new Error('todo')
+        throw new Error(`loadingAppInfo: unexpected state ${state.holoStatus}`)
       }
       state.holoStatus = 'loading_info'
       log(
