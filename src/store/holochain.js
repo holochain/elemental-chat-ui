@@ -160,7 +160,7 @@ export default {
       commit('holoLogout')
       await state.holoClient.signOut()
     },
-    async holoLogin ({ commit }) {
+    async holoLogin ({ state }) {
       if (state.isHoloAnonymous !== true) {
         throw new Error(
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
