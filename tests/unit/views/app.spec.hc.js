@@ -10,7 +10,7 @@ import {
   resetAgentState,
   resetChatState,
   getStubbedStore,
-  mockChatState
+  mockHolochainState
 } from '../../mock-helpers'
 import { createLocalVue } from '@vue/test-utils'
 import Vuex from 'vuex'
@@ -48,7 +48,7 @@ describe('App with store stubs and mocks', () => {
     })
     stubbedStore = getStubbedStore()
     holochainState = {
-      ...mockChatState,
+      ...mockHolochainState,
       holochainClient: Promise.resolve({}),
       conductorDisconnected: false,
       reconnectingIn: 0,
