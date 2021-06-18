@@ -216,7 +216,7 @@ export default {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
     },
     canMakeZomeCalls() {
-      return isHoloHosted() ? !this.conductorDisconnected : this.holoStatus === 'ready'
+      return isHoloHosted() ? this.holoStatus === 'ready' : !this.conductorDisconnected
     }
   },
   created () {
