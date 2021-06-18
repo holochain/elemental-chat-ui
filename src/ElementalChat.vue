@@ -237,7 +237,7 @@ export default {
 }
 </script>
 <style scoped>
-.logout .login {
+.logout, .login {
   font-size: 14px;
   margin-right: 10px;
   cursor: pointer;
