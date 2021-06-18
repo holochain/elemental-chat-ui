@@ -1,11 +1,7 @@
 import { AppWebsocket } from '@holochain/conductor-api'
 import { Connection as WebSdkConnection } from '@holo-host/web-sdk'
 import { isHoloHosted, log } from '@/utils'
-import {
-  RECONNECT_SECONDS,
-  INSTALLED_APP_ID,
-  WEB_CLIENT_URI
-} from '@/consts'
+import { RECONNECT_SECONDS, INSTALLED_APP_ID, WEB_CLIENT_URI } from '@/consts'
 import { handleSignal } from './elementalChat'
 import { inspect } from 'util'
 
@@ -167,7 +163,7 @@ export default {
         log(`holo initialized; setting holoStatus = ${state.holoStatus}`)
       }
       // Prevent going from false -> true since that transition is reverved for holoLogout.
-      if (!(state.anonymous === false && anonymous === true)) {
+      if (!(state.isHoloAnonymous === false && anonymous === true)) {
         state.isHoloAnonymous = anonymous
         log(`setting isHoloAnonymous = ${state.isHoloAnonymous}`)
       }
