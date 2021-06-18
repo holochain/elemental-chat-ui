@@ -87,6 +87,7 @@ export default {
         webSdkConnection.addListener('connected', () => {
           commit('holoInitialized', { anonymous: true })
           dispatch('loadHoloAppInfo')
+          dispatch('loadHostInfo')
         })
         webSdkConnection.addListener('signin', () =>
           commit('holoInitialized', { anonymous: false })

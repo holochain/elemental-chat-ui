@@ -15,7 +15,7 @@
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
-        <Identicon size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
+        <Identicon v-if="isHoloAnonymous === false" size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
         <v-toolbar-title class="handle" aria-label="Agent Handle">{{ handleToDisplay }}</v-toolbar-title>
         <v-tooltip bottom aria-label="Agent Handle Tooltip">
           <template v-slot:activator="{ on, attrs }">
