@@ -138,13 +138,13 @@ export default {
 
       dispatch('loadHoloAppInfo')
     },
-    async loadHoloAppInfo ({ commit }) {
+    async loadHoloAppInfo ({ commit, state }) {
       commit('loadingAppInfo')
       const RETRY_INTERVAL = 500
       let appInfo
       while (!appInfo) {
         try {
-          appInfo = await holoClient.appInfo()
+          appInfo = await state.holoClient.appInfo()
           break
         } catch (e) {
           console.error(e)
@@ -154,8 +154,8 @@ export default {
 
       commit('setAppInfo', appInfo)
     },
-    async loadHostInfo ({ commit }) {
-      const { url } = await holoClient.holoInfo()
+    async loadHostInfo ({ commit, state }) {
+      const { url } = await state.holoClient.holoInfo()
       commit('setHostUrl', url)
     },
     async holoLogout ({ commit, state }) {
