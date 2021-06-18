@@ -19,7 +19,9 @@ export const arrayBufferToBase64 = buffer => {
 // issue 2: https://github.com/puppeteer/puppeteer/issues/2470
 export const logZomeCall = (zomeName, zomeCallName, callAction) => {
   if (!process.env.NODE_ENV === 'test') return
-  console.log(`${Date.now()} ${zomeName}.${zomeCallName} zomeCall ${callAction}`)
+  console.log(
+    `${Date.now()} ${zomeName}.${zomeCallName} zomeCall ${callAction}`
+  )
 }
 export const actionType = Object.freeze({ START: 'start', DONE: 'done' })
 
@@ -30,25 +32,25 @@ export const actionType = Object.freeze({ START: 'start', DONE: 'done' })
 export const retryIfSourceChainHeadMoved = async call => {
   let intervalMs = 50
   while (true) {
-    const val = await call()
-    const isHeadMovedError =
-      val &&
-      val.type === 'error' &&
-      val.payload &&
-      val.payload.message &&
-      val.payload.message.includes('source chain head has moved')
-    console.log('isHeadMovedError', isHeadMovedError)
-    if (isHeadMovedError) {
-      intervalMs *= (2 + Math.random())
-      await wait(intervalMs)
-    } else {
-      return val
+    try {
+      return await call()
+    } catch (e) {
+      const isHeadMovedError = e
+        .toString()
+        .includes('source chain head has moved')
+      console.log('isHeadMovedError', isHeadMovedError)
+      if (isHeadMovedError) {
+        intervalMs *= 2 + Math.random()
+        await wait(intervalMs)
+      } else {
+        throw e
+      }
     }
   }
 }
 
 class CustomError extends Error {
-  constructor(...params) {
+  constructor (...params) {
     super(...params)
     this.name = this.constructor.name
     if (Error.captureStackTrace) {

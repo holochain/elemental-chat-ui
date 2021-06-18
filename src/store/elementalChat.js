@@ -337,14 +337,14 @@ export default {
       commit('setAgentHandle', payload)
     },
     async getProfile ({ commit, dispatch, rootState }) {
-      const profile = await callZome(
+      const profile = await retryIfSourceChainHeadMoved(() => callZome(
         dispatch,
         rootState,
         'profile',
         'get_my_profile',
         null,
         30000
-      )
+      ))
 
       if (profile && profile.nickname) {
         commit('setAgentHandle', profile.nickname)
