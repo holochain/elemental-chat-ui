@@ -215,7 +215,7 @@ export default {
       log(`failed to load chaperone; setting holoStatus = ${state.holoStatus}`)
     },
     createHoloClient (state, { webSdkConnection }) {
-      if (state.holoCient !== null) {
+      if (state.holoCient) {
         throw new Error(
           `createHoloClient: unexpected pre-existing holoClient ${inspect(
             state.holoCient
