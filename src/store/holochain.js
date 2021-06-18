@@ -186,7 +186,7 @@ export default {
   mutations: {
     connectingHolo (state) {
       if (state.holoStatus !== 'empty') {
-        throw new Error('todo')
+        throw new Error(`connectingHolo: unexpected state ${state.holoStatus}`)
       }
       state.holoStatus = 'connecting_to_host'
       log(`connecting to host; setting holoStatus = ${state.holoStatus}`)
@@ -207,14 +207,20 @@ export default {
     },
     failedToLoadChaperone (state) {
       if (state.holoStatus !== 'connecting_to_host') {
-        throw new Error('todo')
+        throw new Error(
+          `could not set state to failed_to_load_chaperone: unexpected state ${state.holoStatus}`
+        )
       }
       state.holoStatus = 'failed_to_load_chaperone'
       log(`failed to load chaperone; setting holoStatus = ${state.holoStatus}`)
     },
     createHoloClient (state, { webSdkConnection }) {
       if (state.holoCient !== null) {
-        throw new Error('todo')
+        throw new Error(
+          `createHoloClient: unexpected pre-existing holoClient ${inspect(
+            state.holoCient
+          )}`
+        )
       }
       // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
       state.holoClient = {

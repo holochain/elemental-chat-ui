@@ -162,7 +162,7 @@ export default {
       )
     },
     shouldDisplayHolochainConnecting () {
-      return this.conductorDisconnected
+      return !isHoloHosted() && this.conductorDisconnected
     },
     shouldDisplayHoloConnecting () {
       return (isHoloHosted() && this.holoStatus !== 'ready')
