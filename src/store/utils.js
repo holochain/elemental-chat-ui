@@ -60,21 +60,3 @@ class CustomError extends Error {
 export class TimeoutError extends CustomError {}
 export class UndefinedClientError extends CustomError {}
 export class HoloError extends CustomError {}
-
-export const retryUntilClientIsDefined = async (call, maxTries = 20) => {
-  let tries = 0
-  while (true) {
-    let val
-    try {
-      tries++
-      val = await call()
-      return val
-    } catch (e) {
-      if (e instanceof UndefinedClientError && tries < maxTries) {
-        await wait(500)
-      } else {
-        return val
-      }
-    }
-  }
-}

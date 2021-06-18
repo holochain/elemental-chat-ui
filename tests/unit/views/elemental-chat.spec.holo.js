@@ -3,8 +3,12 @@ import Vuetify from 'vuetify'
 import Vue from 'vue'
 import { renderAndWaitFullSetup, stubElement } from '../../test-utils'
 import ElementalChat from '@/ElementalChat.vue'
-import { mockHolochainState, resetHolochainState, mockAgentState, getStubbedStore } from '../../mock-helpers'
-
+import {
+  mockHolochainState,
+  resetHolochainState,
+  mockAgentState,
+  getStubbedStore
+} from '../../mock-helpers'
 
 jest.mock('@/store/callZome')
 
@@ -32,7 +36,10 @@ describe('ElementalChat with store stubs and mocks', () => {
   })
 
   it('handles initalizing Holo Client', async () => {
-    stubbedStore = getStubbedStore(mockAgentState, { ...mockHolochainState, isHoloSignedIn: true })
+    stubbedStore = getStubbedStore(mockAgentState, {
+      ...mockHolochainState,
+      isHoloAnonymous: false
+    })
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(ElementalChat, stubbedStore)
     expect(wrapper.is(ElementalChat)).toBe(true)

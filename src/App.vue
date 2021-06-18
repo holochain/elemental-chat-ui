@@ -117,7 +117,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['setChannelPolling', 'updateProfile']),
+    ...mapActions('elementalChat', ['setChannelPolling', 'setRefreshChatterInterval', 'updateProfile']),
     ...mapActions('holochain', ['skipBackoff', 'holoLogout']),
     ...mapMutations(['setAgentHandle', 'setErrorMessage']),
     ...mapMutations('elementalChat', ['setNeedsHandle']),
@@ -180,6 +180,7 @@ export default {
   },
   mounted () {
     this.setChannelPolling()
+    this.setRefreshChatterInterval()
   }
 }
 </script>

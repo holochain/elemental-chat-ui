@@ -115,13 +115,6 @@ export default {
         })
       } else {
         initializeClientLocal(commit, dispatch, state)
-
-        // refresh chatter state every 2 hours
-        setInterval(function () {
-          if (conductorConnected(state)) {
-            dispatch('elementalChat/refreshChatter')
-          }
-        }, 1000 * 60 * 60 * 2)
       }
     },
     skipBackoff ({ commit }) {
@@ -192,7 +185,8 @@ export default {
         state.holoStatus = 'holo_initialized'
         log(`holo initialized; setting holoStatus = ${state.holoStatus}`)
       }
-      if (state.isHoloAnonymous === null) {
+      // Prevent going from false -> true since that transition is reverved for holoLogout.
+      if (!(state.anonymous === false && anonymous === true)) {
         state.isHoloAnonymous = anonymous
         log(`setting isHoloAnonymous = ${state.isHoloAnonymous}`)
       }

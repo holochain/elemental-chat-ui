@@ -166,7 +166,8 @@ export default {
       'listAllMessages',
       'getStats',
       'getProfile',
-      'updateProfile'
+      'updateProfile',
+      'refreshChatter'
     ]),
     ...mapActions('holochain', ['holoLogout', 'holoLogin']),
     visitPocPage () {
@@ -190,11 +191,14 @@ export default {
       'dnaHash',
       'hostUrl',
       'agentKey',
-      'dnaAlias']),
+      'dnaAlias',
+      'holoState'
+    ]),
     ...mapState('elementalChat', [
       'stats',
       'statsLoading',
-      'agentHandle'
+      'agentHandle',
+      'getProfile'
     ]),
     ...mapGetters('elementalChat', [
       'channel'
@@ -211,20 +215,22 @@ export default {
     },
     handleToDisplay () {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
+    },
+    canMakeZomeCalls() {
+      return isHoloHosted() ? !this.conductorDisconnected : this.holoState === 'ready'
     }
   },
   created () {
     console.log('agentKey started as', this.agentKey)
   },
   watch: {
-    conductorDisconnected (val) {
-      if (!val) {
-        try {
-          this.listAllMessages()
-        } catch (e) {
-          console.error('Error calling listAllMessages', e)
+    canMakeZomeCalls (can) {
+      if (can) {
+        this.listAllMessages()
+        if(!(isHoloHosted() && this.isHoloAnonymous)) {
+          this.getProfile()
+          this.refreshChatter()
         }
-        tryToGetAllMessages()
       }
     }
   }
