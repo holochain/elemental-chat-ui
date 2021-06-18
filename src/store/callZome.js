@@ -44,8 +44,8 @@ export const callZome = async (
   const state = rootState.holochain
 
   if (isHoloHosted()) {
-    if (state.holoState !== 'ready') {
-      log(`callZome called holoState !== ready (${state.holoState})`)
+    if (state.holoStatus !== 'ready') {
+      log(`callZome called holoStatus !== ready (${state.holoStatus})`)
       return
     }
   } else {

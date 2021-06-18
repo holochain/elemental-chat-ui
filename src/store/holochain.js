@@ -1,17 +1,13 @@
 import { AppWebsocket } from '@holochain/conductor-api'
 import { Connection as WebSdkConnection } from '@holo-host/web-sdk'
-import { isHoloHosted, log, toUint8Array } from '@/utils'
+import { isHoloHosted, log } from '@/utils'
 import {
   RECONNECT_SECONDS,
-  APP_VERSION,
   INSTALLED_APP_ID,
-  WEB_CLIENT_PORT,
   WEB_CLIENT_URI
 } from '@/consts'
-import { arrayBufferToBase64 } from './utils'
 import { handleSignal } from './elementalChat'
 import { inspect } from 'util'
-import wait from 'waait'
 
 console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
@@ -39,7 +35,6 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     commit('setAppInfo', appInfo)
 
     commit('setHolochainClient', holochainClient)
-    dispatch('elementalChat/refreshChatter', null, { root: true })
 
     holochainClient.client.socket.onclose = function (e) {
       // TODO: decide if we would like to remove this clause:
@@ -57,10 +52,6 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     log('Connection Error ', e)
     commit('setReconnecting', RECONNECT_SECONDS)
   }
-}
-
-function conductorConnected (state) {
-  return state.reconnectingIn === -1
 }
 
 export default {
@@ -125,17 +116,7 @@ export default {
     },
     async loadHoloAppInfo ({ commit, state }) {
       commit('loadingAppInfo')
-      const RETRY_INTERVAL = 500
-      let appInfo
-      while (!appInfo) {
-        try {
-          appInfo = await state.holoClient.appInfo()
-          break
-        } catch (e) {
-          console.error(e)
-          await wait(RETRY_INTERVAL)
-        }
-      }
+      const appInfo = await state.holoClient.appInfo()
 
       commit('setAppInfo', appInfo)
     },

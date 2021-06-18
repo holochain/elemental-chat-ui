@@ -192,7 +192,7 @@ export default {
       'hostUrl',
       'agentKey',
       'dnaAlias',
-      'holoState'
+      'holoStatus'
     ]),
     ...mapState('elementalChat', [
       'stats',
@@ -216,7 +216,7 @@ export default {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
     },
     canMakeZomeCalls() {
-      return isHoloHosted() ? !this.conductorDisconnected : this.holoState === 'ready'
+      return isHoloHosted() ? !this.conductorDisconnected : this.holoStatus === 'ready'
     }
   },
   created () {
@@ -224,9 +224,10 @@ export default {
   },
   watch: {
     canMakeZomeCalls (can) {
+      console.log(`watcher activated: canMakeZomeCalls=${can}`)
       if (can) {
         this.listAllMessages()
-        if(!(isHoloHosted() && this.isHoloAnonymous)) {
+        if (!(isHoloHosted() && this.isHoloAnonymous)) {
           this.getProfile()
           this.refreshChatter()
         }

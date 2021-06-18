@@ -1,6 +1,17 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
 import { stubElement } from '../../test-utils'
-import { AGENT_KEY_MOCK, DNA_HASH_MOCK, createNewChannel, getStubbedActions, getStubbedMutations, resetHolochainState, resetAgentState, resetChatState, getStubbedStore, mockChatState } from '../../mock-helpers'
+import {
+  AGENT_KEY_MOCK,
+  DNA_HASH_MOCK,
+  createNewChannel,
+  getStubbedActions,
+  getStubbedMutations,
+  resetHolochainState,
+  resetAgentState,
+  resetChatState,
+  getStubbedStore,
+  mockChatState
+} from '../../mock-helpers'
 import { createLocalVue } from '@vue/test-utils'
 import Vuex from 'vuex'
 import Vue from 'vue'
@@ -18,10 +29,12 @@ describe('App with store stubs and mocks', () => {
   let stubbedStore, appConductor, holochainState
   const MOCK_CELL_ID = [DNA_HASH_MOCK, AGENT_KEY_MOCK]
   const MOCK_CELL_DATA = {
-    cell_data: [{
-      cell_id: MOCK_CELL_ID,
-      cell_nick: 'elemental-chat'
-    }]
+    cell_data: [
+      {
+        cell_id: MOCK_CELL_ID,
+        cell_nick: 'elemental-chat'
+      }
+    ]
   }
 
   beforeAll(() => {
@@ -42,7 +55,7 @@ describe('App with store stubs and mocks', () => {
       dnaAlias: 'elemental-chat-alias-test',
       isLoading: {},
       hostUrl: '',
-      holoClient: null,
+      holoClient: null
     }
   })
   beforeEach(() => {
@@ -61,8 +74,11 @@ describe('App with store stubs and mocks', () => {
     stubbedStore.dispatch = jest.fn()
     stubElement(App, stubbedStore)
     await wait(2000)
-    expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
-    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(2)
+    expect(stubbedStore.dispatch.mock.calls).toEqual([
+      ['initializeStore'],
+      ['elementalChat/setChannelPolling', undefined],
+      ['elementalChat/setRefreshChatterInterval', undefined]
+    ])
   })
 
   it("dispatches `skipBackoff` action when 'retry now' button is pressed", async () => {
@@ -74,13 +90,21 @@ describe('App with store stubs and mocks', () => {
     const wrapper = stubElement(App, stubbedStore)
 
     await wait(2000)
-    expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
-    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(2)
+    expect(stubbedStore.dispatch.mock.calls).toEqual([
+      ['initializeStore'],
+      ['elementalChat/setChannelPolling', undefined],
+      ['elementalChat/setRefreshChatterInterval', undefined]
+    ])
 
     // set the disconnected to true
     await wrapper.find('[aria-label="Reconnect Now Button"]').vm.$emit('click')
     await wait(2000)
-    expect(stubbedStore.dispatch.mock.calls[2][0]).toEqual('holochain/skipBackoff')
+    expect(stubbedStore.dispatch.mock.calls).toEqual([
+      ['initializeStore'],
+      ['elementalChat/setChannelPolling', undefined],
+      ['elementalChat/setRefreshChatterInterval', undefined],
+      ['holochain/skipBackoff', undefined]
+    ])
   })
 
   it('displays proper modal when reconnecting to holochain ', async () => {
@@ -88,18 +112,26 @@ describe('App with store stubs and mocks', () => {
       ...holochainState,
       conductorDisconnected: true,
       reconnectingIn: 0,
-      holoClient: null,
+      holoClient: null
     }
     stubbedStore = getStubbedStore(null, disconnectedHolochainState)
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(App, stubbedStore)
     await wait(2000)
-    expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
+    expect(stubbedStore.dispatch.mock.calls).toEqual([
+      ['initializeStore'],
+      ['elementalChat/setChannelPolling', undefined],
+      ['elementalChat/setRefreshChatterInterval', undefined]
+    ])
 
     await stubbedStore.dispatch('holochain/resetConnectionState')
-    expect(stubbedStore.dispatch).toHaveBeenCalledWith('holochain/resetConnectionState')
+    expect(stubbedStore.dispatch).toHaveBeenCalledWith(
+      'holochain/resetConnectionState'
+    )
     // check that reconnecting modal appears
-    const reconnectionModal = await wrapper.find('[aria-label="Reconnecting to Holochain Dialog"]')
+    const reconnectionModal = await wrapper.find(
+      '[aria-label="Reconnecting to Holochain Dialog"]'
+    )
     expect(reconnectionModal).toBeTruthy()
   })
 
@@ -108,18 +140,26 @@ describe('App with store stubs and mocks', () => {
       ...holochainState,
       conductorDisconnected: true,
       reconnectingIn: 0,
-      holoClient: null,
+      holoClient: null
     }
     stubbedStore = getStubbedStore(null, disconnectedHolochainState)
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(App, stubbedStore)
     await wait(2000)
-    expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
+    expect(stubbedStore.dispatch.mock.calls).toEqual([
+      ['initializeStore'],
+      ['elementalChat/setChannelPolling', undefined],
+      ['elementalChat/setRefreshChatterInterval', undefined]
+    ])
 
     await stubbedStore.dispatch('holochain/signalHoloDisconnect')
-    expect(stubbedStore.dispatch).toHaveBeenCalledWith('holochain/signalHoloDisconnect')
+    expect(stubbedStore.dispatch).toHaveBeenCalledWith(
+      'holochain/signalHoloDisconnect'
+    )
     // check that hp disconnection modal appears
-    const disconnectedModal = await wrapper.find('[aria-label="Connecting to Holo Dialog"]')
+    const disconnectedModal = await wrapper.find(
+      '[aria-label="Connecting to Holo Dialog"]'
+    )
     expect(disconnectedModal).toBeTruthy()
   })
 })

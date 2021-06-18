@@ -221,6 +221,9 @@ export default {
       { commit, rootState, dispatch, state },
       payload
     ) => {
+      if (state.agentHandle === null) {
+        throw new Error('cannot post message without having handle')
+      }
       let lastSeen = payload.channel.last_seen
       if (lastSeen.Message) {
         lastSeen = {
