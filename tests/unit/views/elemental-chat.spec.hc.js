@@ -64,10 +64,6 @@ describe('ElementalChat with real store', () => {
   })
 
   it('Displays agent identicon', async () => {
-    getStubbedStore(undefined, {
-      ...mockHolochainState,
-      isHoloAnonymous: false
-    })
     const { getByRole } = await renderAndWaitFullSetup(ElementalChat)
     const identicon = getByRole('img', { name: /agent identity icon/i })
     expect(identicon).toBeTruthy()

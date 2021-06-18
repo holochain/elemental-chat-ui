@@ -175,7 +175,7 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
         actions: { ...actions.chat, listChannels: () => Promise.resolve(channelsList), listAllMessages: () => Promise.resolve(channelsList.map(channel => ({ channel, messages: channel.messages })))  },
         mutations: { ...mutations.chat },
         getters: {
-          createMessageLoading: () => callLoading || false,
+          createMessageLoading: () => (callLoading || false),
           channel: () => getCurrentChannel(chatState)
         }
       },
