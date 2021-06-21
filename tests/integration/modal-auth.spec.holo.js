@@ -47,7 +47,8 @@ describe('Authentication Flow', () => {
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
-    await wait(100)
+    // Wait for Connection to Host overlay to disappear
+    await wait(500)
     const [loginButton] = await findElementsByText('span', 'Login', page)
     await loginButton.click()
 
