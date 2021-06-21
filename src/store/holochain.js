@@ -193,7 +193,7 @@ export default {
         signOut: (...args) => webSdkConnection.signOut(...args),
         appInfo: (...args) =>
           webSdkConnection.appInfo(...args).then(pkg => {
-            if (pkg.type === 'error') {
+            if (pkg && pkg.type === 'error') {
               throw new Error(`Failed to get appInfo: ${inspect(pkg)}`)
             } else {
               return pkg
@@ -232,7 +232,7 @@ export default {
       state.dnaAlias = cell_nick
       log(`dnaAlias = ${state.dnaAlias}`)
       state.dnaHash = Buffer.from(dnaHash)
-      log(`dnaHash = ${state.dnaAlias.toString('base64')}`)
+      log(`dnaHash = ${state.dnaHash.toString('base64')}`)
       state.agentKey = Buffer.from(agentId)
       log('agentKey = ', state.agentKey.toString('base64'))
 

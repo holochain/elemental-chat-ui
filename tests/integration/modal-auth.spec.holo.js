@@ -47,6 +47,10 @@ describe('Authentication Flow', () => {
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
+    await wait(100)
+    const [loginButton] = await findElementsByText('span', 'Login', page)
+    await loginButton.click()
+
     // *********
     // Sign Up and Log Into hApp
     // *********
