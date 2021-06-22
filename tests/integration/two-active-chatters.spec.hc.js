@@ -3,9 +3,10 @@ import 'regenerator-runtime/runtime.js'
 import wait from 'waait'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
-import { handleZomeCall, waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup } from './setup/helpers'
+import { handleZomeCall, waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup, getStats } from './setup/helpers'
 import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
+import { mapValues } from 'lodash'
 
 // TEMPORARY: Remove and reset this extended waittime after hc header issue is resolved
 const EXTENDED_WAITTIME = WAITTIME + 3000
@@ -18,24 +19,24 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     entry: { category: 'General', uuid: uuidv4() }
   }
 
-  let aliceChat, bobboChat, page, closeServer, conductor, newPage, stats, newStats, channelInFocus
+  let aliceChat, bobboChat, page, closeServer, conductor, newPage, expectedStats, newStats, channelInFocus
   beforeAll(async () => {
     const createPage = () => global.__BROWSER__.newPage()
     let startingStats
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
     ({ aliceChat, bobboChat, page, closeServer, conductor, startingStats } = await setupTwoChatters(scenario, createPage, callRegistry))
-    stats = startingStats
-    console.log('starting stats : ', stats)
+    expectedStats = startingStats
+    console.log('starting stats : ', expectedStats)
     await wait(EXTENDED_WAITTIME)
     // scenario setup:
     console.log('Setting up default channel...')
     channelInFocus = await handleZomeCall(aliceChat.call, ['chat', 'create_channel', newChannel])
     console.log('starting channel : ', channelInFocus)
-    stats = { ...stats, channels: stats.channels + 1 }
+    expectedStats = { ...expectedStats, channels: expectedStats.channels + 1 }
     // wait for refresh chatter call response (initiated on page load)
     const checkRefreshChatterState = () => callRegistry['chat.refresh_chatter']
     await waitForState(checkRefreshChatterState, 'done', 'chat.refresh_chatter')
-    stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
+    expectedStats = { ...expectedStats, agents: expectedStats.agents + 1, active: expectedStats.active + 1 }
 
     const installedApps = await conductor.adminWs().listActiveApps()
     if (!installedApps.find(app => app === INSTALLED_APP_ID)) {
@@ -50,16 +51,16 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
   })
 
   const checkChannelState = async () => {
-    if (stats.channels < 1) {
+    if (expectedStats.channels < 1) {
       await page.click('#refresh')
       await wait(WAITTIME)
     }
   }
 
   const checkAgentsState = async () => {
-    if (stats.active !== 2) {
+    if (expectedStats.active !== 2) {
       await handleZomeCall(bobboChat.call, ['chat', 'refresh_chatter', null])
-      stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
+      expectedStats = { ...expectedStats, agents: expectedStats.agents + 1, active: expectedStats.active + 1 }
       await wait(EXTENDED_WAITTIME)
     }
   }
@@ -85,7 +86,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       // page has already loaded by now
       newStats = await callStats(aliceChat)
       expect(newStats.active).toEqual(1)
-      stats = newStats
+      expectedStats = newStats
     })
 
     it('displays new channels after pressing refresh button', async () => {
@@ -138,61 +139,32 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       expect(channelInFocus).toBeTruthy()
 
       newStats = await callStats(aliceChat)
-      expect(newStats).toEqual({ ...stats, channels: stats.channels + 1 })
-      stats = newStats
+      expect(newStats).toEqual({ ...expectedStats, channels: expectedStats.channels + 1 })
+      expectedStats = newStats
     })
 
     it('displays correct stats before and after new chatter', async () => {
       await checkChannelState()
-      const checkVisualStats = async (statArray, element) => {
-        const stats = statArray
-        for (const e in element) {
-          try {
-            const text = await (await element[e].getProperty('textContent')).jsonValue()
-            stats.push(text)
-          } catch (e) {
-            console.log('error: ', e)
-            continue
-          }
-        }
-        return stats
-      }
 
       // alice (web) clicks on get-stats
-      await page.click('#get-stats')
-      await wait(WAITTIME)
-      let element = await page.$$('.display-1')
-      let texts = await checkVisualStats([], element)
-      console.log('Stats prior to second agent: ', texts)
+      const stats = await getStats(page)
+      console.log('Stats prior to second agent: ', stats)
 
       // assert that we find the right stats
-      expect(texts[1]).toEqual(stats.agents + ' 👤')
-      expect(texts[3]).toEqual(stats.active + ' 👤')
-      expect(texts[5]).toEqual(stats.channels + ' 🗨️')
-      expect(texts[7]).toEqual(stats.messages + ' 🗨️')
-
-      const [closeButton] = await findElementsByText('button', 'Close', page)
-      await closeButton.click()
+      expect(mapValues(stats, Number)).toEqual(expectedStats)
 
       // bobbo (tryorama node) declares self as chatter
       await handleZomeCall(bobboChat.call, ['chat', 'refresh_chatter', null])
       await wait(EXTENDED_WAITTIME)
 
-      await page.click('#get-stats')
-      await wait(WAITTIME)
-      // reset element to evaluate
-      element = await page.$$('.display-1')
-      texts = await checkVisualStats([], element)
-      console.log('Stats after second agent: ', texts)
+      const stats2 = await getStats(page)
+      console.log('Stats after second agent: ', stats2)
+
+      expectedStats = { ...expectedStats, agents: expectedStats.agents + 1, active: expectedStats.active + 1 }
 
       // assert that we find the right stats
-      expect(texts[1]).toEqual(stats.agents + 1 + ' 👤')
-      expect(texts[3]).toEqual(stats.active + 1 + ' 👤')
-      expect(texts[5]).toEqual(stats.channels + ' 🗨️')
-      expect(texts[7]).toEqual(stats.messages + ' 🗨️')
+      expect(mapValues(stats2, Number)).toEqual(expectedStats)
 
-      await page.click('#close-stats')
-      stats = { ...stats, agents: stats.agents + 1, active: stats.active + 1 }
       await wait(WAITTIME)
     })
 
@@ -233,8 +205,8 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // bobbo checks stats after message
       newStats = await handleZomeCall(bobboChat.call, ['chat', 'stats', { category: 'General' }])
-      expect(newStats).toEqual({ ...stats, messages: stats.messages + 1 })
-      stats = newStats
+      expect(newStats).toEqual({ ...expectedStats, messages: expectedStats.messages + 1 })
+      expectedStats = newStats
     })
 
     it('displays channels created by another agent', async () => {
@@ -248,8 +220,8 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       channelInFocus = await handleZomeCall(bobboChat.call, ['chat', 'create_channel', newChannel])
       // bobbo checks stats
       newStats = await callStats(bobboChat)
-      expect(newStats).toEqual({ ...stats, channels: stats.channels + 1 })
-      stats = newStats
+      expect(newStats).toEqual({ ...expectedStats, channels: expectedStats.channels + 1 })
+      expectedStats = newStats
 
       // alice (web) refreshes channel list
       const newChannelButton = await page.$('#refresh')
@@ -317,8 +289,8 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // bobbo checks stats
       newStats = await callStats(bobboChat)
-      expect(newStats).toEqual({ ...stats, messages: stats.messages + 1 })
-      stats = newStats
+      expect(newStats).toEqual({ ...expectedStats, messages: expectedStats.messages + 1 })
+      expectedStats = newStats
     })
 
     it('displays new messages after pressing refresh button', async () => {
@@ -345,8 +317,8 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
       // bobbo checks stats
       newStats = await callStats(bobboChat)
-      expect(newStats).toEqual({ ...stats, messages: stats.messages + 1 })
-      stats = newStats
+      expect(newStats).toEqual({ ...expectedStats, messages: expectedStats.messages + 1 })
+      expectedStats = newStats
     })
 
     it('handles updating agent handle', async () => {

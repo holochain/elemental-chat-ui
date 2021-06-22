@@ -1,8 +1,9 @@
 import path from 'path'
-import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH } from './globals'
+import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH, WAITTIME } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
 import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
+import wait from 'waait'
 
 export const waitForState = async (stateChecker, desiredState, callName, callRegistryCb = () => null, pollingInterval = 1000, timeout = 9000) => {
   return Promise.race([
@@ -88,6 +89,35 @@ export const findIframe = async (page, urlRegex, pollingInterval = 1000) => {
   })
 }
 
+export const getStats = async page => {
+  // alice (web) clicks on get-stats
+  await page.click('#get-stats')
+  await wait(WAITTIME)
+  let element = await page.$$('.display-1')
+
+  const stats = []
+  for (const e in element) {
+    try {
+      const text = await (
+        await element[e].getProperty('textContent')
+      ).jsonValue()
+      stats.push(text)
+    } catch (e) {
+      console.log('error: ', e)
+      continue
+    }
+  }
+
+  const [closeButton] = await findElementsByText('button', 'Close', page)
+  await closeButton.click()
+  return {
+    agents: stats[1].replace(' 👤', '').trim(),
+    active: stats[3].replace(' 👤', '').trim(),
+    channels: stats[5].replace(' 🗨️', '').trim(),
+    messages: stats[7].replace(' 🗨️', '').trim(),
+  }
+}
+
 /// Tryorama helpers:
 // -------------------
 export const awaitZomeResult = async (
@@ -118,17 +148,19 @@ export const awaitZomeResult = async (
 /// Holo Test helpers:
 // -------------------
 export const holoAuthenticateUser = async (frame, modalElement, email, password, type = 'signup') => {
-  await frame.type(`#${type}-email`, email, { delay: 100 })
-  const emailValue = await frame.$eval(`#${type}-email`, el => el.value)
+  const id_prefix = type === 'signup' ? 'signup-' : ''
 
-  await frame.type(`#${type}-password`, password, { delay: 100 })
-  const passwordValue = await frame.$eval(`#${type}-password`, el => el.value)
+  await frame.type(`#${id_prefix}email`, email, { delay: 100 })
+  const emailValue = await frame.$eval(`#${id_prefix}email`, el => el.value)
+
+  await frame.type(`#${id_prefix}password`, password, { delay: 100 })
+  const passwordValue = await frame.$eval(`#${id_prefix}password`, el => el.value)
 
   let confirmationValue, submitbuttonText
   if (type === 'signup') {
     submitbuttonText = 'Submit'
-    await frame.type(`#${type}-password-confirm`, password, { delay: 100 })
-    confirmationValue = await frame.$eval(`#${type}-password-confirm`, el => el.value)
+    await frame.type(`#${id_prefix}password-confirm`, password, { delay: 100 })
+    confirmationValue = await frame.$eval(`#${id_prefix}password-confirm`, el => el.value)
   } else {
     submitbuttonText = 'Login'
   }

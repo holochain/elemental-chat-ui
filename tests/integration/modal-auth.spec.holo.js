@@ -1,7 +1,7 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import wait from 'waait'
 import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, CHAPERONE_URL_REGEX_HCC, WEB_LOGGING } from './setup/globals'
-import { findIframe, holoAuthenticateUser, findElementsByText } from './setup/helpers'
+import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
 const chaperoneUrlCheck = {
@@ -52,12 +52,23 @@ describe('Authentication Flow', () => {
     console.log('✅ Closed the UI server...')
   })
 
-  it('should successfully sign up', async () => {
+  it('can make anonymous zome calls', async () => {
+    await wait(500)
+    const stats = await getStats(page)
+    expect(stats).toEqual({
+      agents: '0',
+      active: '0',
+      channels: '0',
+      messages: '0'
+    })
+  })
+
+  it('can sign up, log out, and sign back in', async () => {
     // verify page
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
-    // Wait for "Connection to HoloPort..." overlay to disappear
+    // Wait for "Connecting to HoloPort..." overlay to disappear
     await wait(500)
     const [loginButton] = await findElementsByText('span', 'Login', page)
     await loginButton.click()
@@ -82,13 +93,30 @@ describe('Authentication Flow', () => {
     expect(passwordValue).toBe(HOSTED_AGENT.password)
     expect(confirmationValue).toEqual(passwordValue)
 
+    // Wait for signup to complete
+    await wait(1500)
 
-    await wait(5000)
-    // *********
-    // Evaluate Main Frame
-    // *********
-    // verify main page has logout button
+    // Select nickname textbox
+    const [dialog] = await page.$$('.v-dialog')
+    const elementsWithText = await findElementsByText('div', 'Enter your handle', dialog)
+    const updateHandleInput = elementsWithText.pop()
+    await updateHandleInput.click()
+
+    await registerNickname(page, 'AliceHosted')
+    const [nickname] = await findElementsByText('div', 'AliceHosted', page)
+    expect(nickname).toBeTruthy()
+    
     const [logoutButton] = await findElementsByText('span', 'Logout', page)
-    expect(logoutButton).toBeTruthy()
+    await logoutButton.click()
+
+    await wait(500)
+    const [loginButton2] = await findElementsByText('span', 'Login', page)
+    await loginButton2.click()
+
+    await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signin')
+    await wait(1500)
+
+    const [nickname2] = await findElementsByText('div', 'AliceHosted', page)
+    expect(nickname2).toBeTruthy()
   })
 }, TIMEOUT)
