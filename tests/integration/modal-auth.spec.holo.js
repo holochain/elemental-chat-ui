@@ -10,11 +10,16 @@ const chaperoneUrlCheck = {
 }
 
 describe('Authentication Flow', () => {
-  let page, closeServer
+  let page, closeServer, serverPorts
   beforeAll(async () => {
     console.log('👉 Spinning up UI server')
     const { ports, close } = httpServers()
+    serverPorts = ports
     closeServer = close
+  }, TIMEOUT)
+
+  beforeEach(async () => {
+    console.log('before do be running')
     page = await global.__BROWSER__.newPage()
 
     page.once('domcontentloaded', () => console.info('✅ DOM is ready'))
@@ -30,11 +35,16 @@ describe('Authentication Flow', () => {
         }
       })
     }
+    await page.setCacheEnabled(false);
 
     // Puppeteer: emulate avg desktop viewport
     await page.setViewport({ width: 952, height: 968 })
-    await page.goto(`http://localhost:${ports.ui}/dist/index.html`)
+    await page.goto(`http://localhost:${serverPorts.ui}/dist/index.html`)
   }, TIMEOUT)
+
+  afterEach(async () => {
+    await page.close()
+  })
 
   afterAll(async () => {
     console.log('👉 Closing the UI server...')
@@ -47,7 +57,7 @@ describe('Authentication Flow', () => {
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
-    // Wait for Connection to Host overlay to disappear
+    // Wait for "Connection to HoloPort..." overlay to disappear
     await wait(500)
     const [loginButton] = await findElementsByText('span', 'Login', page)
     await loginButton.click()
