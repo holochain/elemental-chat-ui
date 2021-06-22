@@ -63,7 +63,7 @@ describe('Authentication Flow', () => {
     })
   })
 
-  it('can sign up, log out, and sign back in', async () => {
+  it('can sign up, make zome call, log out, and sign back in', async () => {
     // verify page
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
@@ -102,6 +102,7 @@ describe('Authentication Flow', () => {
     const updateHandleInput = elementsWithText.pop()
     await updateHandleInput.click()
 
+    // Test zome calls by registering a nickname and confirming that it remains
     await registerNickname(page, 'AliceHosted')
     const [nickname] = await findElementsByText('div', 'AliceHosted', page)
     expect(nickname).toBeTruthy()
