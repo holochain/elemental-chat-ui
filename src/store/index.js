@@ -19,6 +19,9 @@ export const storeRaw = {
     async initializeStore ({ dispatch }) {
       await dispatch('holochain/initialize')
       dispatch('elementalChat/initialize')
+    },
+    setErrorMessage ({ commit }, payload) {
+      commit('setErrorMessage', payload)
     }
   },
   modules: {
