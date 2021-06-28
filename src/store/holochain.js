@@ -59,7 +59,7 @@ export default {
     holoStatus: 'empty',
     isHoloAnonymous: null,
     conductorDisconnected: true,
-    reconnectingIn: null,
+    reconnectingIn: 0,
     dnaHash: null,
     agentKey: null,
     dnaAlias: null,
