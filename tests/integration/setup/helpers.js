@@ -223,7 +223,12 @@ export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   }
 
   const page = await createPage()
+  await setupPage(page, callRegistry, `http://localhost:${ports.ui}/dist/index.html`, { waitForNavigation: true })
 
+  return { aliceChat, bobboChat, page, closeServer, conductor, startingStats }
+}
+
+export const setupPage = async (page, callRegistry, url) => {
   page.once('domcontentloaded', () => console.info('✅ DOM is ready'))
   page.once('load', () => console.info('✅ Page is loaded'))
   page.once('close', () => console.info('✅ Page is closed'))
@@ -270,11 +275,9 @@ export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   // Puppeteer: emulate avg desktop viewport
   await page.setViewport({ width: 952, height: 968 })
   await Promise.all([
-    page.goto(`http://localhost:${ports.ui}/dist/index.html`),
+    page.goto(url),
     page.waitForNavigation({ waitUntil: 'networkidle0' })
   ])
-
-  return { aliceChat, bobboChat, page, closeServer, conductor, startingStats }
 }
 
 export const afterAllSetup = async (conductor, closeServer) => {

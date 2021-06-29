@@ -1,7 +1,7 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import wait from 'waait'
 import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, CHAPERONE_URL_REGEX_HCC, WEB_LOGGING } from './setup/globals'
-import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname } from './setup/helpers'
+import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname, setupPage } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
 const chaperoneUrlCheck = {
@@ -10,7 +10,7 @@ const chaperoneUrlCheck = {
 }
 
 describe('Authentication Flow', () => {
-  let page, closeServer, serverPorts
+  let page, closeServer, serverPorts, callRegistry
   beforeAll(async () => {
     console.log('👉 Spinning up UI server')
     const { ports, close } = httpServers()
@@ -19,27 +19,9 @@ describe('Authentication Flow', () => {
   }, TIMEOUT)
 
   beforeEach(async () => {
-    console.log('before do be running')
+    callRegistry = {}
     page = await global.__BROWSER__.newPage()
-
-    page.once('domcontentloaded', () => console.info('✅ DOM is ready'))
-    page.once('load', () => console.info('✅ Page is loaded'))
-    page.once('close', () => console.info('✅ Page is closed'))
-    if (WEB_LOGGING) {
-      page.on('pageerror', error => console.error(`❌ ${error}`))
-      page.on('console', message => {
-        try {
-          console[message.type()](`ℹ️ ${message.text()}`)
-        } catch (error) {
-          console.info(`ℹ️ ${message}`)
-        }
-      })
-    }
-    await page.setCacheEnabled(false);
-
-    // Puppeteer: emulate avg desktop viewport
-    await page.setViewport({ width: 952, height: 968 })
-    await page.goto(`http://localhost:${serverPorts.ui}/dist/index.html`)
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
   }, TIMEOUT)
 
   afterEach(async () => {
@@ -119,5 +101,33 @@ describe('Authentication Flow', () => {
 
     const [nickname2] = await findElementsByText('div', 'AliceHosted', page)
     expect(nickname2).toBeTruthy()
+  })
+
+  it('makes the appropriate zome calls on initialization', async () => {
+    await wait(1000)
+    expect(callRegistry).toEqual({
+      'chat.list_all_messages': 'done',
+    })
+
+    delete callRegistry['chat.list_all_messages']
+    expect(callRegistry).toEqual({})
+
+    const [loginButton] = await findElementsByText('span', 'Login', page)
+    await loginButton.click()
+
+    await page.waitForSelector('iframe')
+    const iframe = await findIframe(page, chaperoneUrlCheck.local)
+    const chaperoneModal = await iframe.evaluateHandle(() => document)
+
+    expect(callRegistry).toEqual({})
+
+    await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signin')
+    await wait(1500)
+
+    expect(callRegistry).toEqual({
+      'chat.list_all_messages': 'done',
+      'chat.refresh_chatter': 'done',
+      'profile.get_my_profile': 'done',
+    })
   })
 }, TIMEOUT)
