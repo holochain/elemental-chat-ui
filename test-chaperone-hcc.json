@@ -8,5 +8,5 @@
     "path": "/hosting/"
   },
   "mode": 2,
-  "hcc_admin_port_for_agent_autodetection": 4444
+  "hcc_admin_port": 4444
 }
