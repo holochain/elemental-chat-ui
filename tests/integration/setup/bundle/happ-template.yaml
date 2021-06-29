@@ -10,6 +10,6 @@ slots:
     dna:
       bundled: ../../../../dnas/elemental-chat.dna
       properties: ~
-      uuid: ~
+      uuid: UUID_PLACEHOLDER
       version: ~
       clone_limit: 0
