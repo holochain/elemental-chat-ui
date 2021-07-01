@@ -1,3 +1,3 @@
 #!/bin/bash
 hc sandbox clean
-hc sandbox generate ./tests/integration/setup/bundle/elemental-chat.happ -a='uhCkkHSLbocQFSn5hKAVFc_L34plLD52E37kq6Gw9O3vklQ3Jv7eL'
+hc sandbox -f=4444 generate ./tests/integration/setup/bundle/elemental-chat.happ -a='uhCkkmrkoAHPVf_eufG7eC5fm6QKrW5pPMoktvG5LOC0SnJ4vV1Uv'

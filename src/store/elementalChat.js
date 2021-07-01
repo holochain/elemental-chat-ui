@@ -1,11 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
-import { arrayBufferToBase64, retryIfSourceChainHeadMoved, retryUntilClientIsDefined } from './utils'
-import { callZome } from './callZome'
-import { isHoloHosted } from '../utils'
+import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 
-let recallProfileAttempts = 0
+import { callZome } from './callZome'
 
 function sortChannels (val) {
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1))
@@ -104,7 +102,8 @@ const handleListMessagesResult = (commit, channelId, messages) => {
   })
 }
 
-let listChannelsIntervalId = 0
+let listChannelsIntervalId = null
+let refreshChatterIntervalId = null
 
 export default {
   namespaced: true,
@@ -123,23 +122,6 @@ export default {
       if (currentChannelId) {
         dispatch('joinChannel', currentChannelId)
       }
-      dispatch('initializeAgent')
-    },
-    initializeAgent ({ state, dispatch, rootState }) {
-      const tryToGetProfile = () => {
-        const clientNotConnected = rootState.holochain.conductorDisconnected || (isHoloHosted() && !rootState.holochain.dnaAlias)
-        if (clientNotConnected) {
-          setTimeout(tryToGetProfile, 1000)
-        } else if (!state.agentHandle && !rootState.holochain.firstConnect && recallProfileAttempts < 3) {
-          recallProfileAttempts++
-          // setup recovery case to reattempt profile call in event where call failed 
-          setTimeout(tryToGetProfile, 2000)
-          dispatch('getProfile')
-        } else if (!state.agentHandle) {
-          dispatch('getProfile')
-        }
-      }
-      tryToGetProfile()
     },
     getStats: async ({ rootState, dispatch, commit }) => {
       commit('setStatsLoading', true)
@@ -159,11 +141,18 @@ export default {
         activeCount: stats.active
       })
     },
-    setChannelPolling: async ({ dispatch }) => {
+    setChannelPolling ({ dispatch })  {
       clearInterval(listChannelsIntervalId)
-      listChannelsIntervalId = setInterval(function () {
+      listChannelsIntervalId = setInterval(() => {
         dispatch('listAllMessages')
       }, 3600000) // Polling every hour
+    },
+    setRefreshChatterInterval({dispatch}) {
+      clearInterval(refreshChatterIntervalId)
+      // refresh chatter state every 2 hours
+      refreshChatterIntervalId = setInterval(() => {
+        dispatch('refreshChatter')
+      }, 1000 * 60 * 60 * 2)
     },
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       const holochainPayload = {
@@ -232,6 +221,9 @@ export default {
       { commit, rootState, dispatch, state },
       payload
     ) => {
+      if (state.agentHandle === null) {
+        throw new Error('cannot post message without having handle')
+      }
       let lastSeen = payload.channel.last_seen
       if (lastSeen.Message) {
         lastSeen = {
@@ -345,7 +337,15 @@ export default {
       commit('setAgentHandle', payload)
     },
     async getProfile ({ commit, dispatch, rootState }) {
-      const profile = await retryUntilClientIsDefined(() => callZome(dispatch, rootState, 'profile', 'get_my_profile', null, 30000))
+      const profile = await retryIfSourceChainHeadMoved(() => callZome(
+        dispatch,
+        rootState,
+        'profile',
+        'get_my_profile',
+        null,
+        30000
+      ))
+
       if (profile && profile.nickname) {
         commit('setAgentHandle', profile.nickname)
       } else {

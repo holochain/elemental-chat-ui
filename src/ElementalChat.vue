@@ -7,13 +7,16 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
 
-      <v-toolbar-title v-if="isHoloSignedIn" @click="holoLogout" class="logout" aria-label="Logout with Holo">
+      <v-toolbar-title v-if="isHoloAnonymous === false" @click="holoLogout" class="logout" aria-label="Logout with Holo">
         <span>Logout</span>
+      </v-toolbar-title>
+      <v-toolbar-title v-if="isHoloAnonymous === true" @click="holoLogin" class="login" aria-label="Log in with Holo">
+        <span>Login</span>
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
-        <Identicon size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
-        <v-toolbar-title class="handle" aria-label="Agent Handle">{{ agentHandle }}</v-toolbar-title>
+        <Identicon v-if="!isHoloHosted() || isHoloAnonymous === false" size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
+        <v-toolbar-title class="handle" aria-label="Agent Handle">{{ handleToDisplay }}</v-toolbar-title>
         <v-tooltip bottom aria-label="Agent Handle Tooltip">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -163,9 +166,10 @@ export default {
       'listAllMessages',
       'getStats',
       'getProfile',
-      'updateProfile'
+      'updateProfile',
+      'refreshChatter'
     ]),
-    ...mapActions('holochain', ['holoLogout']),
+    ...mapActions('holochain', ['holoLogout', 'holoLogin']),
     visitPocPage () {
       window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
     },
@@ -183,17 +187,17 @@ export default {
   computed: {
     ...mapState('holochain', [
       'conductorDisconnected',
-      'appInterface',
-      'isHoloSignedIn',
-      'isChaperoneDisconnected',
+      'isHoloAnonymous',
       'dnaHash',
       'hostUrl',
       'agentKey',
-      'dnaAlias']),
+      'dnaAlias',
+      'holoStatus'
+    ]),
     ...mapState('elementalChat', [
       'stats',
       'statsLoading',
-      'agentHandle'
+      'agentHandle',
     ]),
     ...mapGetters('elementalChat', [
       'channel'
@@ -205,36 +209,35 @@ export default {
       return process.env.VUE_APP_UI_VERSION
     },
     dnaHashTail () {
-      return this.dnaHash.slice(this.dnaHash.length - 6)
+      const string = this.dnaHash.toString('base64')
+      return string.slice(string.length - 6)
+    },
+    handleToDisplay () {
+      return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
+    },
+    canMakeZomeCalls() {
+      return isHoloHosted() ? this.holoStatus === 'ready' : !this.conductorDisconnected
     }
   },
   created () {
     console.log('agentKey started as', this.agentKey)
   },
   watch: {
-    conductorDisconnected (val) {
-      if (!val) {
-        const tryToGetAllMessages = () => {
-          // Note: it is possible for the conductor to be connected, but the dnaAlias not yet defined
-          //  ** we therfore wait for dnaAlias to exist in order to make a valid call
-          if (isHoloHosted() && (!this.dnaAlias || this.isChaperoneDisconnected)) {
-            setTimeout(tryToGetAllMessages, 1000)
-          } else {
-            try {
-              this.listAllMessages()
-            } catch (e) {
-              console.error('Error calling listAllMessages', e)
-            }
-          }
+    canMakeZomeCalls (can) {
+      console.log(`watcher activated: canMakeZomeCalls=${can}`)
+      if (can) {
+        this.listAllMessages()
+        if (!(isHoloHosted() && this.isHoloAnonymous)) {
+          this.getProfile()
+          this.refreshChatter()
         }
-        tryToGetAllMessages()
       }
     }
   }
 }
 </script>
 <style scoped>
-.logout {
+.logout, .login {
   font-size: 14px;
   margin-right: 10px;
   cursor: pointer;

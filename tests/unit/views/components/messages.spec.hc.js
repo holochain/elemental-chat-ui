@@ -21,6 +21,8 @@ describe('Messages with real store', () => {
   })
 
   it('creates a new message within new channel', async () => {
+    await store.commit('elementalChat/setAgentHandle', 'Alice')
+    expect(store.state.elementalChat.agentHandle).toStrictEqual('Alice')
     // create channel
     channelTitle = 'Music Room'
     await store.dispatch('elementalChat/createChannel', createNewChannel(channelTitle))
