@@ -27,7 +27,7 @@
       full-width
       rows="3"
       @keydown.enter.prevent="createMessage"
-      :append-icon="createMessageLoading ? '' : 'mdi-send'"
+      :append-icon="shouldShowMessageInputIcon ? 'mdi-send' : ''"
       @click:append="createMessage"
       aria-label='Message Textarea'
     />
@@ -80,6 +80,9 @@ export default {
       } else {
         return this.content
       }
+    },
+    shouldShowMessageInputIcon () {
+      return !createMessageLoading && isHoloAnonymous !== true
     }
   },
   methods: {
