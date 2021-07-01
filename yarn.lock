@@ -1026,8 +1026,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@holo-host/chaperone@../chaperone":
-  version "7.1.1"
+"@holo-host/chaperone@^7.1.2":
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/@holo-host/chaperone/-/chaperone-7.1.2.tgz#548f09fb5fb20ae784224c4cc9bd1c88df56b39e"
+  integrity sha512-/nSs0YjUadzB9sMInfWAT4dBRzYMHTvRxl+9DaA8OMoaKgWvvjp0bvvbI6xoOpvDQVzdc+mB8WaVjYU6XC5iTw==
   dependencies:
     "@holo-host/comb" "^0.2.0"
     "@holo-host/cryptolib" "^0.3.0"
