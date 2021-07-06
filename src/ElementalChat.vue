@@ -17,7 +17,7 @@
       <v-toolbar-title class="title pl-0">
         <Identicon v-if="!isHoloHosted() || isHoloAnonymous === false" size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
         <v-toolbar-title class="handle" aria-label="Agent Handle">{{ handleToDisplay }}</v-toolbar-title>
-        <v-tooltip bottom aria-label="Agent Handle Tooltip">
+        <v-tooltip v-if="isHoloAnonymous !== true" bottom aria-label="Agent Handle Tooltip">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               id="update-handle"
