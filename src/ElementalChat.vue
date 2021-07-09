@@ -229,8 +229,8 @@ export default {
         this.listAllMessages()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
           this.getProfile()
-          this.refreshChatter()
         }
+        this.refreshChatter()
       }
     }
   }
