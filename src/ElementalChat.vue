@@ -10,7 +10,7 @@
       <v-toolbar-title v-if="isHoloAnonymous === false" @click="holoLogout" class="logout" aria-label="Logout with Holo">
         <span>Logout</span>
       </v-toolbar-title>
-      <v-toolbar-title v-if="isHoloAnonymous === true" @click="holoLogin" class="login" aria-label="Log in with Holo">
+      <v-toolbar-title v-if="isHoloAnonymous === true" @click="holoSignin" class="login" aria-label="Log in with Holo">
         <span>Login</span>
       </v-toolbar-title>
 
@@ -169,7 +169,7 @@ export default {
       'updateProfile',
       'refreshChatter'
     ]),
-    ...mapActions('holochain', ['holoLogout', 'holoLogin']),
+    ...mapActions('holochain', ['holoLogout', 'holoSignin']),
     visitPocPage () {
       window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
     },

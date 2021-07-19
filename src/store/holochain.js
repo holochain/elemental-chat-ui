@@ -88,6 +88,15 @@ export default {
           commit('holoInitialized', { anonymous: true })
           dispatch('loadHoloAppInfo')
           dispatch('loadHostInfo')
+
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.has('signin')) {
+            dispatch('holoSignin')
+          } else if (urlParams.has('signup')) {
+            dispatch('holoSignup')
+          } else {
+            console.log('No instructions to login provided in uri, proceeding as anonymous user.')
+          }
         })
         webSdkConnection.addListener('signin', () =>
           commit('holoInitialized', { anonymous: false })
@@ -97,6 +106,9 @@ export default {
         )
 
         commit('createHoloClient', { webSdkConnection })
+
+        console.log('CONNECTED VIA WEBSDK CLIENT')
+
         state.holoClient.ready().catch(e => {
           console.error('Failed to load chaperone:', e)
           commit('failedToLoadChaperone')
@@ -131,13 +143,21 @@ export default {
       commit('holoLogout')
       await state.holoClient.signOut()
     },
-    async holoLogin ({ state }) {
+    async holoSignin ({ state }) {
       if (state.isHoloAnonymous !== true) {
         throw new Error(
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
         )
       }
       await state.holoClient.signIn()
+    },
+    async holoSignup ({ state }) {
+      if (state.isHoloAnonymous !== true) {
+        throw new Error(
+          `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
+        )
+      }
+      await state.holoClient.signUp()
     },
     callIsLoading ({ commit }, payload) {
       commit('updateIsLoading', { fnName: payload, value: true })
