@@ -7,10 +7,11 @@ const callZomeHolo = (_, state, zomeName, fnName, payload) => {
 }
 
 const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
-  if (!state.holochainClient)
+  if (!state.holochainClient) {
     throw new UndefinedClientError(
       'Attempted callZomeLocal before holochainClient is defined'
     )
+  }
   return state.holochainClient.callZome(
     {
       cap: null,

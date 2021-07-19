@@ -141,13 +141,13 @@ export default {
         activeCount: stats.active
       })
     },
-    setChannelPolling ({ dispatch })  {
+    setChannelPolling ({ dispatch }) {
       clearInterval(listChannelsIntervalId)
       listChannelsIntervalId = setInterval(() => {
         dispatch('listAllMessages')
       }, 3600000) // Polling every hour
     },
-    setRefreshChatterInterval({dispatch}) {
+    setRefreshChatterInterval ({ dispatch }) {
       clearInterval(refreshChatterIntervalId)
       // refresh chatter state every 2 hours
       refreshChatterIntervalId = setInterval(() => {
@@ -175,11 +175,11 @@ export default {
         .catch(error => log('createChannel zome error', error))
     },
     listAllMessages ({ commit, rootState, dispatch, getters }) {
-      const payload = { category: 'General', chunk:  { start: 0, end: 0 } }
+      const payload = { category: 'General', chunk: { start: 0, end: 0 } }
       callZome(dispatch, rootState, 'chat', 'list_all_messages', payload, 50000)
         .then(async result => {
           if (result) {
-            let channels = result.map( (e) => e.channel)
+            const channels = result.map((e) => e.channel)
             commit('addChannels', channels)
 
             // if current channel is the empty channel, join the first channel in the channel list
