@@ -88,15 +88,6 @@ export default {
           commit('holoInitialized', { anonymous: true })
           dispatch('loadHoloAppInfo')
           dispatch('loadHostInfo')
-
-          const urlParams = new URLSearchParams(window.location.search)
-          if (urlParams.has('signin')) {
-            dispatch('holoSignin')
-          } else if (urlParams.has('signup')) {
-            dispatch('holoSignup')
-          } else {
-            console.log('No instructions to login provided in uri, proceeding as anonymous user.')
-          }
         })
         webSdkConnection.addListener('signin', () =>
           commit('holoInitialized', { anonymous: false })

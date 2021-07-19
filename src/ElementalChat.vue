@@ -215,17 +215,33 @@ export default {
     handleToDisplay () {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
     },
+    shouldHandleLogin() {
+      return isHoloHosted() && this.holoStatus === 'ready' && this.isHoloAnonymous === true
+    },
     canMakeZomeCalls() {
-      return isHoloHosted() ? this.holoStatus === 'ready' : !this.conductorDisconnected
+      return isHoloHosted() ? this.holoStatus === 'ready' && this.isHoloAnonymous === false : !this.conductorDisconnected
     }
   },
   created () {
     console.log('agentKey started as', this.agentKey)
   },
   watch: {
+    shouldHandleLogin (should) {
+      console.log(`watcher activated: shouldHandleLogin=${should}`)
+      if (should) {
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.has('signin')) {
+          this.$store.dispatch('holochain/holoSignin')
+        } else if (urlParams.has('signup')) { 
+          this.$store.dispatch('holochain/holoSignup')
+        }
+      }
+    },
     canMakeZomeCalls (can) {
       console.log(`watcher activated: canMakeZomeCalls=${can}`)
       if (can) {
+        // reset signin/signup url serach params
+        window.location.search = ''
         this.listAllMessages()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
           this.getProfile()
