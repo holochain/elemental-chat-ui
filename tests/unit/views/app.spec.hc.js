@@ -71,7 +71,7 @@ describe('App with store stubs and mocks', () => {
     stubElement(App, stubbedStore)
     await wait(2000)
     expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
-    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(2)
+    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(3)
   })
 
   it("dispatches `skipBackoff` action when 'retry now' button is pressed", async () => {
@@ -84,12 +84,12 @@ describe('App with store stubs and mocks', () => {
 
     await wait(2000)
     expect(stubbedStore.dispatch).toHaveBeenCalledWith('initializeStore')
-    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(2)
+    expect(stubbedStore.dispatch).toHaveBeenCalledTimes(3)
 
     // set the disconnected to true
     await wrapper.find('[aria-label="Reconnect Now Button"]').vm.$emit('click')
     await wait(2000)
-    expect(stubbedStore.dispatch.mock.calls[2][0]).toEqual('holochain/skipBackoff')
+    expect(stubbedStore.dispatch.mock.calls[3][0]).toEqual('holochain/skipBackoff')
   })
 
   it('displays proper modal when reconnecting to holochain ', async () => {

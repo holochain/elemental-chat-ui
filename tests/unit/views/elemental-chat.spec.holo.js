@@ -32,7 +32,7 @@ describe('ElementalChat with store stubs and mocks', () => {
   })
 
   it('handles initalizing Holo Client', async () => {
-    stubbedStore = getStubbedStore(mockAgentState, { ...mockHolochainState, isHoloSignedIn: true })
+    stubbedStore = getStubbedStore(mockAgentState, { ...mockHolochainState, holoState: "ready", isHoloAnonymous: false })
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(ElementalChat, stubbedStore)
     expect(wrapper.is(ElementalChat)).toBe(true)
