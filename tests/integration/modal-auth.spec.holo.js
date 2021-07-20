@@ -47,6 +47,9 @@ describe('Authentication Flow', () => {
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
+  // Wait for "Connecting to HoloPort..." overlay to disappear
+  await wait(500)
+
     // *********
     // Sign Up and Log Into hApp
     // *********
