@@ -142,7 +142,7 @@
 
 <script>
 import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
-import { isHoloHosted } from '@/utils'
+import { isHoloHosted, isAnonymousEnabled } from '@/utils'
 
 import Channels from './components/Channels.vue'
 import Messages from './components/Messages.vue'
@@ -219,28 +219,29 @@ export default {
       return isHoloHosted() && this.holoStatus === 'ready' && this.isHoloAnonymous === true
     },
     canMakeZomeCalls() {
-      return isHoloHosted() ? this.holoStatus === 'ready' : !this.conductorDisconnected
+      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. isHoloAnonymous refers to the current status of our hosted agent.
+      return isHoloHosted() ? this.holoStatus === 'ready' && (isAnonymousEnabled() || this.isHoloAnonymous === false) : !this.conductorDisconnected
     }
   },
   created () {
     console.log('agentKey started as', this.agentKey)
   },
   watch: {
-    shouldHandleLogin (should) {
+    async shouldHandleLogin (should) {
       console.log(`watcher activated: shouldHandleLogin=${should}`)
       if (should) {
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.has('signin')) {
           this.$store.dispatch('holochain/holoSignin')
-        } else if (urlParams.has('signup')) { 
+        } else if (urlParams.has('signup') || !isAnonymousEnabled()) { 
           this.$store.dispatch('holochain/holoSignup')
         }
       }
     },
-    canMakeZomeCalls (can) {
+    async canMakeZomeCalls (can) {
       console.log(`watcher activated: canMakeZomeCalls=${can}`)
       if (can) {
-        this.listAllMessages()
+        await this.listAllMessages()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
           this.getProfile()
           this.refreshChatter()
