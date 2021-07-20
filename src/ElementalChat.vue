@@ -216,7 +216,7 @@ export default {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
     },
     shouldAutoSignIn () {
-      return isHoloHosted() && !isAnonymousEnabled() &&  this.holoStatus === 'ready' && this.isHoloAnonymous
+      return isHoloHosted() && !isAnonymousEnabled() && this.holoStatus === 'ready' && this.isHoloAnonymous
     },
     canMakeZomeCalls() {
       return isHoloHosted() ? this.holoStatus === 'ready' && (isAnonymousEnabled() || this.isHoloAnonymous === false) : !this.conductorDisconnected
