@@ -6,6 +6,10 @@ export function isHoloSelfHosted () {
   return process.env.VUE_APP_CONTEXT === 'self-hosted'
 }
 
+export function isAnonymousEnabled () {
+  return process.env.VUE_APP_ANONYMOUS === 'enabled'
+}
+
 export function toUint8Array (value) {
   if (!value) throw new Error("No value provided to 'toUnit8Array' function")
   if (!!value.type && value.type === 'Buffer') {

@@ -142,7 +142,7 @@
 
 <script>
 import { mapState, mapActions, mapMutations, mapGetters } from 'vuex'
-import { isHoloHosted } from '@/utils'
+import { isHoloHosted, isAnonymousEnabled } from '@/utils'
 
 import Channels from './components/Channels.vue'
 import Messages from './components/Messages.vue'
@@ -215,21 +215,29 @@ export default {
     handleToDisplay () {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
     },
+    shouldAutoSignIn () {
+      return isHoloHosted() && !isAnonymousEnabled() &&  this.holoStatus === 'ready' && this.isHoloAnonymous
+    },
     canMakeZomeCalls() {
-      return isHoloHosted() ? this.holoStatus === 'ready' : !this.conductorDisconnected
+      return isHoloHosted() ? this.holoStatus === 'ready' && (isAnonymousEnabled() || this.isHoloAnonymous === false) : !this.conductorDisconnected
     }
   },
   created () {
     console.log('agentKey started as', this.agentKey)
   },
   watch: {
-    canMakeZomeCalls (can) {
+    async shouldAutoSignIn (should) {
+      if (should) {
+        await this.holoLogin()
+      }
+    },
+    async canMakeZomeCalls (can) {
       console.log(`watcher activated: canMakeZomeCalls=${can}`)
       if (can) {
-        this.listAllMessages()
+        await this.listAllMessages()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
-          this.getProfile()
-          this.refreshChatter()
+          await this.getProfile()
+          await this.refreshChatter()
         }
       }
     }
