@@ -216,6 +216,7 @@ export default {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
     },
     shouldAutoSignIn () {
+      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. isHoloAnonymous refers to the current status of our hosted agent.
       return isHoloHosted() && !isAnonymousEnabled() && this.holoStatus === 'ready' && this.isHoloAnonymous
     },
     canMakeZomeCalls() {
