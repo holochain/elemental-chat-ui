@@ -219,7 +219,7 @@ export default {
       return isHoloHosted() && this.holoStatus === 'ready' && this.isHoloAnonymous === true
     },
     canMakeZomeCalls() {
-      return isHoloHosted() ? this.holoStatus === 'ready' && this.isHoloAnonymous === false : !this.conductorDisconnected
+      return isHoloHosted() ? this.holoStatus === 'ready' : !this.conductorDisconnected
     }
   },
   created () {
@@ -240,12 +240,14 @@ export default {
     canMakeZomeCalls (can) {
       console.log(`watcher activated: canMakeZomeCalls=${can}`)
       if (can) {
-        // reset signin/signup url serach params
-        window.location.search = ''
         this.listAllMessages()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
           this.getProfile()
           this.refreshChatter()
+          if (isHoloHosted()) {
+            // reset signin/signup url serach params
+            window.location.search = ''
+          }
         }
       }
     }
