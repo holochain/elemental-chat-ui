@@ -152,10 +152,30 @@ describe('Authentication Flow', () => {
     const chaperoneModal = await iframe.evaluateHandle(() => document)
 
     const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
-    expect(signUpTitle).toBeTruthy()
+    signUpTitle.click()
+
+    let onSignUpPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
+      signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignUpPage = false
+    }
+    expect(onSignUpPage).toBe(true)
+
+    let onSignInPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
+      signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignInPage = false
+    }
+    expect(onSignInPage).toBe(false)
   })
 
-  it('renders the sign-in page when provided sign-in uri search param', async () => {
+  it.only('renders the sign-in page when provided sign-in uri search param', async () => {
     await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html?signin`, { waitForNavigation: true })
     await wait(1000)
 
@@ -171,7 +191,24 @@ describe('Authentication Flow', () => {
     const iframe = await findIframe(page, chaperoneUrlCheck.local)
     const chaperoneModal = await iframe.evaluateHandle(() => document)
 
-    const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
-    expect(signUpTitle).toBeTruthy()
+    let onSignUpPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
+      signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignUpPage = false
+    }
+    expect(onSignUpPage).toBe(false)
+
+    let onSignInPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
+      signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignInPage = false
+    }
+    expect(onSignInPage).toBe(true)
   })
 }, TIMEOUT)
