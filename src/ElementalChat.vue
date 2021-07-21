@@ -232,7 +232,7 @@ export default {
       if (should) {
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.has('signin')) {
-          await this.this.holoSignin()
+          await this.holoSignin()
         } else if (urlParams.has('signup') || !isAnonymousEnabled()) {
           await this.holoSignup()
         }
