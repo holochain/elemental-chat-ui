@@ -245,8 +245,8 @@ export default {
       if (can) {
         await this.listAllMessages()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
-          this.getProfile()
-          this.refreshChatter()
+          await this.getProfile()
+          await this.refreshChatter()
         }
       }
     }
