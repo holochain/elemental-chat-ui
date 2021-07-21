@@ -4,6 +4,7 @@ import { isHoloHosted, log } from '@/utils'
 import { RECONNECT_SECONDS, INSTALLED_APP_ID, WEB_CLIENT_URI } from '@/consts'
 import { handleSignal } from './elementalChat'
 import { inspect } from 'util'
+import { isAnonymousEnabled } from '../utils'
 
 console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
@@ -97,6 +98,9 @@ export default {
         )
 
         commit('createHoloClient', { webSdkConnection })
+
+        console.log('CONNECTED VIA WEBSDK CLIENT')
+
         state.holoClient.ready().catch(e => {
           console.error('Failed to load chaperone:', e)
           commit('failedToLoadChaperone')
@@ -131,13 +135,21 @@ export default {
       commit('holoLogout')
       await state.holoClient.signOut()
     },
-    async holoLogin ({ state }) {
+    async holoSignin ({ state }) {
       if (state.isHoloAnonymous !== true) {
         throw new Error(
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
         )
       }
-      await state.holoClient.signIn()
+      await state.holoClient.signIn({ cancellable: isAnonymousEnabled() })
+    },
+    async holoSignup ({ state }) {
+      if (state.isHoloAnonymous !== true) {
+        throw new Error(
+          `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
+        )
+      }
+      await state.holoClient.signUp({ cancellable: isAnonymousEnabled() })
     },
     callIsLoading ({ commit }, payload) {
       commit('updateIsLoading', { fnName: payload, value: true })

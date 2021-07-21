@@ -3,7 +3,6 @@ import { stubElement } from '../../test-utils'
 import {
   AGENT_KEY_MOCK,
   DNA_HASH_MOCK,
-  createNewChannel,
   getStubbedActions,
   getStubbedMutations,
   resetHolochainState,

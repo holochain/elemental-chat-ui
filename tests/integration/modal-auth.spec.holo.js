@@ -21,7 +21,6 @@ describe('Authentication Flow', () => {
   beforeEach(async () => {
     callRegistry = {}
     page = await global.__BROWSER__.newPage()
-    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
   }, TIMEOUT)
 
   afterEach(async () => {
@@ -35,6 +34,7 @@ describe('Authentication Flow', () => {
   })
 
   it('can make anonymous zome calls', async () => {
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
     await wait(500)
     const stats = await getStats(page)
     expect(stats).toEqual({
@@ -46,6 +46,9 @@ describe('Authentication Flow', () => {
   })
 
   it('can sign up, make zome call, log out, and sign back in', async () => {
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
+    await wait(1000)
+
     // verify page
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
@@ -76,7 +79,7 @@ describe('Authentication Flow', () => {
     expect(confirmationValue).toEqual(passwordValue)
 
     // Wait for signup to complete
-    await wait(1500)
+    await wait(3000)
 
     // Select nickname textbox
     const [dialog] = await page.$$('.v-dialog')
@@ -88,7 +91,7 @@ describe('Authentication Flow', () => {
     await registerNickname(page, 'AliceHosted')
     const [nickname] = await findElementsByText('div', 'AliceHosted', page)
     expect(nickname).toBeTruthy()
-    
+
     const [logoutButton] = await findElementsByText('span', 'Logout', page)
     await logoutButton.click()
 
@@ -97,16 +100,17 @@ describe('Authentication Flow', () => {
     await loginButton2.click()
 
     await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signin')
-    await wait(1500)
+    await wait(3000)
 
     const [nickname2] = await findElementsByText('div', 'AliceHosted', page)
     expect(nickname2).toBeTruthy()
   })
 
   it('makes the appropriate zome calls on initialization', async () => {
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
     await wait(1000)
     expect(callRegistry).toEqual({
-      'chat.list_all_messages': 'done',
+      'chat.list_all_messages': 'done'
     })
 
     delete callRegistry['chat.list_all_messages']
@@ -127,7 +131,84 @@ describe('Authentication Flow', () => {
     expect(callRegistry).toEqual({
       'chat.list_all_messages': 'done',
       'chat.refresh_chatter': 'done',
-      'profile.get_my_profile': 'done',
+      'profile.get_my_profile': 'done'
     })
+  })
+
+  it('renders the sign-up page when provided sign-up uri search param', async () => {
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html?signup`, { waitForNavigation: true })
+    await wait(1000)
+
+    // verify page
+    const pageTitle = await page.title()
+    expect(pageTitle).toBe('Elemental Chat')
+
+    // *****************
+    // Arrive on Sign Up
+    // *****************
+    // wait for the modal to load
+    await page.waitForSelector('iframe')
+    const iframe = await findIframe(page, chaperoneUrlCheck.local)
+    const chaperoneModal = await iframe.evaluateHandle(() => document)
+
+    const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
+    signUpTitle.click()
+
+    let onSignUpPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
+      await signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignUpPage = false
+    }
+    expect(onSignUpPage).toBe(true)
+
+    let onSignInPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
+      await signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignInPage = false
+    }
+    expect(onSignInPage).toBe(false)
+  })
+
+  it('renders the sign-in page when provided sign-in uri search param', async () => {
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html?signin`, { waitForNavigation: true })
+    await wait(1000)
+
+    // verify page
+    const pageTitle = await page.title()
+    expect(pageTitle).toBe('Elemental Chat')
+
+    // *****************
+    // Arrive on Sign In
+    // *****************
+    // wait for the modal to load
+    await page.waitForSelector('iframe')
+    const iframe = await findIframe(page, chaperoneUrlCheck.local)
+    const chaperoneModal = await iframe.evaluateHandle(() => document)
+
+    let onSignUpPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
+      await signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignUpPage = false
+    }
+    expect(onSignUpPage).toBe(false)
+
+    let onSignInPage = true
+    try {
+      const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
+      await signUpTitle.click()
+    } catch (error) {
+      console.log('error : ', error)
+      onSignInPage = false
+    }
+    expect(onSignInPage).toBe(true)
   })
 }, TIMEOUT)

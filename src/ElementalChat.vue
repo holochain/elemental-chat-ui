@@ -10,7 +10,7 @@
       <v-toolbar-title v-if="isHoloAnonymous === false" @click="holoLogout" class="logout" aria-label="Logout with Holo">
         <span>Logout</span>
       </v-toolbar-title>
-      <v-toolbar-title v-if="isHoloAnonymous === true" @click="holoLogin" class="login" aria-label="Log in with Holo">
+      <v-toolbar-title v-if="isHoloAnonymous === true" @click="holoSignin" class="login" aria-label="Log in with Holo">
         <span>Login</span>
       </v-toolbar-title>
 
@@ -169,7 +169,7 @@ export default {
       'updateProfile',
       'refreshChatter'
     ]),
-    ...mapActions('holochain', ['holoLogout', 'holoLogin']),
+    ...mapActions('holochain', ['holoLogout', 'holoSignin', 'holoSignup']),
     visitPocPage () {
       window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
     },
@@ -215,11 +215,11 @@ export default {
     handleToDisplay () {
       return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
     },
-    shouldAutoSignIn () {
-      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. isHoloAnonymous refers to the current status of our hosted agent.
-      return isHoloHosted() && !isAnonymousEnabled() && this.holoStatus === 'ready' && this.isHoloAnonymous
+    shouldHandleLogin() {
+      return isHoloHosted() && this.holoStatus === 'ready' && this.isHoloAnonymous === true
     },
     canMakeZomeCalls() {
+      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. isHoloAnonymous refers to the current status of our hosted agent.
       return isHoloHosted() ? this.holoStatus === 'ready' && (isAnonymousEnabled() || this.isHoloAnonymous === false) : !this.conductorDisconnected
     }
   },
@@ -227,9 +227,17 @@ export default {
     console.log('agentKey started as', this.agentKey)
   },
   watch: {
-    async shouldAutoSignIn (should) {
+    async shouldHandleLogin (should) {
+      console.log(`watcher activated: shouldHandleLogin=${should}`)
       if (should) {
-        await this.holoLogin()
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.has('signin')) {
+          await this.holoSignin()
+        } else if (urlParams.has('signup') || !isAnonymousEnabled()) {
+          await this.holoSignup()
+        }
+        console.log('resetting signin/signup url search params')
+        setTimeout(() => window.history.pushState(null, '', '/'), 0)
       }
     },
     async canMakeZomeCalls (can) {
