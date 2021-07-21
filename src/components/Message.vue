@@ -17,6 +17,7 @@
   <div v-else-if="this.channels.length > 0" class='input-wrapper' aria-label='Message Input Wrapper'>
     <v-textarea
       class="ml-0 mr-0"
+      :class="{ 'send-not-allowed': isHoloAnonymous }"
       v-model="content"
       label="Send a message"
       maxlength="1000"
@@ -60,6 +61,7 @@ export default {
   },
   computed: {
     ...mapState('elementalChat', ['channels']),
+    ...mapState('holochain', ['isHoloAnonymous']),
     ...mapGetters('elementalChat', ['createMessageLoading']),
     isDisplayMode () {
       return !!this.message
@@ -80,11 +82,15 @@ export default {
       } else {
         return this.content
       }
-    }
+    },
   },
   methods: {
     ...mapMutations(['setErrorMessage']),
     createMessage () {
+      if (this.isHoloAnonymous) {
+        return
+      }
+
       if (this.createMessageLoading) {
         // stop user from sending a new message before the last zome call has returned
         return
@@ -141,5 +147,11 @@ export default {
 .calendar-icon {
   font-size: 90%;
   margin-left: auto;
+}
+</style>
+<style>
+.send-not-allowed .mdi-send {
+  cursor: not-allowed !important;
+  opacity: 0.4;
 }
 </style>

@@ -10,8 +10,16 @@ build () {
     rm elemental-chat-for-dna-$1-$2.zip
     mv dist/elemental-chat.zip elemental-chat-for-dna-$1-$2.zip
 }
-DNA_VERSION=0_2_0_alpha5
+
+DNA_VERSION=$1
+DNA_UID=$2
+
+if [ -z "$DNA_VERSION" ]; then
+    echo 'Error: Must provide the DNA_VERSION'
+    exit 1
+fi
+
 build $DNA_VERSION 0002
 build $DNA_VERSION 0001
 build $DNA_VERSION develop
-build $DNA_VERSION 0000 # should match DEV_UID_OVERRIDE in holo-nixpkgs for dev!
+build $DNA_VERSION $2 # should match DEV_UID_OVERRIDE in holo-nixpkgs for dev!

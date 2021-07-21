@@ -73,6 +73,7 @@ describe('elementalChat store', () => {
   })
 
   it('handles order of incoming/received messages', async () => {
+    await store.dispatch('elementalChat/updateProfile', 'Alice')
     const channelId = 1
     const channel = createNewChannel('Channel1', AGENT_KEY_MOCK, channelId)
     await store.dispatch('elementalChat/createChannel', createNewChannel('Channel1', AGENT_KEY_MOCK, channelId))

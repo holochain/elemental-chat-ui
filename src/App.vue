@@ -51,7 +51,7 @@
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn v-if="isChaperoneDisconnected" text @click="disconnectedHoloLogout" class="logout" aria-label="Logout with Holo">
+            <v-btn v-if="isHoloAnonymous === false" text @click="disconnectedHoloLogout" class="logout" aria-label="Logout with Holo">
               Clear Page Data
             </v-btn>
           </v-card-actions>
@@ -117,7 +117,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['setChannelPolling', 'updateProfile']),
+    ...mapActions('elementalChat', ['setChannelPolling', 'setRefreshChatterInterval', 'updateProfile']),
     ...mapActions('holochain', ['skipBackoff', 'holoLogout']),
     ...mapMutations(['setAgentHandle', 'setErrorMessage']),
     ...mapMutations('elementalChat', ['setNeedsHandle']),
@@ -145,10 +145,9 @@ export default {
   computed: {
     ...mapState('holochain', [
       'conductorDisconnected',
-      'firstConnect',
       'reconnectingIn',
-      'isHoloSignedIn',
-      'isChaperoneDisconnected'
+      'isHoloAnonymous',
+      'holoStatus'
     ]),
     ...mapState('elementalChat', ['agentHandle', 'needsHandle']),
     ...mapState([
@@ -163,23 +162,16 @@ export default {
       )
     },
     shouldDisplayHolochainConnecting () {
-      return this.conductorDisconnected && !this.firstConnect && !this.isChaperoneDisconnected
+      return !isHoloHosted() && this.conductorDisconnected
     },
     shouldDisplayHoloConnecting () {
-      if (!this.firstConnect) {
-        // tech-debt: this follows the current state logic, assumes all agents must be logged in to participate in app
-        return (isHoloHosted() && (!this.isHoloSignedIn || this.isChaperoneDisconnected))
-      }
+      return (isHoloHosted() && this.holoStatus !== 'ready')
     },
     shouldShowErrorMessage () {
       return this.errorMessage.length > 0
     },
     holoConnectionMessage () {
-      if (this.isChaperoneDisconnected) {
-        return "Can't connect to a HoloPort. Please check your internet connection and refresh this page."
-      } else {
-        return 'Connecting to a HoloPort...'
-      }
+        return this.holoStatus === 'failed_to_load_chaperone' ? 'Failed to load page. Please wait 30 seconds then refresh.' : 'Connecting to a HoloPort...'
     }
   },
   created () {
@@ -188,6 +180,7 @@ export default {
   },
   mounted () {
     this.setChannelPolling()
+    this.setRefreshChatterInterval()
   }
 }
 </script>
