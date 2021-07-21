@@ -3,7 +3,7 @@ name: Continuous Deployment on MainNet
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
