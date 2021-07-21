@@ -169,7 +169,7 @@ export default {
       'updateProfile',
       'refreshChatter'
     ]),
-    ...mapActions('holochain', ['holoLogout', 'holoSignin']),
+    ...mapActions('holochain', ['holoLogout', 'holoSignin', 'holoSignup']),
     visitPocPage () {
       window.open('https://holo.host/faq-tag/elemental-chat/', '_blank')
     },
@@ -232,9 +232,9 @@ export default {
       if (should) {
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.has('signin')) {
-          await this.$store.dispatch('holochain/holoSignin')
+          await this.this.holoSignin()
         } else if (urlParams.has('signup') || !isAnonymousEnabled()) {
-          await this.$store.dispatch('holochain/holoSignup')
+          await this.holoSignup()
         }
         console.log('resetting signin/signup url search params')
         setTimeout(() => window.history.pushState(null, '', '/'), 0)
