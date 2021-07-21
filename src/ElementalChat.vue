@@ -232,10 +232,12 @@ export default {
       if (should) {
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.has('signin')) {
-          this.$store.dispatch('holochain/holoSignin')
-        } else if (urlParams.has('signup') || !isAnonymousEnabled()) { 
-          this.$store.dispatch('holochain/holoSignup')
+          await this.$store.dispatch('holochain/holoSignin')
+        } else if (urlParams.has('signup') || !isAnonymousEnabled()) {
+          await this.$store.dispatch('holochain/holoSignup')
         }
+        console.log('resetting signin/signup url search params')
+        setTimeout(() => window.history.pushState(null, '', '/'), 0)
       }
     },
     async canMakeZomeCalls (can) {
@@ -243,12 +245,8 @@ export default {
       if (can) {
         await this.listAllMessages()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
-          this.getProfile()
-          this.refreshChatter()
-          if (isHoloHosted()) {
-            // reset signin/signup url serach params
-            window.location.search = ''
-          }
+          await this.getProfile()
+          await this.refreshChatter()
         }
       }
     }

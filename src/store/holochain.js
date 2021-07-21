@@ -4,6 +4,7 @@ import { isHoloHosted, log } from '@/utils'
 import { RECONNECT_SECONDS, INSTALLED_APP_ID, WEB_CLIENT_URI } from '@/consts'
 import { handleSignal } from './elementalChat'
 import { inspect } from 'util'
+import { isAnonymousEnabled } from '../utils'
 
 console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
@@ -140,7 +141,7 @@ export default {
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
         )
       }
-      await state.holoClient.signIn()
+      await state.holoClient.signIn({ cancellable: isAnonymousEnabled() })
     },
     async holoSignup ({ state }) {
       if (state.isHoloAnonymous !== true) {
@@ -148,7 +149,7 @@ export default {
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
         )
       }
-      await state.holoClient.signUp()
+      await state.holoClient.signUp({ cancellable: isAnonymousEnabled() })
     },
     callIsLoading ({ commit }, payload) {
       commit('updateIsLoading', { fnName: payload, value: true })
