@@ -140,7 +140,7 @@ export default {
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
         )
       }
-      await state.holoClient.signIn()
+      await state.holoClient.signIn({ cancellable: false })
     },
     async holoSignup ({ state }) {
       if (state.isHoloAnonymous !== true) {
@@ -148,7 +148,7 @@ export default {
           `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
         )
       }
-      await state.holoClient.signUp()
+      await state.holoClient.signUp({ cancellable: false })
     },
     callIsLoading ({ commit }, payload) {
       commit('updateIsLoading', { fnName: payload, value: true })
