@@ -1,6 +1,7 @@
 /* global it, describe, expect, beforeAll, afterAll */
+import { skip } from 'tape'
 import wait from 'waait'
-import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, CHAPERONE_URL_REGEX_HCC, WEB_LOGGING } from './setup/globals'
+import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_HCC } from './setup/globals'
 import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname, setupPage } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
@@ -33,15 +34,32 @@ describe('Authentication Flow', () => {
     console.log('✅ Closed the UI server...')
   })
 
-  it('can make anonymous zome calls', async () => {
+  it.skip('makes the appropriate zome calls on initialization', async () => {
     await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
-    await wait(500)
-    const stats = await getStats(page)
-    expect(stats).toEqual({
-      agents: '0',
-      active: '0',
-      channels: '0',
-      messages: '0'
+    await wait(1000)
+    expect(callRegistry).toEqual({
+      'chat.list_all_messages': 'done'
+    })
+
+    delete callRegistry['chat.list_all_messages']
+    expect(callRegistry).toEqual({})
+
+    const [loginButton] = await findElementsByText('span', 'Login', page)
+    await loginButton.click()
+
+    await page.waitForSelector('iframe')
+    const iframe = await findIframe(page, chaperoneUrlCheck.local)
+    const chaperoneModal = await iframe.evaluateHandle(() => document)
+
+    expect(callRegistry).toEqual({})
+
+    await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signin')
+    await wait(2000)
+
+    expect(callRegistry).toEqual({
+      'chat.list_all_messages': 'done',
+      'chat.refresh_chatter': 'done',
+      'profile.get_my_profile': 'done'
     })
   })
 
@@ -106,32 +124,15 @@ describe('Authentication Flow', () => {
     expect(nickname2).toBeTruthy()
   })
 
-  it('makes the appropriate zome calls on initialization', async () => {
+  it('can make anonymous zome calls', async () => {
     await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
-    await wait(1000)
-    expect(callRegistry).toEqual({
-      'chat.list_all_messages': 'done'
-    })
-
-    delete callRegistry['chat.list_all_messages']
-    expect(callRegistry).toEqual({})
-
-    const [loginButton] = await findElementsByText('span', 'Login', page)
-    await loginButton.click()
-
-    await page.waitForSelector('iframe')
-    const iframe = await findIframe(page, chaperoneUrlCheck.local)
-    const chaperoneModal = await iframe.evaluateHandle(() => document)
-
-    expect(callRegistry).toEqual({})
-
-    await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signin')
-    await wait(1500)
-
-    expect(callRegistry).toEqual({
-      'chat.list_all_messages': 'done',
-      'chat.refresh_chatter': 'done',
-      'profile.get_my_profile': 'done'
+    await wait(500)
+    const stats = await getStats(page)
+    expect(stats).toEqual({
+      agents: '0',
+      active: '0',
+      channels: '0',
+      messages: '0'
     })
   })
 

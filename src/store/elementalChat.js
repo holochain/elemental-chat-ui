@@ -324,6 +324,7 @@ export default {
         .catch(error => log('listMessages zome done', error))
     },
     refreshChatter ({ dispatch, rootState }) {
+      console.log('ABOUT TO MAKE REFRESH CHATTER CALL...')
       retryIfSourceChainHeadMoved(() => callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000))
     },
     joinChannel ({ commit }, payload) {
@@ -337,6 +338,7 @@ export default {
       commit('setAgentHandle', payload)
     },
     async getProfile ({ commit, dispatch, rootState }) {
+      console.log('ABOUT TO MAKE GET PROFILE CALL...')
       const profile = await retryIfSourceChainHeadMoved(() => callZome(
         dispatch,
         rootState,
