@@ -34,7 +34,8 @@ describe('Authentication Flow', () => {
   })
 
   it('can make anonymous zome calls', async () => {
-    await wait(500)
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
+    await wait(1000)
     const stats = await getStats(page)
     expect(stats).toEqual({
       agents: '0',
