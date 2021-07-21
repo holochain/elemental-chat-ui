@@ -34,6 +34,7 @@ describe('Authentication Flow', () => {
   })
 
   it('can make anonymous zome calls', async () => {
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
     await wait(500)
     const stats = await getStats(page)
     expect(stats).toEqual({
@@ -78,7 +79,7 @@ describe('Authentication Flow', () => {
     expect(confirmationValue).toEqual(passwordValue)
 
     // Wait for signup to complete
-    await wait(1500)
+    await wait(3000)
 
     // Select nickname textbox
     const [dialog] = await page.$$('.v-dialog')
@@ -99,7 +100,7 @@ describe('Authentication Flow', () => {
     await loginButton2.click()
 
     await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signin')
-    await wait(1500)
+    await wait(3000)
 
     const [nickname2] = await findElementsByText('div', 'AliceHosted', page)
     expect(nickname2).toBeTruthy()
