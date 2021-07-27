@@ -176,7 +176,7 @@ describe('Authentication Flow', () => {
   })
 
   it('renders the sign-in page when provided sign-in uri search param', async () => {
-    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html?signin`, { waitForNavigation: true })
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html?login`, { waitForNavigation: true })
     await wait(1000)
 
     // verify page
