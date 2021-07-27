@@ -233,8 +233,10 @@ export default {
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.has('signin')) {
           await this.holoSignin()
-        } else if (urlParams.has('signup') || !isAnonymousEnabled()) {
+        } else if (urlParams.has('signup')) {
           await this.holoSignup()
+        } else if (!isAnonymousEnabled()) {
+          await this.holoSignin()
         }
         console.log('resetting signin/signup url search params')
         setTimeout(() => window.history.pushState(null, '', '/'), 0)
