@@ -49,7 +49,7 @@
               <v-icon>mdi-chart-line</v-icon>
             </v-btn>
           </template>
-          <span>View Stats</span>
+          <span>View stats</span>
         </v-tooltip>
         <v-tooltip bottom aria-label="App Version Tooltip">
           <template v-slot:activator="{ on, attrs }">
