@@ -32,7 +32,7 @@
               <v-icon>mdi-account-cog</v-icon>
             </v-btn>
           </template>
-          <span>Update user handle</span>
+          <span>Update nickname</span>
         </v-tooltip>
         <v-tooltip bottom aria-label="App Stats Tooltip">
           <template v-slot:activator="{ on, attrs }">

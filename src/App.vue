@@ -8,8 +8,7 @@
             <span>Tell us your nickname 😎</span>
           </v-card-title>
           <v-card-text
-            >As a super simple way to see who wrote a message, your nickname or
-            handle will be prepended to your messages.</v-card-text
+            >As a super simple way to see who wrote a message, your nickname will be prepended to your messages.</v-card-text
           >
           <v-card-text>
             <v-text-field
