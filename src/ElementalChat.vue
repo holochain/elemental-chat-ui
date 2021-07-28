@@ -3,7 +3,7 @@
     <v-app-bar app dense dark tile elevation="5" aria-label="App Bar">
       <v-toolbar-title class="title pl-0 no-wrap">
         <img src="@/assets/chat.png" class="title-logo" aria-label="Elemental Chat Logo"/>
-        <p role="title"  aria-label="Page Title"> Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }} </p>
+        <div role="title"  aria-label="Page Title"> Elemental Chat {{ channel.info.name ? "- " + channel.info.name : "" }} </div>
       </v-toolbar-title>
       <v-spacer></v-spacer>
 
