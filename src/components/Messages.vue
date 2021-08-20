@@ -2,7 +2,7 @@
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
       <v-card v-if="shouldLoadMore" style="display: grid" aria-label='Load More'>
-        <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" aria-label="Load More Button">
+        <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" class='pagination-button' aria-label="Load More Button">
           Load More Messages
         </v-btn>
       <div><Spinner v-if='listMessagesLoading' size='18px' class='message-subheader' /></div>
@@ -128,6 +128,13 @@ export default {
 }
 ul {
   list-style-type: none;
+}
+.pagination-button {
+  padding: 0 38px;
+  margin: 0 auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+border: 2px solid #d7ea44;
 }
 .message-subheader {
   display: grid;
