@@ -94,25 +94,25 @@ export default {
   watch: {
     channel () {
       this.scrollToEnd()
+      if (this.messages && this.messages.length > 0) {
+        const convertedDatetime = new Date(this.messages[0].createdAt[0] * 1000)
+        this.earliestDate = `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
+      }
     },
     listMessagesLoading () {
       // NB: we add the chunk value here, bc at the time of the fn return the channel has not been updated with new sum
       if ((this.channel.currentMessageCount + CHUNK_COUNT) === this.channel.totalMessageCount) {
         this.showLoadButton = false
       } else if (this.channel.messages) {
+        const convertedDatetime = new Date(this.messages[0].createdAt[0] * 1000)
+        this.earliestDate = `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
         const container = this.$el.querySelector('#container')
-        console.log('container.scrollTop === 0 : ', container.scrollTop === 0)
         this.showLoadButton = container.scrollTop === 0 && (this.channel.currentMessageCount !== this.channel.totalMessageCount)
       }
     }
   },
   mounted () {
     this.scrollToEnd()
-    console.log('messages list : ', this.messages)
-    if (this.messages && this.messages.length > 0) {
-      const convertedDatetime = new Date(this.messages[0].createdAt[0] * 1000)
-      this.earliestDate = `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
-    }
   }
 }
 </script>
