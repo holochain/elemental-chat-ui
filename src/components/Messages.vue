@@ -133,12 +133,12 @@ ul {
   padding: 0 38px;
   margin: 0 auto;
   margin-top: 10px;
-  margin-bottom: 10px;
-border: 2px solid #d7ea44;
+  border: 2px solid #d7ea44;
 }
 .message-subheader {
   display: grid;
   margin: 0 auto;
+  margin-top: 10px;
   justify-content: center;
 }
 </style>
