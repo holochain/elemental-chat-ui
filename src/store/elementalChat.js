@@ -4,7 +4,7 @@ import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
 
-const CHUNK_COUNT = 20
+export const CHUNK_COUNT = 20
 const calculateRemainder = messageCount => messageCount % CHUNK_COUNT
 const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_COUNT)
 
@@ -24,9 +24,11 @@ function storeChannels (channels) {
     }
     const currentChannelMsgCount = (channel.messages || []).length
     const chunkRemainder = calculateRemainder(currentChannelMsgCount)
-    const messageCount = chunkRemainder
+    const messageCount = (chunkRemainder && chunkRemainder > (chunkRemainder - 1))
       ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
-      : channel.latestChunk * CHUNK_COUNT
+      : (chunkRemainder && chunkRemainder === (chunkRemainder - 1))
+          ? channel.latestChunk * CHUNK_COUNT + chunkRemainder
+          : channel.latestChunk * CHUNK_COUNT
 
     acc[id] = {
       ...storedChannel,
@@ -426,9 +428,11 @@ export default {
       const chunkRemainder = calculateRemainder(currentChannelMsgCount)
       const chunkQuotient = calculateQuotient(currentChannelMsgCount)
       channel.currentMessageCount = (chunkQuotient * CHUNK_COUNT) + chunkRemainder
-      channel.totalMessageCount = chunkRemainder
+      channel.totalMessageCount = (chunkRemainder && chunkRemainder > (chunkRemainder - 1))
         ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
-        : channel.latestChunk * CHUNK_COUNT
+        : (chunkRemainder && chunkRemainder === (chunkRemainder - 1))
+            ? channel.latestChunk * CHUNK_COUNT + chunkRemainder
+            : channel.latestChunk * CHUNK_COUNT
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {

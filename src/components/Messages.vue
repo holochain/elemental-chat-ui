@@ -30,6 +30,7 @@
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex'
 import { arrayBufferToBase64 } from '@/store/utils'
+import { CHUNK_COUNT } from '@/store/elementalChat'
 import Message from './Message.vue'
 import Spinner from './Spinner'
 
@@ -67,7 +68,7 @@ export default {
     onScroll () {
       this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
-      this.showLoadButton = container.scrollTop === 0 && (this.channel.messages.length !== this.channel.totalMessageCount)
+      this.showLoadButton = container.scrollTop === 0 && (this.channel.currentMessageCount !== this.channel.totalMessageCount)
       const height = container.offsetHeight + container.scrollTop
       if (height === container.scrollHeight) {
         this.userIsScrolling = false
@@ -94,19 +95,25 @@ export default {
     channel () {
       this.scrollToEnd()
     },
-    showLoadButton () {
-      const container = this.$el.querySelector('#container')
-      this.showLoadButton = container.scrollTop === 0 && (this.channel.messages.length !== this.channel.totalMessageCount)
+    listMessagesLoading () {
+      // NB: we add the chunk value here, bc at the time of the fn return the channel has not been updated with new sum
+      if ((this.channel.currentMessageCount + CHUNK_COUNT) === this.channel.totalMessageCount) {
+        this.showLoadButton = false
+      } else if (this.channel.messages) {
+        const container = this.$el.querySelector('#container')
+        console.log('container.scrollTop === 0 : ', container.scrollTop === 0)
+        this.showLoadButton = container.scrollTop === 0 && (this.channel.currentMessageCount !== this.channel.totalMessageCount)
+      }
     }
   },
   mounted () {
     this.scrollToEnd()
-    console.log('messages list : ', this.messages)
-    if (this.messages && this.messages.length > 0) {
-      const convertedDate = new Date(this.messages[0].createdAt)
-      console.log(';;;;;;;>>>>> ', convertedDate)
-      this.earliestDate = this.messages[0].createdAt
-    }
+    // console.log('messages list : ', this.messages)
+    // if (this.messages && this.messages.length > 0) {
+    //   const convertedDate = new Date(this.messages[0].createdAt)
+    //   console.log(';;;;;;;>>>>> ', convertedDate)
+    //   this.earliestDate = this.messages[0].createdAt
+    // }
   }
 }
 </script>
