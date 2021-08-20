@@ -2,8 +2,11 @@ import { v4 as uuidv4 } from 'uuid'
 import { uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
-
 import { callZome } from './callZome'
+
+const CHUNK_COUNT = 20
+const calculateRemainder = messageCount => messageCount % CHUNK_COUNT
+const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_COUNT)
 
 function sortChannels (val) {
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1))
@@ -174,25 +177,56 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    listAllMessages ({ commit, rootState, dispatch, getters }) {
-      const payload = { category: 'General', chunk: { start: 0, end: 0 } }
-      callZome(dispatch, rootState, 'chat', 'list_all_messages', payload, 50000)
+    getMessageChunk: async ({ commit, rootState, dispatch }, { channel, latestChunk, activeChatter, firstLoad }) => {
+      if (!latestChunk) {
+        // NOTE: 1 (not 0) is the index of the earliest chunk
+        latestChunk = 1
+      }
+      const channelMsgCount = channel.messageCount || CHUNK_COUNT
+      const chunkRemainder = calculateRemainder(channelMsgCount)
+      const chunkQuotient = calculateQuotient(channelMsgCount)
+      const loadedChunkEnd = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
+      const loadedChunkStart = loadedChunkEnd - 1
+
+      const chunkStart = firstLoad
+        ? latestChunk - 1
+        : latestChunk - loadedChunkEnd
+      const chunkEnd = firstLoad
+        ? latestChunk
+        : latestChunk - loadedChunkStart
+
+      const payload = { channel: channel.entry, chunk: { start: chunkStart, end: chunkEnd }, active_chatter: activeChatter || true }
+      callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
         .then(async result => {
           if (result) {
-            const channels = result.map((e) => e.channel)
-            commit('addChannels', channels)
+            // NOTE: messages will be aggregated with current messages in following chain of fns
+            handleListMessagesResult(commit, channel.entry.uuid, result.messages)
+          }
+        })
+        .catch(error => log('listMessages zome error', error))
+    },
+    listAllMessages ({ commit, rootState, dispatch, getters }) {
+    // NOTE: To reduce the inital load expsense, we have decided to call list_channels, then get only load first chuck for each channel
+    // ** instead of calling the list_all_messages endpoint
+      const payload = { category: 'General' }
+      callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
+        .then(async result => {
+          console.log('LIST_CHANNELS RESULT', result)
+
+          if (result) {
+            commit('addChannels', result.channels)
 
             // if current channel is the empty channel, join the first channel in the channel list
-            if (getters.channel.info.name === '' && channels.length > 0) {
-              dispatch('joinChannel', channels[0].entry.uuid)
+            if (getters.channel.info.name === '' && result.channels.length > 0) {
+              dispatch('joinChannel', result.channels[0].entry.uuid)
             }
 
-            result.forEach((e) => {
-              handleListMessagesResult(commit, e.channel.entry.uuid, e.messages)
+            result.channels.forEach(channel => {
+              dispatch('getMessageChunk', { channel: channel, latestChunk: channel.latestChunk, activeChatter: false, firstLoad: true })
             })
           }
         })
-        .catch(error => log('listAllMessages zome error', error))
+        .catch(error => log('list_channels zome error during listAllMessages call', error))
     },
     listChannels ({ commit, rootState, dispatch, getters }) {
       const payload = { category: 'General' }
@@ -200,7 +234,6 @@ export default {
         .then(async result => {
           if (result) {
             commit('addChannels', result.channels)
-
             // if current channel is the empty channel, join the first channel in the channel list
             if (getters.channel.info.name === '' && result.channels.length > 0) {
               dispatch('joinChannel', result.channels[0].entry.uuid)
@@ -231,6 +264,21 @@ export default {
         }
       }
 
+      const currentChannelMsgCount = payload.channel.messages.length
+      const chunkRemainder = calculateRemainder(currentChannelMsgCount)
+      const chunkQuotient = calculateQuotient(currentChannelMsgCount)
+
+      console.log('currentChannelMsgCount : ', currentChannelMsgCount)
+      console.log('chunkRemainder : ', chunkRemainder)
+      console.log('chunkQuotient : ', chunkQuotient)
+
+      const chunk = CHUNK_COUNT > currentChannelMsgCount
+      // we are purposefully starting the initial chunk at int 1, not 0 to benefit from modulo math
+        ? 1
+        : chunkRemainder
+          ? chunkQuotient + 1
+          : chunkQuotient
+
       const holochainPayload = {
         last_seen: lastSeen,
         channel: payload.channel.entry,
@@ -238,8 +286,10 @@ export default {
           uuid: uuidv4(),
           content: `${state.agentHandle}: ${payload.content}`
         },
-        chunk: 0
+        chunk
       }
+
+      console.log('holochainPayload : ', holochainPayload)
 
       let message
       try {
@@ -364,7 +414,6 @@ export default {
       if (!channel) return
 
       const storedChannel = getStoredChannel(channelId)
-
       if (channel.messages === undefined) {
         channel.messages = []
         // if this channel doesn't have any messages yet, we restore the unseen status
@@ -373,6 +422,11 @@ export default {
 
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
         .sort((a, b) => a.createdAt[0] - b.createdAt[0])
+
+      const currentChannelMsgCount = channel.messages.length
+      const chunkRemainder = calculateRemainder(currentChannelMsgCount)
+      const chunkQuotient = calculateQuotient(currentChannelMsgCount)
+      channel.messageCount = (chunkQuotient * CHUNK_COUNT) + chunkRemainder
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
