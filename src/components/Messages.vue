@@ -2,11 +2,11 @@
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
       <v-card v-if="shouldLoadMore" style="display: grid" aria-label='Load More'>
-        <v-btn text @click="loadMoreMessages" aria-label="Load More Button">
+        <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" aria-label="Load More Button">
           Load More Messages
         </v-btn>
-
-
+      <div><Spinner v-if='listMessagesLoading' size='18px' class='message-subheader' /></div>
+      <div><p size='18px' class='message-subheader'>{{ this.earliestDate }}</p></div>
       </v-card>
       <ul class="pb-10 pl-0" aria-label="Message List">
         <li
@@ -31,22 +31,24 @@
 import { mapActions, mapState, mapGetters } from 'vuex'
 import { arrayBufferToBase64 } from '@/store/utils'
 import Message from './Message.vue'
+import Spinner from './Spinner'
 
 export default {
   name: 'Messages',
   components: {
-    Message
+    Message, 
+    Spinner
   },
   data () {
     return {
       userIsScrolling: false,
       showLoadButton: false,
-      loadingMessages: false
+      earliestDate: 'August 20 2021'
     }
   },
   computed: {
     ...mapState('holochain', ['conductorDisconnected', 'agentKey']),
-    ...mapGetters('elementalChat', ['channel']),
+    ...mapGetters('elementalChat', ['channel', 'listMessagesLoading']),
     messages () {
       return this.channel.messages
     },
@@ -65,7 +67,7 @@ export default {
     onScroll () {
       this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
-      this.showLoadButton = container.scrollTop === 0
+      this.showLoadButton = container.scrollTop === 0 && (this.channel.messages.length !== this.channel.totalMessageCount)
       const height = container.offsetHeight + container.scrollTop
       if (height === container.scrollHeight) {
         this.userIsScrolling = false
@@ -92,14 +94,19 @@ export default {
     channel () {
       this.scrollToEnd()
     },
-    loadMoreMessages (r) {
-      if (r) {
-        showLoadButton = container.scrollTop === 0
-      }
+    showLoadButton () {
+      const container = this.$el.querySelector('#container')
+      this.showLoadButton = container.scrollTop === 0 && (this.channel.messages.length !== this.channel.totalMessageCount)
     }
   },
   mounted () {
     this.scrollToEnd()
+    console.log('messages list : ', this.messages)
+    if (this.messages && this.messages.length > 0) {
+      const convertedDate = new Date(this.messages[0].createdAt)
+      console.log(';;;;;;;>>>>> ', convertedDate)
+      this.earliestDate = this.messages[0].createdAt
+    }
   }
 }
 </script>
@@ -114,5 +121,10 @@ export default {
 }
 ul {
   list-style-type: none;
+}
+.message-subheader {
+  display: grid;
+  margin: 0 auto;
+  justify-content: center;
 }
 </style>

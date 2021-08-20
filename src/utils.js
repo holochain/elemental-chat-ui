@@ -19,6 +19,14 @@ export function toUint8Array (value) {
   }
 }
 
+export const delay = milliseconds => {
+  const date = Date.now()
+  let currentDate = null
+  do {
+    currentDate = Date.now()
+  } while (currentDate - date < milliseconds)
+}
+
 export function log (action, ...rest) {
   console.log(Date.now(), action)
   if (rest.length > 0) console.log(...rest)
