@@ -44,7 +44,7 @@ export default {
     return {
       userIsScrolling: false,
       showLoadButton: false,
-      earliestDate: 'August 20 2021'
+      earliestDate: ''
     }
   },
   computed: {
@@ -108,12 +108,11 @@ export default {
   },
   mounted () {
     this.scrollToEnd()
-    // console.log('messages list : ', this.messages)
-    // if (this.messages && this.messages.length > 0) {
-    //   const convertedDate = new Date(this.messages[0].createdAt)
-    //   console.log(';;;;;;;>>>>> ', convertedDate)
-    //   this.earliestDate = this.messages[0].createdAt
-    // }
+    console.log('messages list : ', this.messages)
+    if (this.messages && this.messages.length > 0) {
+      const convertedDatetime = new Date(this.messages[0].createdAt[0] * 1000)
+      this.earliestDate = `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
+    }
   }
 }
 </script>
