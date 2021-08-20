@@ -1,6 +1,13 @@
 <template>
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
+      <v-card v-if="shouldLoadMore" style="display: grid" aria-label='Load More'>
+        <v-btn text @click="loadMoreMessages" aria-label="Load More Button">
+          Load More Messages
+        </v-btn>
+
+
+      </v-card>
       <ul class="pb-10 pl-0" aria-label="Message List">
         <li
           v-for="message in messages"
@@ -32,11 +39,23 @@ export default {
   },
   data () {
     return {
-      userIsScrolling: false
+      userIsScrolling: false,
+      showLoadButton: false,
+      loadingMessages: false
+    }
+  },
+  computed: {
+    ...mapState('holochain', ['conductorDisconnected', 'agentKey']),
+    ...mapGetters('elementalChat', ['channel']),
+    messages () {
+      return this.channel.messages
+    },
+    shouldLoadMore () {
+      return this.showLoadButton
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['createMessage']),
+    ...mapActions('elementalChat', ['createMessage', 'getMessageChunk']),
     handleCreateMessage (content) {
       this.createMessage({
         channel: this.channel,
@@ -46,8 +65,8 @@ export default {
     onScroll () {
       this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
+      this.showLoadButton = container.scrollTop === 0
       const height = container.offsetHeight + container.scrollTop
-
       if (height === container.scrollHeight) {
         this.userIsScrolling = false
       }
@@ -57,20 +76,26 @@ export default {
       const container = this.$el.querySelector('#container')
       container.scrollTop = container.scrollHeight
     },
+    loadMoreMessages () {
+      this.showLoadButton = false
+      this.getMessageChunk({
+          channel: this.channel,
+          latestChunk: this.channel.latestChunk,
+          activeChatter: true
+      })
+    },
     isMyMessage (message) {
       return arrayBufferToBase64(message.createdBy) === arrayBufferToBase64(this.agentKey)
-    }
-  },
-  computed: {
-    ...mapState('holochain', ['conductorDisconnected', 'agentKey']),
-    ...mapGetters('elementalChat', ['channel']),
-    messages () {
-      return this.channel.messages
     }
   },
   watch: {
     channel () {
       this.scrollToEnd()
+    },
+    loadMoreMessages (r) {
+      if (r) {
+        showLoadButton = container.scrollTop === 0
+      }
     }
   },
   mounted () {
