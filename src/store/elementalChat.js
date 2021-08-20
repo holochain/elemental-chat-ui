@@ -17,13 +17,16 @@ function storeChannels (channels) {
   const storedChannels = JSON.parse(window.localStorage.getItem('channels') || '{}')
   window.localStorage.setItem('channels', JSON.stringify(channels.reduce((acc, channel) => {
     const id = channel.entry.uuid
+
     const storedChannel = storedChannels[id] || {
       messageCount: 0,
       unseen: false
     }
-    const messagesLength = (channel.messages || []).length
-    const currentMessageCount = storedChannel.messageCount
-    const messageCount = Math.max(messagesLength, currentMessageCount)
+    const currentChannelMsgCount = (channel.messages || []).length
+    const chunkRemainder = calculateRemainder(currentChannelMsgCount)
+    const messageCount = chunkRemainder
+      ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
+      : channel.latestChunk * CHUNK_COUNT
 
     acc[id] = {
       ...storedChannel,
@@ -182,7 +185,7 @@ export default {
         // NOTE: 1 (not 0) is the index of the earliest chunk
         latestChunk = 1
       }
-      const channelMsgCount = channel.messageCount || CHUNK_COUNT
+      const channelMsgCount = channel.currentMessageCount || CHUNK_COUNT
       const chunkRemainder = calculateRemainder(channelMsgCount)
       const chunkQuotient = calculateQuotient(channelMsgCount)
       const loadedChunkEnd = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
@@ -267,10 +270,6 @@ export default {
       const currentChannelMsgCount = payload.channel.messages.length
       const chunkRemainder = calculateRemainder(currentChannelMsgCount)
       const chunkQuotient = calculateQuotient(currentChannelMsgCount)
-
-      console.log('currentChannelMsgCount : ', currentChannelMsgCount)
-      console.log('chunkRemainder : ', chunkRemainder)
-      console.log('chunkQuotient : ', chunkQuotient)
 
       const chunk = CHUNK_COUNT > currentChannelMsgCount
       // we are purposefully starting the initial chunk at int 1, not 0 to benefit from modulo math
@@ -426,7 +425,10 @@ export default {
       const currentChannelMsgCount = channel.messages.length
       const chunkRemainder = calculateRemainder(currentChannelMsgCount)
       const chunkQuotient = calculateQuotient(currentChannelMsgCount)
-      channel.messageCount = (chunkQuotient * CHUNK_COUNT) + chunkRemainder
+      channel.currentMessageCount = (chunkQuotient * CHUNK_COUNT) + chunkRemainder
+      channel.totalMessageCount = chunkRemainder
+        ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
+        : channel.latestChunk * CHUNK_COUNT
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
