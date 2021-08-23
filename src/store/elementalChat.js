@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { uniqBy } from 'lodash'
+import { remove, uniqBy } from 'lodash'
 import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
@@ -108,6 +108,7 @@ const handleListMessagesResult = (commit, channelId, messages) => {
       return msg
     }).sort((a, b) => a.createdAt[0] - b.createdAt[0])
   })
+  commit('setLoadingChannelContent', { removeById: channelId })
 }
 
 let listChannelsIntervalId = null
@@ -118,6 +119,7 @@ export default {
   state: {
     channels: [],
     currentChannelId: null,
+    loadingChannelContent: [],
     stats: {},
     statsLoading: false,
     agentHandle: null,
@@ -210,16 +212,15 @@ export default {
         })
         .catch(error => log('listMessages zome error', error))
     },
-    listAllMessages ({ commit, rootState, dispatch, getters }) {
+    listAllMessages ({ commit, state, rootState, dispatch, getters }) {
     // NOTE: To reduce the inital load expsense, we have decided to call list_channels, then get only load first chuck for each channel
     // ** instead of calling the list_all_messages endpoint
       const payload = { category: 'General' }
       callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
         .then(async result => {
-          console.log('LIST_CHANNELS RESULT', result)
-
           if (result) {
             commit('addChannels', result.channels)
+            commit('setLoadingChannelContent', { addList: state.channels })
 
             // if current channel is the empty channel, join the first channel in the channel list
             if (getters.channel.info.name === '' && result.channels.length > 0) {
@@ -477,6 +478,13 @@ export default {
     },
     setUnseen (state, payload) {
       _setUnseen(state, payload)
+    },
+    setLoadingChannelContent (state, { addList, removeById }) {
+      if (addList) {
+        state.loadingChannelContent = uniqBy([...state.channels, ...addList], channel => channel.entry.uuid)
+      } else if (removeById) {
+        state.loadingChannelContent = remove(state.loadingChannelContent, channel => channel.entry.uuid === removeById)
+      }
     },
     setStatsLoading (state, payload) {
       state.statsLoading = payload
