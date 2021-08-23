@@ -29,8 +29,7 @@
 </template>
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex'
-import { arrayBufferToBase64 } from '@/store/utils'
-import { CHUNK_COUNT } from '@/store/elementalChat'
+import { arrayBufferToBase64, formPaginationDateTime, shouldAllowPagination } from '@/store/utils'
 import Message from './Message.vue'
 import Spinner from './Spinner'
 
@@ -71,15 +70,7 @@ export default {
     onScroll () {
       this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
-      console.log('container.scrollTop === 0 : ', container.scrollTop === 0)
-      console.log('this.channel.currentMessageCount : ', this.channel.currentMessageCount)
-      console.log('this.channel.messages.length : ', this.channel.messages.length)
-
-      const channel = window.localStorage.getItem('channels')
-      console.log('window CHANNELS : ', channel)
-      console.log('this.channel.totalMessageCount : ', this.channel.totalMessageCount)
-
-      this.showLoadButton = container.scrollTop === 0 && (this.channel.currentMessageCount !== this.channel.totalMessageCount)
+      this.showLoadButton = shouldAllowPagination(container, this.channel)
       const height = container.offsetHeight + container.scrollTop
       if (height === container.scrollHeight) {
         this.userIsScrolling = false
@@ -105,26 +96,17 @@ export default {
   watch: {
     channel () {
       this.scrollToEnd()
-      if (this.messages && this.messages.length > 0) {
-        const convertedDatetime = new Date(this.messages[0].createdAt[0] * 1000)
-        this.earliestDate = `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
-      }
     },
     totalMessageCount (total) {
-      // const channels = window.localStorage.getItem('channels')
-      // console.log('window CHANNEL : ', channels)
-      // console.log('this.channel.entry.uuid : ', this.channel.entry.uuid);
-      console.log(' >>>>>>> this.channel.currentMessageCount : ', this.channel.currentMessageCount)
-      console.log(' >>>>>>> this.channel.totalMessageCount : ', total)
       if ((this.channel.currentMessageCount) === total) {
         this.showLoadButton = false
       } else if (this.channel.totalMessageCount > 0) {
         // set datetime string for polling reference
-        const convertedDatetime = new Date(this.messages[0].createdAt[0] * 1000)
-        this.earliestDate = `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
-        // conditionally show button
-        const container = this.$el.querySelector('#container')
-        this.showLoadButton = container.scrollTop === 0 && (this.channel.currentMessageCount !== this.channel.totalMessageCount)
+        this.earliestDate = formPaginationDateTime(this.messages[0])
+        // const channels = window.localStorage.getItem('channels')
+        // console.log('window CHANNEL : ', channels)
+        // console.log('this.channel.entry.uuid : ', this.channel.entry.uuid);
+        this.showLoadButton = shouldAllowPagination(this.$el.querySelector('#container'), this.channel)
       }
     }
   },
@@ -132,11 +114,8 @@ export default {
     this.scrollToEnd()
     if (this.channel.totalMessageCount > 0) {
       // set datetime string for polling reference
-      const convertedDatetime = new Date(this.messages[0].createdAt[0] * 1000)
-      this.earliestDate = `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
-      // conditionally show button
-      const container = this.$el.querySelector('#container')
-      this.showLoadButton = container.scrollTop === 0 && (this.channel.currentMessageCount !== this.channel.totalMessageCount)
+      this.earliestDate = formPaginationDateTime(this.messages[0])
+      this.showLoadButton = shouldAllowPagination(this.$el.querySelector('#container'), this.channel)
     }
   }
 }

@@ -35,11 +35,6 @@ function storeChannels (channels) {
       unseen: channel.unseen || storedChannel.unseen // overwrites with stored value because if unseen isn't set, we just did a page load
     }
 
-    console.log('chunkRemainder : ', chunkRemainder)
-    console.log('channel.latestChunk : ', channel.latestChunk)
-    console.log('currentChannelMsgCount : ', currentChannelMsgCount)
-    console.log('messageCount : ', messageCount)
-
     return acc
   }, {})))
 }
@@ -193,8 +188,6 @@ export default {
         .catch(error => log('createChannel zome error', error))
     },
     getMessageChunk: async ({ state, commit, rootState, dispatch }, { channel, latestChunk, activeChatter, firstChunkLoad }) => {
-      console.log('========================== >>>>>>>>>latestChunk : ', latestChunk)
-
       if (!latestChunk) {
         latestChunk = 0
       }
@@ -202,26 +195,15 @@ export default {
       const channelMsgCount = channel.currentMessageCount || CHUNK_COUNT
       const chunkRemainder = calculateRemainder(channelMsgCount)
       const chunkQuotient = calculateQuotient(channelMsgCount)
-      const loadedChunkEnd = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
-      const loadedChunkStart = loadedChunkEnd - 1
+      const loadedChunkEarliest = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
+      const loadedChunkLatest = loadedChunkEarliest - 1
 
       const chunkStart = firstChunkLoad
         ? latestChunk
-        : loadedChunkStart
+        : latestChunk - loadedChunkEarliest
       const chunkEnd = firstChunkLoad
         ? latestChunk
-        : loadedChunkEnd
-
-      console.log('>> =====================================')
-      console.log('channel.currentMessageCount : ', channel.currentMessageCount)
-      console.log('chunkRemainder : ', chunkRemainder)
-
-      console.log('loadedChunkStart : ', loadedChunkStart)
-      console.log('chunkStart : ', chunkStart)
-
-      console.log('loadedChunkEnd : ', loadedChunkEnd)
-      console.log('chunkEnd : ', chunkEnd)
-      console.log('===================================== <<')
+        : latestChunk - loadedChunkLatest
 
       const payload = { channel: channel.entry, chunk: { start: chunkStart, end: chunkEnd }, active_chatter: activeChatter || true }
       callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
@@ -250,7 +232,6 @@ export default {
 
             // TODO: manage for only one channel....
             result.channels.forEach(channel => {
-              console.log('channel.latestChunk : ', channel.latestChunk)
               dispatch('getMessageChunk', { channel: channel, latestChunk: channel.latestChunk, activeChatter: false, firstChunkLoad: true })
             })
           }
@@ -293,13 +274,15 @@ export default {
         }
       }
 
-      const currentChannelMsgCount = payload.channel.messages.length + 1 // adding the new message to count
-      const chunkRemainder = calculateRemainder(currentChannelMsgCount)
-      const chunkQuotient = calculateQuotient(currentChannelMsgCount)
+      if (payload.channel.totalMessageCount === undefined) {
+        payload.channel.totalMessageCount = 0
+      }
 
-      console.log('chunkQuotient : ', chunkQuotient)
+      const newTotalMessageCount = payload.channel.totalMessageCount + 1 // adding the new message to count
+      const chunkRemainder = calculateRemainder(newTotalMessageCount)
+      const chunkQuotient = calculateQuotient(newTotalMessageCount)
 
-      const chunk = CHUNK_COUNT > currentChannelMsgCount
+      const chunk = CHUNK_COUNT > newTotalMessageCount
         ? 0
         : chunkRemainder === 0
           ? chunkQuotient - 1
@@ -315,13 +298,6 @@ export default {
         chunk
       }
 
-      // console.log('>> =====================================')
-      // console.log('currentChannelMsgCount : ', currentChannelMsgCount)
-      // console.log('chunkQuotient : ', chunkQuotient)
-      // console.log('chunk : ', chunk)
-      // console.log('holochainPayload : ', holochainPayload)
-      // console.log('===================================== <<')
-
       let message
       try {
         message = await callZome(
@@ -336,10 +312,9 @@ export default {
         return
       }
 
-      console.log('>>>>>>>>> BEFORE channel : ', payload.channel)
       const channel = payload.channel
       if (chunk !== channel.latestChunk) {
-        console.log('UPDATING CHANNEL LASTEST CHUNK')
+        console.log('Note: Resetting channel.latestChunk to match response from DNA...')
         // optimistically update channel chunk before next pull
         channel.latestChunk = chunk
       }
@@ -452,8 +427,6 @@ export default {
       )
       if (!doesChannelExist) return
 
-      console.log('>>>>>>>>> ADDING this channel : ', channel)
-
       const storedChannel = getStoredChannel(channel.entry.uuid)
       if (channel.messages === undefined) {
         channel.messages = []
@@ -473,9 +446,6 @@ export default {
         : (chunkRemainder === 0 && currentChannelMsgCount > 0)
             ? (channel.latestChunk + 1) * CHUNK_COUNT
             : channel.latestChunk * CHUNK_COUNT
-
-      console.log('currentMessageCount : ', channel.currentMessageCount)
-      console.log('totalMessageCount : ', channel.totalMessageCount)
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
