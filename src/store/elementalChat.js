@@ -4,7 +4,7 @@ import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
 
-export const CHUNK_COUNT = 20
+export const CHUNK_COUNT = 19
 const calculateRemainder = messageCount => messageCount % CHUNK_COUNT
 const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_COUNT)
 
@@ -29,7 +29,6 @@ function storeChannels (channels) {
       : (chunkRemainder && chunkRemainder === (chunkRemainder - 1))
           ? channel.latestChunk * CHUNK_COUNT + chunkRemainder
           : channel.latestChunk * CHUNK_COUNT
-
     acc[id] = {
       ...storedChannel,
       messageCount,

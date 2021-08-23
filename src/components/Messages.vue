@@ -68,6 +68,10 @@ export default {
     onScroll () {
       this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
+      console.log('container.scrollTop === 0 : ', container.scrollTop === 0)
+      console.log('this.channel.currentMessageCount : ', this.channel.currentMessageCount)
+      console.log('this.channel.totalMessageCount : ', this.channel.totalMessageCount)
+
       this.showLoadButton = container.scrollTop === 0 && (this.channel.currentMessageCount !== this.channel.totalMessageCount)
       const height = container.offsetHeight + container.scrollTop
       if (height === container.scrollHeight) {
@@ -101,6 +105,8 @@ export default {
     },
     listMessagesLoading () {
       // NB: we add the chunk value here, bc at the time of the fn return the channel has not been updated with new sum
+      console.log(' >>>>>>> this.channel.currentMessageCount : ', this.channel.currentMessageCount)
+      console.log(' >>>>>>> this.channel.totalMessageCount : ', this.channel.totalMessageCount)
       if ((this.channel.currentMessageCount + CHUNK_COUNT) === this.channel.totalMessageCount) {
         this.showLoadButton = false
       } else if (this.channel.messages) {

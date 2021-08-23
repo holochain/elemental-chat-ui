@@ -1,6 +1,6 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import wait from 'waait'
-import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, CHAPERONE_URL_REGEX_HCC, WEB_LOGGING } from './setup/globals'
+import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_HCC } from './setup/globals'
 import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname, setupPage } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
