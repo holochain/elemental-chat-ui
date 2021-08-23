@@ -24,9 +24,9 @@ function storeChannels (channels) {
     }
     const currentChannelMsgCount = (channel.messages || []).length
     const chunkRemainder = calculateRemainder(currentChannelMsgCount)
-    const messageCount = (chunkRemainder && chunkRemainder > (chunkRemainder - 1))
+    const messageCount = (chunkRemainder && chunkRemainder > channel.latestChunk)
       ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
-      : (chunkRemainder && chunkRemainder === (chunkRemainder - 1))
+      : (chunkRemainder && chunkRemainder === channel.latestChunk)
           ? channel.latestChunk * CHUNK_COUNT + chunkRemainder
           : channel.latestChunk * CHUNK_COUNT
     acc[id] = {
@@ -34,6 +34,11 @@ function storeChannels (channels) {
       messageCount,
       unseen: channel.unseen || storedChannel.unseen // overwrites with stored value because if unseen isn't set, we just did a page load
     }
+
+    console.log('chunkRemainder : ', chunkRemainder)
+    console.log('messageCount : ', messageCount)
+    console.log('channel.latestChunk : ', channel.latestChunk)
+
     return acc
   }, {})))
 }
@@ -99,9 +104,12 @@ export const handleSignal = (signal, dispatch) => {
   }
 }
 
-const handleListMessagesResult = (commit, channelId, messages) => {
+const handleListMessagesResult = (state, commit, channelId, messages) => {
+  const channel = state.channels.find(
+    c => c.entry.uuid === channelId
+  )
   commit('addMessagesToChannel', {
-    channelId,
+    channel,
     messages: messages.map((msg) => {
       msg.createdBy = toUint8Array(msg.createdBy)
       return msg
@@ -183,7 +191,7 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    getMessageChunk: async ({ commit, rootState, dispatch }, { channel, latestChunk, activeChatter, firstLoad }) => {
+    getMessageChunk: async ({ state, commit, rootState, dispatch }, { channel, latestChunk, activeChatter, firstLoad }) => {
       if (!latestChunk) {
         // NOTE: 1 (not 0) is the index of the earliest chunk
         latestChunk = 1
@@ -206,7 +214,7 @@ export default {
         .then(async result => {
           if (result) {
             // NOTE: messages will be aggregated with current messages in following chain of fns
-            handleListMessagesResult(commit, channel.entry.uuid, result.messages)
+            handleListMessagesResult(state, commit, channel.entry.uuid, result.messages)
           }
         })
         .catch(error => log('listMessages zome error', error))
@@ -226,6 +234,7 @@ export default {
               dispatch('joinChannel', result.channels[0].entry.uuid)
             }
 
+            // TODO: manage for only one channel....
             result.channels.forEach(channel => {
               dispatch('getMessageChunk', { channel: channel, latestChunk: channel.latestChunk, activeChatter: false, firstLoad: true })
             })
@@ -251,7 +260,7 @@ export default {
       log('adding signal message: ', payload)
       commit('addChannels', [payload.channelData])
       commit('addMessagesToChannel', {
-        channelId: payload.channelData.entry.uuid,
+        channel: payload.channelData,
         messages: [payload.messageData]
       })
     },
@@ -306,10 +315,18 @@ export default {
         return
       }
 
-      commit('addMessagesToChannel', { channelId: payload.channel.entry.uuid, messages: [message] })
+      console.log('>>>>>>>>> BEFORE channel : ', payload.channel)
+      const channel = payload.channel
+      if (chunk !== channel.latestChunk) {
+        console.log('UPDATING CHANNEL LASTEST CHUNK')
+        // optimistically update channel chunk before next pull
+        channel.latestChunk = chunk
+      }
+
+      commit('addMessagesToChannel', { channel, messages: [message] })
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
-      const channel = payload.channel
+
       channel.info.created_by = toUint8Array(channel.info.created_by)
       channel.activeChatters = channel.activeChatters.map(c => toUint8Array(c))
 
@@ -333,7 +350,7 @@ export default {
       callZome(dispatch, rootState, 'chat', 'signal_specific_chatters', payload, 60000)
         .catch(error => log('signalSpecificChatters zome error:', error))
     },
-    async listMessages ({ commit, rootState, dispatch }, payload) {
+    async listMessages ({ commit, state, rootState, dispatch }, payload) {
       const holochainPayload = {
         channel: payload.channel.entry,
         chunk: payload.chunk,
@@ -357,7 +374,7 @@ export default {
               Message: messageHash
             }
           }
-          handleListMessagesResult(commit, payload.channel.entry.uuid, [...result.messages])
+          handleListMessagesResult(state, commit, payload.channel.entry.uuid, [...result.messages])
 
           let messages = [...result.messages]
 
@@ -368,7 +385,7 @@ export default {
           })
 
           commit('addMessagesToChannel', {
-            channelId: payload.channel.entry.uuid,
+            channel: payload.channel,
             messages
           })
         })
@@ -406,15 +423,17 @@ export default {
   },
   mutations: {
     addMessagesToChannel (state, payload) {
-      const { channelId, messages } = payload
+      const { channel, messages } = payload
 
       // verify channel (within which the message belongs) exists
-      const channel = state.channels.find(
-        c => c.entry.uuid === channelId
+      const doesChannelExist = state.channels.find(
+        c => c.entry.uuid === channel.entry.uuid
       )
-      if (!channel) return
+      if (!doesChannelExist) return
 
-      const storedChannel = getStoredChannel(channelId)
+      console.log('>>>>>>>>> ADDING this channel : ', channel)
+
+      const storedChannel = getStoredChannel(channel.entry.uuid)
       if (channel.messages === undefined) {
         channel.messages = []
         // if this channel doesn't have any messages yet, we restore the unseen status
@@ -428,9 +447,9 @@ export default {
       const chunkRemainder = calculateRemainder(currentChannelMsgCount)
       const chunkQuotient = calculateQuotient(currentChannelMsgCount)
       channel.currentMessageCount = (chunkQuotient * CHUNK_COUNT) + chunkRemainder
-      channel.totalMessageCount = (chunkRemainder && chunkRemainder > (chunkRemainder - 1))
+      channel.totalMessageCount = (chunkRemainder && chunkRemainder > channel.latestChunk)
         ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
-        : (chunkRemainder && chunkRemainder === (chunkRemainder - 1))
+        : (chunkRemainder && chunkRemainder === channel.latestChunk)
             ? channel.latestChunk * CHUNK_COUNT + chunkRemainder
             : channel.latestChunk * CHUNK_COUNT
 
