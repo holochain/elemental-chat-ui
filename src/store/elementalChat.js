@@ -24,10 +24,10 @@ function storeChannels (channels) {
     }
     const currentChannelMsgCount = (channel.messages || []).length
     const chunkRemainder = calculateRemainder(currentChannelMsgCount)
-    const messageCount = (chunkRemainder && chunkRemainder > channel.latestChunk)
-      ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
-      : (chunkRemainder && chunkRemainder === channel.latestChunk)
-          ? channel.latestChunk * CHUNK_COUNT + chunkRemainder
+    const messageCount = (chunkRemainder)
+      ? (channel.latestChunk) * CHUNK_COUNT + chunkRemainder
+      : (chunkRemainder === 0 && currentChannelMsgCount > 0)
+          ? (channel.latestChunk + 1) * CHUNK_COUNT
           : channel.latestChunk * CHUNK_COUNT
     acc[id] = {
       ...storedChannel,
@@ -36,8 +36,9 @@ function storeChannels (channels) {
     }
 
     console.log('chunkRemainder : ', chunkRemainder)
-    console.log('messageCount : ', messageCount)
     console.log('channel.latestChunk : ', channel.latestChunk)
+    console.log('currentChannelMsgCount : ', currentChannelMsgCount)
+    console.log('messageCount : ', messageCount)
 
     return acc
   }, {})))
@@ -191,23 +192,36 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    getMessageChunk: async ({ state, commit, rootState, dispatch }, { channel, latestChunk, activeChatter, firstLoad }) => {
+    getMessageChunk: async ({ state, commit, rootState, dispatch }, { channel, latestChunk, activeChatter, firstChunkLoad }) => {
+      console.log('========================== >>>>>>>>>latestChunk : ', latestChunk)
+
       if (!latestChunk) {
-        // NOTE: 1 (not 0) is the index of the earliest chunk
-        latestChunk = 1
+        latestChunk = 0
       }
+
       const channelMsgCount = channel.currentMessageCount || CHUNK_COUNT
       const chunkRemainder = calculateRemainder(channelMsgCount)
       const chunkQuotient = calculateQuotient(channelMsgCount)
       const loadedChunkEnd = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
       const loadedChunkStart = loadedChunkEnd - 1
 
-      const chunkStart = firstLoad
-        ? latestChunk - 1
-        : latestChunk - loadedChunkEnd
-      const chunkEnd = firstLoad
+      const chunkStart = firstChunkLoad
         ? latestChunk
-        : latestChunk - loadedChunkStart
+        : loadedChunkStart
+      const chunkEnd = firstChunkLoad
+        ? latestChunk
+        : loadedChunkEnd
+
+      console.log('>> =====================================')
+      console.log('channel.currentMessageCount : ', channel.currentMessageCount)
+      console.log('chunkRemainder : ', chunkRemainder)
+
+      console.log('loadedChunkStart : ', loadedChunkStart)
+      console.log('chunkStart : ', chunkStart)
+
+      console.log('loadedChunkEnd : ', loadedChunkEnd)
+      console.log('chunkEnd : ', chunkEnd)
+      console.log('===================================== <<')
 
       const payload = { channel: channel.entry, chunk: { start: chunkStart, end: chunkEnd }, active_chatter: activeChatter || true }
       callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
@@ -236,7 +250,8 @@ export default {
 
             // TODO: manage for only one channel....
             result.channels.forEach(channel => {
-              dispatch('getMessageChunk', { channel: channel, latestChunk: channel.latestChunk, activeChatter: false, firstLoad: true })
+              console.log('channel.latestChunk : ', channel.latestChunk)
+              dispatch('getMessageChunk', { channel: channel, latestChunk: channel.latestChunk, activeChatter: false, firstChunkLoad: true })
             })
           }
         })
@@ -278,15 +293,16 @@ export default {
         }
       }
 
-      const currentChannelMsgCount = payload.channel.messages.length
+      const currentChannelMsgCount = payload.channel.messages.length + 1 // adding the new message to count
       const chunkRemainder = calculateRemainder(currentChannelMsgCount)
       const chunkQuotient = calculateQuotient(currentChannelMsgCount)
 
+      console.log('chunkQuotient : ', chunkQuotient)
+
       const chunk = CHUNK_COUNT > currentChannelMsgCount
-      // we are purposefully starting the initial chunk at int 1, not 0 to benefit from modulo math
-        ? 1
-        : chunkRemainder
-          ? chunkQuotient + 1
+        ? 0
+        : chunkRemainder === 0
+          ? chunkQuotient - 1
           : chunkQuotient
 
       const holochainPayload = {
@@ -299,7 +315,12 @@ export default {
         chunk
       }
 
-      console.log('holochainPayload : ', holochainPayload)
+      // console.log('>> =====================================')
+      // console.log('currentChannelMsgCount : ', currentChannelMsgCount)
+      // console.log('chunkQuotient : ', chunkQuotient)
+      // console.log('chunk : ', chunk)
+      // console.log('holochainPayload : ', holochainPayload)
+      // console.log('===================================== <<')
 
       let message
       try {
@@ -447,11 +468,14 @@ export default {
       const chunkRemainder = calculateRemainder(currentChannelMsgCount)
       const chunkQuotient = calculateQuotient(currentChannelMsgCount)
       channel.currentMessageCount = (chunkQuotient * CHUNK_COUNT) + chunkRemainder
-      channel.totalMessageCount = (chunkRemainder && chunkRemainder > channel.latestChunk)
-        ? (channel.latestChunk - 1) * CHUNK_COUNT + chunkRemainder
-        : (chunkRemainder && chunkRemainder === channel.latestChunk)
-            ? channel.latestChunk * CHUNK_COUNT + chunkRemainder
+      channel.totalMessageCount = (chunkRemainder)
+        ? (channel.latestChunk) * CHUNK_COUNT + chunkRemainder
+        : (chunkRemainder === 0 && currentChannelMsgCount > 0)
+            ? (channel.latestChunk + 1) * CHUNK_COUNT
             : channel.latestChunk * CHUNK_COUNT
+
+      console.log('currentMessageCount : ', channel.currentMessageCount)
+      console.log('totalMessageCount : ', channel.totalMessageCount)
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
