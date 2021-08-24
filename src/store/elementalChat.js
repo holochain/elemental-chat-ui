@@ -4,7 +4,7 @@ import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
 
-export const CHUNK_COUNT = 19
+export const CHUNK_COUNT = 20
 const calculateRemainder = messageCount => messageCount % CHUNK_COUNT
 const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_COUNT)
 const calculateCurrentMsgs = (chunkRemainder, chunkQuotient) => (chunkQuotient * CHUNK_COUNT) + chunkRemainder
@@ -33,8 +33,6 @@ function storeChannels (channels) {
     const currentChannelMsgCount = (channel.messages || []).length
     const chunkRemainder = calculateRemainder(currentChannelMsgCount)
     const messageCount = calculateTotalMsgs(chunkRemainder, channel)
-
-    console.log('messageCount : ', messageCount)
 
     acc[id] = {
       ...storedChannel,
@@ -205,9 +203,11 @@ export default {
       const loadedChunkEarliest = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
       const loadedChunkLatest = loadedChunkEarliest - 1
 
-      const chunkStart = firstChunkLoad
-        ? latestChunk
-        : latestChunk - loadedChunkEarliest
+      const chunkStart = (firstChunkLoad && latestChunk > 0)
+        ? latestChunk - 1
+        : firstChunkLoad
+          ? latestChunk
+          : latestChunk - loadedChunkEarliest
       const chunkEnd = firstChunkLoad
         ? latestChunk
         : latestChunk - loadedChunkLatest
@@ -230,8 +230,6 @@ export default {
         .then(async result => {
           if (result) {
             commit('addChannels', result.channels)
-
-            console.log('ABOUT TO SET LOADING FOR CHANNEL : ', state.channels)
             commit('setLoadingChannelContent', { addList: state.channels })
 
             // if current channel is the empty channel, join the first channel in the channel list
@@ -450,9 +448,6 @@ export default {
       const chunkQuotient = calculateQuotient(channel.messages.length)
       channel.currentMessageCount = calculateCurrentMsgs(chunkRemainder, chunkQuotient)
       channel.totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
-
-      console.log('channel.currentMessageCount : ', channel.currentMessageCount)
-      console.log(' channel.totalMessageCount : ', channel.totalMessageCount)
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
