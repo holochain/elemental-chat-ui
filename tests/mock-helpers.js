@@ -68,6 +68,12 @@ export const getCurrentChannel = chatState => {
   return chatState.channels.find(channel => channel.entry.uuid === chatState.currentChannelId)
 }
 
+export const getCurrentChannelMsgTotal = chatState => {
+  if (chatState.currentChannelId === null) throw new Error('no channel id provided when getting message total')
+  const channel = chatState.channels.find(channel => channel.entry.uuid === chatState.currentChannelId)
+  return channel.totalMessageCount
+}
+
 export const emptyChannel = {
   info: { name: '' },
   entry: { category: 'General', uuid: '' },
@@ -148,7 +154,7 @@ export const getStubbedMutations = (mutationStubs = {}) => {
 }
 
 export const getStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, actions = stubbedActions, mutations = stubbedMutations, opts = {}) => {
-  const { callLoading, additionalChannels, currentChannel } = opts
+  const { callLoading, additionalChannels } = opts
   if (JSON.stringify(actions) === '{}') {
     actions = getStubbedActions()
   }
@@ -176,7 +182,8 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
         mutations: { ...mutations.chat },
         getters: {
           createMessageLoading: () => (callLoading || false),
-          channel: () => getCurrentChannel(chatState)
+          channel: () => getCurrentChannel(chatState),
+          totalMessageCount: () => getCurrentChannelMsgTotal(chatState)
         }
       },
       holochain: {
