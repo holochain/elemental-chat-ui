@@ -230,6 +230,8 @@ export default {
         .then(async result => {
           if (result) {
             commit('addChannels', result.channels)
+
+            console.log('ABOUT TO SET LOADING FOR CHANNEL : ', state.channels)
             commit('setLoadingChannelContent', { addList: state.channels })
 
             // if current channel is the empty channel, join the first channel in the channel list
@@ -498,9 +500,13 @@ export default {
     },
     setLoadingChannelContent (state, { addList, removeById }) {
       if (addList) {
-        state.loadingChannelContent = uniqBy([...state.channels, ...addList], channel => channel.entry.uuid)
+        state.loadingChannelContent = state.loadingChannelContent.length > 1
+          ? uniqBy([...state.channels, ...addList], channel => channel.entry.uuid)
+          : addList
       } else if (removeById) {
-        state.loadingChannelContent = remove(state.loadingChannelContent, channel => channel.entry.uuid === removeById)
+        state.loadingChannelContent = state.loadingChannelContent.length > 1
+          ? remove(state.loadingChannelContent, channel => channel.entry.uuid === removeById)
+          : []
       }
     },
     setStatsLoading (state, payload) {
