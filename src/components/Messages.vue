@@ -12,6 +12,7 @@
         <li
           v-for="message in messages"
           :key="message.entry.uuid"
+          :id="message.entry.uuid"
           class="message"
         >
           <Message
@@ -43,12 +44,13 @@ export default {
     return {
       userIsScrolling: false,
       showLoadButton: false,
-      earliestDate: ''
+      earliestDate: '',
+      lastSeenMsgId: null,
     }
   },
   computed: {
     ...mapState('holochain', ['conductorDisconnected', 'agentKey']),
-    ...mapGetters('elementalChat', ['channel', 'listMessagesLoading']),
+    ...mapGetters('elementalChat', ['channel', 'listMessagesLoading', 'createMessageLoading']),
     messages () {
       return this.channel.messages
     },
@@ -62,6 +64,7 @@ export default {
   methods: {
     ...mapActions('elementalChat', ['createMessage', 'getMessageChunk']),
     handleCreateMessage (content) {
+      this.scrollToEnd()
       this.createMessage({
         channel: this.channel,
         content
@@ -83,6 +86,7 @@ export default {
     },
     loadMoreMessages () {
       this.showLoadButton = false
+      this.lastSeenMsgId = this.messages[0].entry.uuid
       this.getMessageChunk({
           channel: this.channel,
           latestChunk: this.channel.latestChunk,
@@ -103,10 +107,22 @@ export default {
       } else if (this.channel.totalMessageCount > 0) {
         // set datetime string for polling reference
         this.earliestDate = formPaginationDateTime(this.messages[0])
-        // const channels = window.localStorage.getItem('channels')
-        // console.log('window CHANNEL : ', channels)
-        // console.log('this.channel.entry.uuid : ', this.channel.entry.uuid);
         this.showLoadButton = shouldAllowPagination(this.$el.querySelector('#container'), this.channel)
+      }
+    },
+    listMessagesLoading (isLoading) {
+      if (!isLoading) {
+        if (this.lastSeenMsgId) {
+          // todo: fix
+          container.scrollTop = document.getElementById(this.lastSeenMsgId).scrollTop;
+          this.lastSeenMsgId = null
+        }
+      }
+    },
+    createMessageLoading (isLoading) {
+      if (!isLoading) {
+        this.userIsScrolling = false
+        this.scrollToEnd()
       }
     }
   },
