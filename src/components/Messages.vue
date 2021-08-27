@@ -59,6 +59,9 @@ export default {
     },
     totalMessageCount () {
       return this.channel.totalMessageCount
+    },
+    currentMessageCount () {
+      return this.channel.currentMessageCount
     }
   },
   methods: {
@@ -71,10 +74,18 @@ export default {
       })
     },
     onScroll () {
-      this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
+      // NOTE: Set last seen message to top of scroll upon pagination trigger
+      // -- (we handle this here bc the full list of new messages has been rendered to dom)
+      if (this.lastSeenMsgId) {
+        container.scrollTop = 0
+        const offset = document.getElementById(this.lastSeenMsgId).getBoundingClientRect().top - document.getElementById(this.lastSeenMsgId).offsetParent.getBoundingClientRect().top
+        container.scrollTop = offset
+        this.lastSeenMsgId = null
+      }
+      this.userIsScrolling = true
       this.showLoadButton = shouldAllowPagination(container, this.channel)
-      const height = container.offsetHeight + container.scrollTop
+      const height = container.offsetHeight + Math.abs(container.scrollTop)
       if (height === container.scrollHeight) {
         this.userIsScrolling = false
       }
@@ -88,9 +99,9 @@ export default {
       this.showLoadButton = false
       this.lastSeenMsgId = this.messages[0].entry.uuid
       this.getMessageChunk({
-          channel: this.channel,
-          latestChunk: this.channel.latestChunk,
-          activeChatter: true
+        channel: this.channel,
+        latestChunk: this.channel.latestChunk,
+        activeChatter: true
       })
     },
     isMyMessage (message) {
@@ -110,13 +121,11 @@ export default {
         this.showLoadButton = shouldAllowPagination(this.$el.querySelector('#container'), this.channel)
       }
     },
-    listMessagesLoading (isLoading) {
-      if (!isLoading) {
-        if (this.lastSeenMsgId) {
-          // todo: fix
-          container.scrollTop = document.getElementById(this.lastSeenMsgId).scrollTop;
-          this.lastSeenMsgId = null
-        }
+    currentMessageCount (currentCount) {
+      if (currentCount && this.lastSeenMsgId) {
+        const container = this.$el.querySelector('#container')
+        // trigger onscroll
+        container.scrollTop = container.scrollHeight
       }
     },
     createMessageLoading (isLoading) {
