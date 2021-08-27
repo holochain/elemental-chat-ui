@@ -10,6 +10,14 @@ export const arrayBufferToBase64 = buffer => {
   return window.btoa(binary)
 }
 
+export const delay = milliseconds => {
+  const date = Date.now()
+  let currentDate = null
+  do {
+    currentDate = Date.now()
+  } while (currentDate - date < milliseconds)
+}
+
 export const formPaginationDateTime = message => {
   // set datetime string for polling reference
   const convertedDatetime = new Date(message.createdAt[0] * 1000)

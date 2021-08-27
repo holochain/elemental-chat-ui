@@ -81,6 +81,8 @@ export default {
         container.scrollTop = 0
         const offset = document.getElementById(this.lastSeenMsgId).getBoundingClientRect().top - document.getElementById(this.lastSeenMsgId).offsetParent.getBoundingClientRect().top
         container.scrollTop = offset
+        // set datetime string for polling reference
+        this.earliestDate = formPaginationDateTime(this.messages[0])
         this.lastSeenMsgId = null
       }
       this.userIsScrolling = true
@@ -113,9 +115,9 @@ export default {
       this.scrollToEnd()
     },
     totalMessageCount (total) {
-      if ((this.channel.currentMessageCount) === total) {
+      if (this.channel.currentMessageCount === total) {
         this.showLoadButton = false
-      } else if (this.channel.totalMessageCount > 0) {
+      } else if (total > 0) {
         // set datetime string for polling reference
         this.earliestDate = formPaginationDateTime(this.messages[0])
         this.showLoadButton = shouldAllowPagination(this.$el.querySelector('#container'), this.channel)
@@ -138,8 +140,6 @@ export default {
   mounted () {
     this.scrollToEnd()
     if (this.channel.totalMessageCount > 0) {
-      // set datetime string for polling reference
-      this.earliestDate = formPaginationDateTime(this.messages[0])
       this.showLoadButton = shouldAllowPagination(this.$el.querySelector('#container'), this.channel)
     }
   }
