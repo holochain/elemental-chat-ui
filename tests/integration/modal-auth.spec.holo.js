@@ -113,7 +113,7 @@ describe('Authentication Flow', () => {
       'chat.list_channels': 'done'
     })
 
-    delete callRegistry['chat.list_all_messages']
+    delete callRegistry['chat.list_channels']
     expect(callRegistry).toEqual({})
 
     const [loginButton] = await findElementsByText('span', 'Login', page)
