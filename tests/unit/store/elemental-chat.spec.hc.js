@@ -61,7 +61,7 @@ describe('elementalChat store', () => {
     expect((stubbedStore.state.elementalChat.channels).length).toEqual(5)
     expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(5)
     // make sure messageCount hasn't changed
-    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(0)
+    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(1)
 
     // add messages to channel 4
     stubbedStore.commit('elementalChat/addMessagesToChannel', {
@@ -73,7 +73,7 @@ describe('elementalChat store', () => {
     await stubbedStore.dispatch('elementalChat/getStats')
     expect((stubbedStore.state.elementalChat.channels).length).toEqual(5)
     expect(stubbedStore.state.elementalChat.stats.channelCount).toEqual(5)
-    // expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(1)
+    expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(2)
   })
 
   it('handles order of incoming/received messages', async () => {

@@ -32,7 +32,7 @@ function storeChannels (channels) {
     }
     const currentChannelMsgCount = (channel.messages || []).length
     const chunkRemainder = calculateRemainder(currentChannelMsgCount)
-    const messageCount = calculateTotalMsgs(chunkRemainder, channel)
+    const messageCount = calculateTotalMsgs(chunkRemainder, channel) || storedChannel.messageCount
 
     acc[id] = {
       ...storedChannel,
@@ -223,7 +223,7 @@ export default {
         .catch(error => log('listMessages zome error', error))
     },
     listAllMessages ({ commit, state, rootState, dispatch, getters }) {
-      // NOTE: To reduce the inital load expsense, we have decided to call list_channels, then get only load first chuck for each channel
+      // NOTE: To reduce the inital load expense, we have decided to call list_channels, then get only load first chuck for each channel
       // ** instead of calling the list_all_messages endpoint
       const payload = { category: 'General' }
       callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
@@ -237,7 +237,6 @@ export default {
               dispatch('joinChannel', result.channels[0].entry.uuid)
             }
 
-            // TODO: manage for only one channel....
             result.channels.forEach(channel => {
               dispatch('getMessageChunk', { channel: channel, latestChunk: channel.latestChunk, activeChatter: false, firstChunkLoad: true })
             })
@@ -447,16 +446,18 @@ export default {
       const chunkRemainder = calculateRemainder(channel.messages.length)
       const chunkQuotient = calculateQuotient(channel.messages.length)
       const totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
+      channel.currentMessageCount = calculateCurrentMsgs(chunkRemainder, chunkQuotient)
+      channel.totalMessageCount = totalMessageCount
 
       // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
       if (state.currentChannelId !== channel.entry.uuid &&
-        totalMessageCount > channel.totalMessageCount
+        totalMessageCount > storedChannel.messageCount
       ) {
-        _setUnseen(state, channel.entry.uuid)
+        const { unseen } = _setUnseen(state, channel.entry.uuid)
+        channel.unseen = unseen
       }
 
-      channel.currentMessageCount = calculateCurrentMsgs(chunkRemainder, chunkQuotient)
-      channel.totalMessageCount = totalMessageCount
+      console.log('CHANNEL complete : ', channel)
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
@@ -567,4 +568,5 @@ function _setUnseen (state, uuid) {
     channel.unseen = true
     storeChannelUnseen(uuid)
   }
+  return channel
 }

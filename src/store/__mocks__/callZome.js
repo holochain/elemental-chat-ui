@@ -14,7 +14,8 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
         info: {
           name,
           created_by: Buffer.from('uhCAkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64')
-        }
+        },
+        latest_chunk: channel.latestChunk || 0
       }
 
     case 'chat.list_channels':

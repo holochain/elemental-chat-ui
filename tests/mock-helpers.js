@@ -39,7 +39,7 @@ export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4
 })
 
 // create channel for api - input into dna
-export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4()) => ({
+export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4(), latestChunk = 0) => ({
   info: {
     name,
     created_by: agent
@@ -48,7 +48,8 @@ export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4()) 
   messages: [],
   last_seen: {},
   // adding activeChatters as well, as this is added in the getters, which is not accessed when testing store unit tests
-  activeChatters: []
+  activeChatters: [],
+  latestChunk
 })
 
 // create channel mocking full object - after  dna
@@ -60,7 +61,8 @@ export const createMockChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4(),
   entry: { category: 'General', uuid },
   messages: [],
   activeChatters: [agent],
-  unseen
+  unseen,
+  latestChunk: 0
 })
 
 export const getCurrentChannel = chatState => {
@@ -79,7 +81,8 @@ export const emptyChannel = {
   entry: { category: 'General', uuid: '' },
   messages: [],
   activeChatters: [],
-  unseen: false
+  unseen: false,
+  latestChunk: 0
 }
 
 export const mockChatState = {
