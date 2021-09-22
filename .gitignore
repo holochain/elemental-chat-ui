@@ -14,6 +14,7 @@ node_modules
 
 # release artifacts
 *.zip
+*.webhapp
 
 # local env files
 .env
@@ -34,4 +35,3 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
