@@ -111,7 +111,7 @@ export default {
   created () {
     if (this.message) {
       this.content = this.message.entry.content
-      this.createdAt = `${new Date(this.message.createdAt[0] * 1000)}`
+      this.createdAt = `${new Date(this.message.createdAt * 1_000_000)}`
       this.uuid = this.message.entry.uuid
     }
   }

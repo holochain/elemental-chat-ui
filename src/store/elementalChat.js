@@ -98,7 +98,7 @@ const handleListMessagesResult = (commit, channelId, messages) => {
     messages: messages.map((msg) => {
       msg.createdBy = toUint8Array(msg.createdBy)
       return msg
-    }).sort((a, b) => a.createdAt[0] - b.createdAt[0])
+    }).sort((a, b) => a.createdAt - b.createdAt)
   })
 }
 
@@ -310,7 +310,7 @@ export default {
 
           let messages = [...result.messages]
 
-          messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
+          messages.sort((a, b) => a.createdAt - b.createdAt)
           messages = messages.map((msg) => {
             msg.createdBy = toUint8Array(msg.createdBy)
             return msg
@@ -372,7 +372,7 @@ export default {
       }
 
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
-        .sort((a, b) => a.createdAt[0] - b.createdAt[0])
+        .sort((a, b) => a.createdAt - b.createdAt)
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
