@@ -40,7 +40,6 @@ jobs:
     - name: Run unit tests ENV=holochain
       run: yarn test:ci-unit-hc
     - name: Run integration tests ENV=holo
-      run: yarn test:ci-integration-holo
+      run: nix-shell --run 'yarn test:ci-integration-holo'
     - name: Run integration tests ENV=holochain
       run: nix-shell --run 'yarn test:ci-integration-hc'
-
