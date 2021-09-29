@@ -40,7 +40,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
 
     const installedApps = await conductor.adminWs().listActiveApps()
     if (!installedApps.find(app => app === INSTALLED_APP_ID)) {
-      console.error('Error: Elemental Chat App not installed')
+      console.error('Error: Elemental Chat App not installed. Active apps:', installedApps)
       await global.__BROWSER__.close()
       await afterAllSetup(conductor, closeServer)
     }
@@ -180,7 +180,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       newMessage.channel = channelInFocus.entry
       newMessage.entry.content = 'Hello from Alice, the native holochain user on the shared network. :)'
 
-      // alice (web) sends a message      
+      // alice (web) sends a message
       await page.focus('textarea')
       await page.keyboard.type(newMessageContent(), { delay: 100 })
       // press 'Enter' to submit

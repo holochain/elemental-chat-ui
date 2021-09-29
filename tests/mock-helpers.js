@@ -14,7 +14,7 @@ export const DNA_HASH_MOCK = toUint8Array(Buffer.from(DNA_VERSION_MOCK, 'base64'
 export const AGENT_KEY_MOCK = toUint8Array(Buffer.from('uhCAkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64'))
 
 export const timestampToSemanticDate = (timestamp) => {
-  return `${new Date(timestamp[0] * 1000)}`
+  return `${new Date(timestamp / 1000)}`
 }
 
 /// Stubbing Element helpers :
@@ -24,11 +24,11 @@ export const createNewMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4(
   createdBy: agent,
   entry: { content, uuid },
   messages: [],
-  createdAt: [0, 0]
+  createdAt: 0
 })
 
 // create message mocking full obj - after dna
-export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4(), timestamp = [0, 0]) => ({
+export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4(), timestamp = 0) => ({
   entry: {
     uuid,
     content // "agent: testing message"

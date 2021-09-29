@@ -287,7 +287,9 @@ export const afterAllSetup = async (conductor, closeServer) => {
     console.log('✅ Closed tryorama player conductor(s)')
   }
 
-  console.log('👉 Closing the UI server...')
-  await closeServer()
-  console.log('✅ Closed the UI server...')
+  if (closeServer) {
+    console.log('👉 Closing the UI server...')
+    await closeServer()
+    console.log('✅ Closed the UI server...')
+  }
 }

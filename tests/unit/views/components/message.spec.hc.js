@@ -38,7 +38,7 @@ describe('Message with store stubs and mocks', () => {
     stubbedStore = getStubbedStore()
     const agentHandle = 'Alice:'
     const messageContent = 'My first message'
-    const newMessage = createMockMessage(`${agentHandle} ${messageContent}`, AGENT_KEY_MOCK, 1, [1616402851, 716802516])
+    const newMessage = createMockMessage(`${agentHandle} ${messageContent}`, AGENT_KEY_MOCK, 1, 1616403567802)
     propsData.message = newMessage
     propsData.isMine = true
     const wrapper = stubElement(Message, stubbedStore, { propsData })
@@ -90,7 +90,7 @@ describe('Message with store stubs and mocks', () => {
     propsData.message = null
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
-    const newMessage = createMockMessage('Alice: A third written message', AGENT_KEY_MOCK, 3, [1616402851 + 3, 716802516 + 3000])
+    const newMessage = createMockMessage('Alice: A third written message', AGENT_KEY_MOCK, 3, 1616403567802 + 3003)
     const textArea = wrapper.find('[aria-label="Message Textarea"]')
     textArea.value = newMessage.entry.content
     expect(textArea.trigger('input')).toBeTruthy()
@@ -101,7 +101,7 @@ describe('Message with store stubs and mocks', () => {
     stubbedStore.dispatch = jest.fn()
     const wrapper = stubElement(Message, stubbedStore, { propsData })
     expect(wrapper.is(Message)).toBe(true)
-    const newMessage = createMockMessage('Alice: 5th time and going on strong', AGENT_KEY_MOCK, 5, [1616402851 + 5, 716802516 + 5000])
+    const newMessage = createMockMessage('Alice: 5th time and going on strong', AGENT_KEY_MOCK, 5, 1616403567802 + 5005)
     await stubbedStore.dispatch('elementalChat/createMessage', newMessage)
     expect(stubbedStore.dispatch).toHaveBeenCalledWith('elementalChat/createMessage', newMessage)
     expect(stubbedStore.dispatch).toHaveBeenCalledTimes(1)
