@@ -281,9 +281,11 @@ export const setupPage = async (page, callRegistry, url) => {
 }
 
 export const afterAllSetup = async (conductor, closeServer) => {
-  console.log('👉 Shutting down tryorama player conductor(s)...')
-  await conductor.shutdown()
-  console.log('✅ Closed tryorama player conductor(s)')
+  if (conductor) {
+    console.log('👉 Shutting down tryorama player conductor(s)...')
+    await conductor.shutdown()
+    console.log('✅ Closed tryorama player conductor(s)')
+  }
 
   console.log('👉 Closing the UI server...')
   await closeServer()
