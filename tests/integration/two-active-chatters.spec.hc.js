@@ -38,9 +38,9 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     await waitForState(checkRefreshChatterState, 'done', 'chat.refresh_chatter')
     expectedStats = { ...expectedStats, agents: expectedStats.agents + 1, active: expectedStats.active + 1 }
 
-    const installedApps = await conductor.adminWs().listActiveApps()
-    if (!installedApps.find(app => app === INSTALLED_APP_ID)) {
-      console.error('Error: Elemental Chat App not installed. Active apps:', installedApps)
+    const runningApps = await conductor.adminWs().listApps({ status_filter: { Running: null }})
+    if (!runningApps.find(app => app === INSTALLED_APP_ID)) {
+      console.error('Error: Elemental Chat App not installed. Running apps:', runningApps)
       await global.__BROWSER__.close()
       await afterAllSetup(conductor, closeServer)
     }
