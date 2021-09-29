@@ -1088,16 +1088,16 @@
   dependencies:
     "@holo-host/comb" "^0.2.0"
 
-"@holochain/conductor-api@0.2.0", "@holochain/conductor-api@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.2.0.tgz#d2b9d27aa5cda359f63a646206c095a38364fe39"
-  integrity sha512-GUjItNXRAxrae9hwf3brVVAB55bkG+Z3u6tEkmazrMs2tk+egIOjN9Oin1GsORjQoNw+7xj7mwZ1+TLY2F8hiQ==
+"@holochain/conductor-api@^0.2.0", "@holochain/conductor-api@holochain/holochain-conductor-api#98461f712508b1ec1e0f244213c79abf2d03cfde":
+  version "0.2.1"
+  resolved "https://codeload.github.com/holochain/holochain-conductor-api/tar.gz/98461f712508b1ec1e0f244213c79abf2d03cfde"
   dependencies:
     "@msgpack/msgpack" "2.4.0"
     "@types/ws" "^7.2.4"
+    cross-fetch "^3.1.4"
     isomorphic-ws "^4.0.1"
     nanoid "^3.1.9"
-    ws "^7.3.0"
+    ws "^7.4.6"
 
 "@holochain/hachiko@^0.5.2":
   version "0.5.2"
@@ -4361,6 +4361,13 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     ripemd160 "^2.0.0"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
+
+cross-fetch@^3.1.4:
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.4.tgz#9723f3a3a247bf8b89039f3a380a9244e8fa2f39"
+  integrity sha512-1eAtFWdIubi6T4XPy6ei9iUFoKpUkIF971QLN8lIvvvwueI65+Nw5haMNKUwfJxabqlIIDODJKGrQ66gxC0PbQ==
+  dependencies:
+    node-fetch "2.6.1"
 
 cross-spawn@^3.0.0:
   version "3.0.1"
@@ -9954,7 +9961,7 @@ node-cache@^4.1.1:
     clone "2.x"
     lodash "^4.17.15"
 
-node-fetch@^2.6.1:
+node-fetch@2.6.1, node-fetch@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
   integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
@@ -14568,7 +14575,7 @@ ws@^7.0.0, ws@^7.2.3, ws@^7.4.0, ws@^7.4.5:
   resolved "https://registry.npmjs.org/ws/-/ws-7.4.6.tgz"
   integrity sha512-YmhHDO4MzaDLB+M9ym/mDA5z0naX8j7SIlT8f8z+I0VtzsRbekxEutHSme7NPS2qE8StCYQNUnfWdXta/Yu85A==
 
-ws@^7.3.0:
+ws@^7.4.6:
   version "7.5.5"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.5.tgz#8b4bc4af518cfabd0473ae4f99144287b33eb881"
   integrity sha512-BAkMFcAzl8as1G/hArkxOxq3G7pjUqQ3gzYbLL0/5zNkph70e+lCoxBGnm6AW1+/aiNeV4fnKqZ8m4GZewmH2w==
