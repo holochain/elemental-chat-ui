@@ -151,9 +151,6 @@ describe('Authentication Flow', () => {
     const iframe = await findIframe(page, chaperoneUrlCheck.local)
     const chaperoneModal = await iframe.evaluateHandle(() => document)
 
-    const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
-    signUpTitle.click()
-
     let onSignUpPage = true
     try {
       const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
@@ -169,7 +166,6 @@ describe('Authentication Flow', () => {
       const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
       await signUpTitle.click()
     } catch (error) {
-      console.log('error : ', error)
       onSignInPage = false
     }
     expect(onSignInPage).toBe(false)
@@ -196,7 +192,6 @@ describe('Authentication Flow', () => {
       const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
       await signUpTitle.click()
     } catch (error) {
-      console.log('error : ', error)
       onSignUpPage = false
     }
     expect(onSignUpPage).toBe(false)
