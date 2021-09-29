@@ -36,7 +36,6 @@
     "hc:gen-agents": "sh ./scripts/gen-hc-agents.sh",
     "hc:run-agent-1": "hc sandbox r 0 -p=8888",
     "hc:run-agent-2": "hc sandbox r 1 -p=9999",
-    "fetch:happ": "mkdir -p dnas && sh ./scripts/fetch-happ.sh",
     "fetch:dna": "mkdir -p dnas && sh ./scripts/fetch-dna.sh",
     "build:happ": "sh ./scripts/build-bundle.sh",
     "clear:lair": "killall lair-keystore",
