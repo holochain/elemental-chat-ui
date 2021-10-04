@@ -1,7 +1,7 @@
 import path from 'path'
 import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH, WAITTIME } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
-import { conductorConfig } from './tryorama'
+import { aliceConductorConfig, otherConductorConfig } from './tryorama'
 import httpServers from './setupServers'
 import wait from 'waait'
 
@@ -187,22 +187,27 @@ const describeJsHandle = (jsHandle) => {
   }, jsHandle)
 }
 
+export const BOBBO_INSTALLED_APP_ID = 'second_agent'
+
 export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   // Tryorama: instantiate player conductor
   console.log('Setting up players on elemental chat...')
-  const [conductor] = await scenario.players([conductorConfig], false)
+  const [aliceConductor, bobboConductor] = await scenario.players([aliceConductorConfig, otherConductorConfig])
 
-  await conductor.startup()
+  await scenario.shareAllNodes([aliceConductor, bobboConductor])
 
-  conductor.setSignalHandler((_) => {
-    console.log('Conductor Received Signal:', _)
+  aliceConductor.setSignalHandler(s => {
+    console.log('Alice Conductor Received Signal:', s)
+  })
+  bobboConductor.setSignalHandler(s => {
+    console.log('Bobbo Conductor Received Signal:', s)
   })
 
   // Tryorama: install elemental chat on both player conductors
   const bundlePath = path.join(__dirname, 'bundle', 'elemental-chat.happ')
 
-  const aliceChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, INSTALLED_APP_ID)
-  const bobboChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, 'second_agent')
+  const aliceChatHapp = await aliceConductor.installBundledHapp({ path: bundlePath }, null, INSTALLED_APP_ID)
+  const bobboChatHapp = await bobboConductor.installBundledHapp({ path: bundlePath }, null, BOBBO_INSTALLED_APP_ID)
 
   // Tryorama: grab chat cell from list of happ cells to use as the agent
   const [aliceChat] = aliceChatHapp.cells
@@ -216,7 +221,7 @@ export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   console.log('👉 Spinning up UI server')
   const { ports, close: closeServer } = httpServers()
 
-  conductor.appWs().client.socket.onclose = async () => {
+  aliceConductor.appWs().client.socket.onclose = async () => {
     // silence logs upon socket closing
     page.on('pageerror', _ => {})
     page.on('console', _ => {})
@@ -225,7 +230,7 @@ export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   const page = await createPage()
   await setupPage(page, callRegistry, `http://localhost:${ports.ui}/dist/index.html`, { waitForNavigation: true })
 
-  return { aliceChat, bobboChat, page, closeServer, conductor, startingStats }
+  return { aliceChat, bobboChat, page, closeServer, aliceConductor, bobboConductor, startingStats }
 }
 
 export const setupPage = async (page, callRegistry, url) => {
@@ -280,11 +285,16 @@ export const setupPage = async (page, callRegistry, url) => {
   ])
 }
 
-export const afterAllSetup = async (conductor, closeServer) => {
-  if (conductor) {
-    console.log('👉 Shutting down tryorama player conductor(s)...')
-    await conductor.shutdown()
-    console.log('✅ Closed tryorama player conductor(s)')
+export const afterAllSetup = async (aliceConductor, bobboConductor, closeServer) => {
+  if (aliceConductor) {
+    console.log('👉 Shutting down tryorama alice conductor...')
+    await aliceConductor.shutdown()
+    console.log('✅ Closed tryorama alice conductor')
+  }
+  if (bobboConductor) {
+    console.log('👉 Shutting down tryorama bobbo conductor...')
+    await bobboConductor.shutdown()
+    console.log('✅ Closed tryorama bobbo conductor')
   }
 
   if (closeServer) {

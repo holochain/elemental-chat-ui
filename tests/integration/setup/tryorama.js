@@ -50,5 +50,6 @@ const network = {
 }
 
 export const orchestrator = new Orchestrator({ middleware: combine(localOnly) })
-export const conductorConfig = Config.gen({ network, appPort })
+export const aliceConductorConfig = Config.gen({ network, appPort })
+export const otherConductorConfig = Config.gen({ network })
 export const elChatDna = path.join(__dirname, '../../../dnas/elemental-chat.dna.gz')
