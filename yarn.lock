@@ -1088,9 +1088,10 @@
   dependencies:
     "@holo-host/comb" "^0.2.0"
 
-"@holochain/conductor-api@^0.2.0", "@holochain/conductor-api@holochain/holochain-conductor-api#98461f712508b1ec1e0f244213c79abf2d03cfde":
+"@holochain/conductor-api@0.2.1", "@holochain/conductor-api@^0.2.0":
   version "0.2.1"
-  resolved "https://codeload.github.com/holochain/holochain-conductor-api/tar.gz/98461f712508b1ec1e0f244213c79abf2d03cfde"
+  resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.2.1.tgz#7936ba0b88544274dfdf081c121f139d82fc5053"
+  integrity sha512-H7C3LeSGE98/SCg5TcUQRMP3afZ1IDzjKMBUlIPTJbUcBhwgwdVg87XBhkI1atPnKyxugYdgelQtT+6hKu6GNA==
   dependencies:
     "@msgpack/msgpack" "2.4.0"
     "@types/ws" "^7.2.4"
