@@ -65,9 +65,13 @@
                 <v-icon>mdi-chat-processing-outline</v-icon>
                 <span v-if="channel.unseen">+</span>
               </v-list-item-icon>
+
               <v-list-item-content>
-                <v-list-item-title v-if="channel" v-text="channel.info.name" />
+                <v-list-item-title v-if="channel" v-text="channel.info.name" v-bind:class="{ isLoading: showIsLoading(channel.entry.uuid) }" />
               </v-list-item-content>
+
+              <span v-if="showIsLoading(channel.entry.uuid)"><Spinner size='13px' class='spinner' v-bind:class="{ isLoading: showIsLoading(channel.entry.uuid) }" /></span>
+
             </v-list-item>
           </v-list>
         </v-col>
@@ -80,6 +84,7 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 import { v4 as uuidv4 } from 'uuid'
+import Spinner from './Spinner'
 
 const makeEmptyChannel = () => ({
   info: { name: '' },
@@ -96,8 +101,8 @@ export default {
       refreshKey: 0
     }
   },
-  components: {
-    Spinner: () => require('./Spinner.vue'),
+  components: { 
+    Spinner
   },
   methods: {
     ...mapActions('elementalChat', [
@@ -113,10 +118,13 @@ export default {
     openChannel (id) {
       this.joinChannel(id)
       this.refreshKey += 1
+    },
+    showIsLoading (id) {
+      return !!(this.loadingChannelContent.find(channel => channel.entry.uuid === id))
     }
   },
   computed: {
-    ...mapState('elementalChat', ['channels']),
+    ...mapState('elementalChat', ['channels', 'loadingChannelContent']),
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
     showChannelInput () {
       return this.showingAdd || !this.channels.length
@@ -139,5 +147,16 @@ export default {
 }
 .channel-icons {
   width: 20px;
+}
+.isLoading {
+  color: #737e77;
+}
+.spinner {
+  margin-top: -4px;
+  color: #737e77;
+  display: grid;
+  margin: 0 auto;
+  margin-top: 10px;
+  justify-content: center;
 }
 </style>

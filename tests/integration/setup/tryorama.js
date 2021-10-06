@@ -10,7 +10,7 @@ import {
 
 const path = require('path')
 
-const appPort = WEB_CLIENT_PORT
+const appPort = parseInt(WEB_CLIENT_PORT)
 
 // Note: this is a copy of the network config used in ec dna tests
 const network = {
