@@ -217,6 +217,7 @@ export default {
       }
     },
     loadingAppInfo (state) {
+      console.log('^&* calling loadingAppInfo', state)
       if (state.holoStatus !== 'holo_initialized') {
         throw new Error(`loadingAppInfo: unexpected state ${state.holoStatus}`)
       }
