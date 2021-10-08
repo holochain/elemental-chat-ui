@@ -10,6 +10,25 @@ export const arrayBufferToBase64 = buffer => {
   return window.btoa(binary)
 }
 
+export const delay = milliseconds => {
+  const date = Date.now()
+  let currentDate = null
+  do {
+    currentDate = Date.now()
+  } while (currentDate - date < milliseconds)
+}
+
+export const formPaginationDateTime = message => {
+  // set datetime string for polling reference
+  const convertedDatetime = new Date(message.createdAt[0] * 1000)
+  return `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
+}
+
+export const shouldAllowPagination = (container, channel) => {
+  // conditionally show button
+  return container.scrollTop === 0 && (channel.currentMessageCount !== channel.totalMessageCount)
+}
+
 // NB: This is a hack to cleanly monitor ws calls in puppeteer
 
 // As we no longer use json-rpc calls, we no longer have a unique id associated with each call.
