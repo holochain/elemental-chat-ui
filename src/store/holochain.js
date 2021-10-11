@@ -77,7 +77,8 @@ export default {
           {
             logo_url: 'img/ECLogoWhiteMiddle.png',
             app_name: 'Elemental Chat',
-            info_link: 'https://holo.host/faq-tag/elemental-chat'
+            info_link: 'https://holo.host/faq-tag/elemental-chat',
+            skip_registration: true,
           }
         )
 
