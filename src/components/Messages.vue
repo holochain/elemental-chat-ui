@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
-      <v-card v-if="shouldLoadMore" style="display: grid" aria-label='Load More'>
+      <v-card v-if="showLoadButton" style="display: grid" aria-label='Load More'>
         <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" class='pagination-button' aria-label="Load More Button">
           Load More Messages
         </v-btn>
@@ -43,8 +43,6 @@ export default {
   data () {
     return {
       userIsScrolling: false,
-      showLoadButton: false,
-      earliestDate: '',
       lastSeenMsgId: null,
     }
   },
@@ -54,14 +52,19 @@ export default {
     messages () {
       return this.channel.messages
     },
-    shouldLoadMore () {
-      return this.showLoadButton
+    showLoadButton () {
+      return shouldAllowPagination(this.channel)
     },
     totalMessageCount () {
       return this.channel.totalMessageCount
     },
     currentMessageCount () {
       return this.channel.currentMessageCount
+    },
+    earliestDate () {
+      return this.messages[0]
+        ? formPaginationDateTime(this.messages[0])
+        : ''
     }
   },
   methods: {
@@ -82,11 +85,9 @@ export default {
         const offset = document.getElementById(this.lastSeenMsgId).getBoundingClientRect().top - document.getElementById(this.lastSeenMsgId).offsetParent.getBoundingClientRect().top
         container.scrollTop = offset
         // set datetime string for polling reference
-        this.earliestDate = formPaginationDateTime(this.messages[0])
         this.lastSeenMsgId = null
       }
       this.userIsScrolling = true
-      this.showLoadButton = shouldAllowPagination(this.channel)
       const height = container.offsetHeight + Math.abs(container.scrollTop)
       if (height === container.scrollHeight) {
         this.userIsScrolling = false
@@ -98,7 +99,6 @@ export default {
       container.scrollTop = container.scrollHeight
     },
     loadMoreMessages () {
-      this.showLoadButton = false
       this.lastSeenMsgId = this.messages[0].entry.uuid
       this.getMessageChunk({
         channel: this.channel,
@@ -113,15 +113,6 @@ export default {
   watch: {
     channel () {
       this.scrollToEnd()
-    },
-    totalMessageCount (total) {
-      if (this.channel.currentMessageCount === total) {
-        this.showLoadButton = false
-      } else if (total > 0) {
-        // set datetime string for polling reference
-        this.earliestDate = formPaginationDateTime(this.messages[0])
-        this.showLoadButton = shouldAllowPagination(this.channel)
-      }
     },
     currentMessageCount (currentCount) {
       if (currentCount && this.lastSeenMsgId) {
@@ -139,9 +130,6 @@ export default {
   },
   mounted () {
     this.scrollToEnd()
-    if (this.channel.totalMessageCount > 0) {
-      this.showLoadButton = shouldAllowPagination(this.channel)
-    }
   }
 }
 </script>
