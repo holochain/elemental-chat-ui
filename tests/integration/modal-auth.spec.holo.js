@@ -1,6 +1,6 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import wait from 'waait'
-import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_DEV, CHAPERONE_URL_REGEX_HCC, WEB_LOGGING } from './setup/globals'
+import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_HCC } from './setup/globals'
 import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname, setupPage } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
@@ -110,10 +110,10 @@ describe('Authentication Flow', () => {
     await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
     await wait(1000)
     expect(callRegistry).toEqual({
-      'chat.list_all_messages': 'done'
+      'chat.list_channels': 'done'
     })
 
-    delete callRegistry['chat.list_all_messages']
+    delete callRegistry['chat.list_channels']
     expect(callRegistry).toEqual({})
 
     const [loginButton] = await findElementsByText('span', 'Login', page)
@@ -128,8 +128,10 @@ describe('Authentication Flow', () => {
     await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signin')
     await wait(1500)
 
+    console.log('callRegistry : ', callRegistry)
+
     expect(callRegistry).toEqual({
-      'chat.list_all_messages': 'done',
+      'chat.list_channels': 'done',
       'chat.refresh_chatter': 'done',
       'profile.get_my_profile': 'done'
     })
