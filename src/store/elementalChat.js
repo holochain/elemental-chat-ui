@@ -4,16 +4,16 @@ import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
 
-export const CHUNK_COUNT = 20
-const calculateRemainder = messageCount => messageCount % CHUNK_COUNT
-const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_COUNT)
-const calculateCurrentMsgs = (chunkRemainder, chunkQuotient) => (chunkQuotient * CHUNK_COUNT) + chunkRemainder
+export const CHUNK_SIZE = 20
+const calculateRemainder = messageCount => messageCount % CHUNK_SIZE
+const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_SIZE)
+const calculateCurrentMsgs = (chunkRemainder, chunkQuotient) => (chunkQuotient * CHUNK_SIZE) + chunkRemainder
 const calculateTotalMsgs = (chunkRemainder, channel) => {
   return chunkRemainder
-    ? (channel.latestChunk) * CHUNK_COUNT + chunkRemainder
+    ? (channel.latestChunk) * CHUNK_SIZE + chunkRemainder
     : (chunkRemainder === 0 && (channel.messages || []).length > 0)
-        ? (channel.latestChunk + 1) * CHUNK_COUNT
-        : channel.latestChunk * CHUNK_COUNT
+        ? (channel.latestChunk + 1) * CHUNK_SIZE
+        : channel.latestChunk * CHUNK_SIZE
 }
 
 function sortChannels (val) {
@@ -197,7 +197,7 @@ export default {
         latestChunk = 0
       }
 
-      const channelMsgCount = channel.currentMessageCount || CHUNK_COUNT
+      const channelMsgCount = channel.currentMessageCount || CHUNK_SIZE
       const chunkRemainder = calculateRemainder(channelMsgCount)
       const chunkQuotient = calculateQuotient(channelMsgCount)
       const loadedChunkEarliest = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
@@ -288,7 +288,7 @@ export default {
       const chunkRemainder = calculateRemainder(newTotalMessageCount)
       const chunkQuotient = calculateQuotient(newTotalMessageCount)
 
-      const chunk = CHUNK_COUNT > newTotalMessageCount
+      const chunk = CHUNK_SIZE > newTotalMessageCount
         ? 0
         : chunkRemainder === 0
           ? chunkQuotient - 1
