@@ -151,6 +151,9 @@ export default {
   overflow-y: auto;
   height: calc(100vh - 218px);
 }
+.chat-container#container > ul {
+  padding-bottom: 0px !important;
+}
 .my-message {
   background-color: red;
 }
