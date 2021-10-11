@@ -20,7 +20,9 @@ export const delay = milliseconds => {
 
 export const formPaginationDateTime = message => {
   // set datetime string for polling reference
-  const convertedDatetime = new Date(message.createdAt[0] * 1000)
+  console.log('^&* message', message.createdAt)
+  const convertedDatetime = new Date(Math.floor(message.createdAt / 1000))
+  console.log('^&* converted date time', convertedDatetime)
   return `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
 }
 
