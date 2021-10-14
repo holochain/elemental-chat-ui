@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [14.18.1]
 
     steps:
     - name: Fetch source code
@@ -24,8 +24,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Install node-modules
       run: yarn install
-    # - name: Run unit tests ENV=holo
-    #   run: yarn test:ci-unit-holo
+    - name: Run unit tests ENV=holo
+      run: yarn test:ci-unit-holo
     - name: Run unit tests ENV=holochain
       run: yarn test:ci-unit-hc
     - name: Use Nix
