@@ -35,17 +35,24 @@ describe('holochain store in holo env', () => {
   })
 
   it('handles initalizing Holo Client', async () => {
+    console.log("1 handles >>>>>>>>>>>>>>>>>>>>>");
     Connection.mockImplementation(() => ({
       ready: jest.fn((_) => Promise.resolve(true)),
       appInfo: jest.fn((_) => Promise.resolve({ cell_data: [{ cell_id: 'cellId', cell_nick: 'dnaAlias' }] })),
       addListener: jest.fn(() => {})
     }))
+    console.log("2 handles >>>>>>>>>>>>>>>>>>>>>");
     // mock init fn
     await stubbedStore.dispatch('holochain/initialize')
+    console.log("3 handles >>>>>>>>>>>>>>>>>>>>>");
     await wait(1000)
+    console.log("4 handles >>>>>>>>>>>>>>>>>>>>>");
     expect(stubbedStore.state.holochain.agentKey).toEqual(AGENT_KEY_MOCK)
+    console.log("5 handles >>>>>>>>>>>>>>>>>>>>>");
     await wait(2000)
+    console.log("6 handles >>>>>>>>>>>>>>>>>>>>>");
     expect(Connection.mock.calls.length).toEqual(1)
+    console.log("7 handles >>>>>>>>>>>>>>>>>>>>>");
     expect(Connection.mock.instances.length).toEqual(1)
   })
 

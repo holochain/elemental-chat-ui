@@ -29,10 +29,17 @@ describe('ElementalChat with store stubs and mocks', () => {
   })
 
   it('Displays correct page title', async () => {
+    console.log("1 Displays >>>>>>>>>>>>>>>>>>>>>");
+    
     const { getByRole } = await renderAndWaitFullSetup(ElementalChat)
+    console.log("2 Displays >>>>>>>>>>>>>>>>>>>>>");
     const title = getByRole('title', { name: /page title/i })
+    console.log("3 Displays >>>>>>>>>>>>>>>>>>>>>");
     expect(title).toBeTruthy()
+    console.log("4 Displays >>>>>>>>>>>>>>>>>>>>>");
     expect(title.innerHTML.trim()).toEqual('Elemental Chat')
+  
+    console.log("5 Displays >>>>>>>>>>>>>>>>>>>>>");
   })
 
   it('handles initalizing Holo Client', async () => {
