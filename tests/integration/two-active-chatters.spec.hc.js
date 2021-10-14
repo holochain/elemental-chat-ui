@@ -1,6 +1,6 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
-import wait from 'waait'
+import { wait } from '../test-utils'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
 import { handleZomeCall, waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup, getStats, BOBBO_INSTALLED_APP_ID } from './setup/helpers'

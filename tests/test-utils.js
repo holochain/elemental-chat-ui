@@ -3,11 +3,14 @@ import { createLocalVue, shallowMount, mount } from '@vue/test-utils'
 import Vuex from 'vuex'
 import { storeRaw } from '@/store'
 import Vuetify from 'vuetify'
-import wait from 'waait'
 
 const removeExtraSpaces = str => str.replace(/  +/g, ' ')
 const removeTabs = str => str.replace('\t', '')
 export const cleanString = str => removeTabs(removeExtraSpaces(str)).trim()
+export const wait = ms => {
+  if (process.env.CI !== 1) 
+    return new Promise(r => setTimeout(r, ms))
+}
 
 const withMarkup = (query, debug) => text => query((_, element) => {
   const hasText = (element) => cleanString(element.textContent) === cleanString(text)
