@@ -48,11 +48,11 @@ describe('holochain store in holo env', () => {
     // mock init fn
     await stubbedStore.dispatch('holochain/initialize')
     console.log("3 handles >>>>>>>>>>>>>>>>>>>>>");
-    await delay(1000)
+    // await delay(1000)
     console.log("4 handles >>>>>>>>>>>>>>>>>>>>>");
     expect(stubbedStore.state.holochain.agentKey).toEqual(AGENT_KEY_MOCK)
     console.log("5 handles >>>>>>>>>>>>>>>>>>>>>");
-    await delay(2000)
+    // await delay(2000)
     console.log("6 handles >>>>>>>>>>>>>>>>>>>>>");
     expect(Connection.mock.calls.length).toEqual(1)
     console.log("7 handles >>>>>>>>>>>>>>>>>>>>>");
