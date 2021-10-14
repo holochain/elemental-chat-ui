@@ -24,8 +24,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Install node-modules
       run: yarn install
-    - name: Run unit tests ENV=holo
-      run: yarn test:ci-unit-holo
+    # - name: Run unit tests ENV=holo
+    #   run: yarn test:ci-unit-holo
     - name: Run unit tests ENV=holochain
       run: yarn test:ci-unit-hc
     - name: Use Nix
