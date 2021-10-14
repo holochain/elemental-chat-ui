@@ -5,7 +5,10 @@ import { Connection } from '@holo-host/web-sdk'
 import { isHoloHosted } from '@/utils'
 import Vuex from 'vuex'
 import wait from 'waait'
-
+const delay = ms => {
+  console.log("DELAYING >>>>>>>>>>>>>>>>>>>>> test for ", ms);
+  return new Promise(r => setTimeout(r, ms))
+}
 const MockConductor = require('@holo-host/mock-conductor')
 
 jest.mock('@/store/callZome')
@@ -45,11 +48,11 @@ describe('holochain store in holo env', () => {
     // mock init fn
     await stubbedStore.dispatch('holochain/initialize')
     console.log("3 handles >>>>>>>>>>>>>>>>>>>>>");
-    await wait(1000)
+    await delay(1000)
     console.log("4 handles >>>>>>>>>>>>>>>>>>>>>");
     expect(stubbedStore.state.holochain.agentKey).toEqual(AGENT_KEY_MOCK)
     console.log("5 handles >>>>>>>>>>>>>>>>>>>>>");
-    await wait(2000)
+    await delay(2000)
     console.log("6 handles >>>>>>>>>>>>>>>>>>>>>");
     expect(Connection.mock.calls.length).toEqual(1)
     console.log("7 handles >>>>>>>>>>>>>>>>>>>>>");

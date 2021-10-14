@@ -36,6 +36,10 @@ export const handleOneWithMarkup = (query, text, debug) => {
     return results[0]
   } else return results
 }
+const delay = ms => {
+  console.log("DELAYING >>>>>>>>>>>>>>>>>>>>> render and wait for ", ms);
+  return new Promise(r => setTimeout(r, ms))
+}
 
 export const renderAndWait = async (element, options = {}, ms = 0, callback) => {
   const root = document.createElement('div')
@@ -45,7 +49,7 @@ export const renderAndWait = async (element, options = {}, ms = 0, callback) => 
     ...options
   }
   const queries = render(element, setupOptions, callback)
-  await wait(ms)
+  await delay(ms)
   return queries
 }
 
