@@ -110,7 +110,7 @@ describe('elementalChat store', () => {
       channel,
       content: userMessageContent
     })
-    expect(storedChannel().messages.length).toEqual(5)
+    expect(storedChannel().messages.length).toEqual(4)
 
     const newMessages = [
       createMockMessage('15', AGENT_KEY_MOCK, 15),
