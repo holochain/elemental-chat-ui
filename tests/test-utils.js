@@ -49,7 +49,9 @@ export const renderAndWait = async (element, options = {}, ms = 0, callback) => 
     ...options
   }
   const queries = render(element, setupOptions, callback)
+  console.log("delaying >>>>>>>>>>>>>>>>>>>>>>>>>");
   await delay(ms)
+  console.log("delaying >>>>>>>>>>>>>>>>>>>>>>>>>");
   return queries
 }
 
@@ -58,7 +60,7 @@ export const renderAndWaitWithStore = async (element, customStore, options = {},
 // For Vuetify elements that use the $vuetify instance property
 export const renderAndWaitWithVuetify = async (element, options = {}, ms = 0, callback) => await renderAndWait(element, { ...options, vuetify: new Vuetify() }, ms, callback)
 
-export const renderAndWaitFullSetup = async (element, customStore, options = {}, ms = 0, callback) => await renderAndWaitWithVuetify(element, { ...options, store: { ...storeRaw, ...customStore } }, ms, callback)
+export const renderAndWaitFullSetup = async (element, customStore, options = {}, ms = 1000, callback) => await renderAndWaitWithVuetify(element, { ...options, store: { ...storeRaw, ...customStore } }, ms, callback)
 
 export const stub = async (element, stubs, store, ms = 0, callback) => await renderAndWaitWithVuetify(element, { stubs, store }, ms, callback)
 
