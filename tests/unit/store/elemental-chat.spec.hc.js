@@ -122,7 +122,7 @@ describe('elementalChat store', () => {
       channel,
       messages: newMessages
     })
-    expect(storedChannel().messages.length).toEqual(8)
+    expect(storedChannel().messages.length).toEqual(7)
 
     const knownIds = [...initialMessages, signalMessage, ...newMessages].map(m => m.entry.uuid)
     expect(storedChannel().messages.map(m => m.entry.uuid))
