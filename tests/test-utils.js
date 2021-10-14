@@ -8,6 +8,7 @@ const removeExtraSpaces = str => str.replace(/  +/g, ' ')
 const removeTabs = str => str.replace('\t', '')
 export const cleanString = str => removeTabs(removeExtraSpaces(str)).trim()
 export const wait = ms => {
+  console.log("process.env.CI >>>>>>>>>>>>>", process.env.CI);
   if (process.env.CI !== 1) 
     return new Promise(r => setTimeout(r, ms))
 }
