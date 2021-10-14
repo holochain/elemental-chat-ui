@@ -11,6 +11,8 @@ export const wait = ms => {
   console.log("process.env.CI >>>>>>>>>>>>>", process.env.CI);
   if (process.env.CI !== 1) 
     return new Promise(r => setTimeout(r, ms))
+  console.log("In CI so not going to wait");
+  return
 }
 
 const withMarkup = (query, debug) => text => query((_, element) => {
