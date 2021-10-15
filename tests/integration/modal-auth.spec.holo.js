@@ -1,6 +1,6 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import { wait } from '../test-utils'
-import { TIMEOUT, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_HCC } from './setup/globals'
+import { TIMEOUT, WAITTIME, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_HCC } from './setup/globals'
 import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname, setupPage } from './setup/helpers'
 import httpServers from './setup/setupServers'
 
@@ -46,15 +46,14 @@ describe('Authentication Flow', () => {
   })
 
   it('can sign up, make zome call, log out, and sign back in', async () => {
-    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
-    await wait(1000)
+    await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html?signup`, { waitForNavigation: true })
+    await wait(WAITTIME)
 
     // verify page
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
     // Wait for "Connecting to HoloPort..." overlay to disappear
-    await wait(500)
     const [loginButton] = await findElementsByText('span', 'Login', page)
     await loginButton.click()
 
@@ -62,15 +61,14 @@ describe('Authentication Flow', () => {
     // Sign Up and Log Into hApp
     // *********
     // wait for the modal to load
+    await wait(WAITTIME)
     await page.waitForSelector('iframe')
     const iframe = await findIframe(page, chaperoneUrlCheck.local)
     const chaperoneModal = await iframe.evaluateHandle(() => document)
-
-    const [loginTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
+    await wait(WAITTIME)
+    
+    const [loginTitle] = await findElementsByText('h1', 'Elemental Chat', chaperoneModal)
     expect(loginTitle).toBeTruthy()
-
-    const [createCredentialsLink] = await findElementsByText('a', 'Create credentials', chaperoneModal)
-    await createCredentialsLink.click()
 
     const { emailValue, passwordValue, confirmationValue } = await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
 
@@ -79,7 +77,7 @@ describe('Authentication Flow', () => {
     expect(confirmationValue).toEqual(passwordValue)
 
     // Wait for signup to complete
-    await wait(3000)
+    await wait(WAITTIME)
 
     // Select nickname textbox
     const [dialog] = await page.$$('.v-dialog')
@@ -155,14 +153,14 @@ describe('Authentication Flow', () => {
 
     let onSignUpPage = true
     try {
-      const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
+      const [signUpTitle] = await findElementsByText('h2', 'Sign Up', chaperoneModal)
       await signUpTitle.click()
     } catch (error) {
       console.log('error : ', error)
       onSignUpPage = false
     }
     expect(onSignUpPage).toBe(true)
-
+    // NOTE: This test does not do what it says it does
     let onSignInPage = true
     try {
       const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
