@@ -160,7 +160,7 @@ describe('Authentication Flow', () => {
       onSignUpPage = false
     }
     expect(onSignUpPage).toBe(true)
-    // NOTE: This test does not do what it says it does
+    
     let onSignInPage = true
     try {
       const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)
