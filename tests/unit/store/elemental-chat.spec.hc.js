@@ -103,14 +103,14 @@ describe('elementalChat store', () => {
       messageData: signalMessage
     })
     expect(storedChannel().messages.length).toEqual(4)
-
+  
     const userMessageContent = 'user message'
     // simulate user creating a message
     await store.dispatch('elementalChat/createMessage', {
       channel,
       content: userMessageContent
     })
-    expect(storedChannel().messages.length).toEqual(4)
+    expect(storedChannel().messages.length).toEqual(5)
 
     const newMessages = [
       createMockMessage('15', AGENT_KEY_MOCK, 15),
@@ -122,8 +122,7 @@ describe('elementalChat store', () => {
       channel,
       messages: newMessages
     })
-    expect(storedChannel().messages.length).toEqual(7)
-
+    expect(storedChannel().messages.length).toEqual(8)
     const knownIds = [...initialMessages, signalMessage, ...newMessages].map(m => m.entry.uuid)
     expect(storedChannel().messages.map(m => m.entry.uuid))
       .toEqual(expect.arrayContaining(knownIds))
