@@ -1,9 +1,9 @@
+import { wait } from '../../test-utils'
 import path from 'path'
 import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH, WAITTIME } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
-import { aliceConductorConfig, otherConductorConfig } from './tryorama'
+import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
-import { wait } from '../../test-utils'
 
 export const waitForState = async (stateChecker, desiredState, callName, callRegistryCb = () => null, pollingInterval = 1000, timeout = 9000) => {
   return Promise.race([
@@ -187,27 +187,22 @@ const describeJsHandle = (jsHandle) => {
   }, jsHandle)
 }
 
-export const BOBBO_INSTALLED_APP_ID = 'second_agent'
-
 export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   // Tryorama: instantiate player conductor
   console.log('Setting up players on elemental chat...')
-  const [aliceConductor, bobboConductor] = await scenario.players([aliceConductorConfig, otherConductorConfig])
+  const [conductor] = await scenario.players([conductorConfig], false)
 
-  await scenario.shareAllNodes([aliceConductor, bobboConductor])
+  await conductor.startup()
 
-  aliceConductor.setSignalHandler(s => {
-    console.log('Alice Conductor Received Signal:', s)
-  })
-  bobboConductor.setSignalHandler(s => {
-    console.log('Bobbo Conductor Received Signal:', s)
+  conductor.setSignalHandler((_) => {
+    console.log('Conductor Received Signal:', _)
   })
 
   // Tryorama: install elemental chat on both player conductors
   const bundlePath = path.join(__dirname, 'bundle', 'elemental-chat.happ')
 
-  const aliceChatHapp = await aliceConductor.installBundledHapp({ path: bundlePath }, null, INSTALLED_APP_ID)
-  const bobboChatHapp = await bobboConductor.installBundledHapp({ path: bundlePath }, null, BOBBO_INSTALLED_APP_ID)
+  const aliceChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, INSTALLED_APP_ID)
+  const bobboChatHapp = await conductor.installBundledHapp({ path: bundlePath }, null, 'second_agent')
 
   // Tryorama: grab chat cell from list of happ cells to use as the agent
   const [aliceChat] = aliceChatHapp.cells
@@ -221,7 +216,7 @@ export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   console.log('👉 Spinning up UI server')
   const { ports, close: closeServer } = httpServers()
 
-  aliceConductor.appWs().client.socket.onclose = async () => {
+  conductor.appWs().client.socket.onclose = async () => {
     // silence logs upon socket closing
     page.on('pageerror', _ => {})
     page.on('console', _ => {})
@@ -230,7 +225,7 @@ export const setupTwoChatters = async (scenario, createPage, callRegistry) => {
   const page = await createPage()
   await setupPage(page, callRegistry, `http://localhost:${ports.ui}/dist/index.html`, { waitForNavigation: true })
 
-  return { aliceChat, bobboChat, page, closeServer, aliceConductor, bobboConductor, startingStats }
+  return { aliceChat, bobboChat, page, closeServer, conductor, startingStats }
 }
 
 export const setupPage = async (page, callRegistry, url) => {
@@ -285,21 +280,12 @@ export const setupPage = async (page, callRegistry, url) => {
   ])
 }
 
-export const afterAllSetup = async (aliceConductor, bobboConductor, closeServer) => {
-  if (aliceConductor) {
-    console.log('👉 Shutting down tryorama alice conductor...')
-    await aliceConductor.shutdown()
-    console.log('✅ Closed tryorama alice conductor')
-  }
-  if (bobboConductor) {
-    console.log('👉 Shutting down tryorama bobbo conductor...')
-    await bobboConductor.shutdown()
-    console.log('✅ Closed tryorama bobbo conductor')
-  }
+export const afterAllSetup = async (conductor, closeServer) => {
+  console.log('👉 Shutting down tryorama player conductor(s)...')
+  await conductor.shutdown()
+  console.log('✅ Closed tryorama player conductor(s)')
 
-  if (closeServer) {
-    console.log('👉 Closing the UI server...')
-    await closeServer()
-    console.log('✅ Closed the UI server...')
-  }
+  console.log('👉 Closing the UI server...')
+  await closeServer()
+  console.log('✅ Closed the UI server...')
 }

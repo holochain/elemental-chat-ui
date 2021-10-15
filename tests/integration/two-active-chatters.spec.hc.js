@@ -19,12 +19,12 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     entry: { category: 'General', uuid: uuidv4() }
   }
 
-  let aliceChat, bobboChat, page, closeServer, aliceConductor, bobboConductor, newPage, expectedStats, newStats, channelInFocus
+  let aliceChat, bobboChat, page, closeServer, conductor, newPage, expectedStats, newStats, channelInFocus
   beforeAll(async () => {
     const createPage = () => global.__BROWSER__.newPage()
     let startingStats
     // Note: passing in Puppeteer page function to instantiate pupeeteer and mock Browser Agent Actions
-    ({ aliceChat, bobboChat, page, closeServer, aliceConductor, bobboConductor, startingStats } = await setupTwoChatters(scenario, createPage, callRegistry))
+    ({ aliceChat, bobboChat, page, closeServer, conductor, startingStats } = await setupTwoChatters(scenario, createPage, callRegistry))
     expectedStats = startingStats
     console.log('starting stats : ', expectedStats)
     await wait(EXTENDED_WAITTIME)
@@ -38,22 +38,16 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     await waitForState(checkRefreshChatterState, 'done', 'chat.refresh_chatter')
     expectedStats = { ...expectedStats, agents: expectedStats.agents + 1, active: expectedStats.active + 1 }
 
-    const aliceRunningApps = await aliceConductor.adminWs().listApps({ status_filter: { Running: null }})
+    const aliceRunningApps = await conductor.adminWs().listApps({ status_filter: { Running: null }})
     if (!aliceRunningApps.find(app => app.installed_app_id === INSTALLED_APP_ID)) {
       console.error('Error:', INSTALLED_APP_ID, 'not running. Running apps:', aliceRunningApps)
       await global.__BROWSER__.close()
-      await afterAllSetup(aliceConductor, bobboConductor, closeServer)
-    }
-    const bobboRunningApps = await bobboConductor.adminWs().listApps({ status_filter: { Running: null }})
-    if (!bobboRunningApps.find(app => app.installed_app_id === BOBBO_INSTALLED_APP_ID)) {
-      console.error('Error:', BOBBO_INSTALLED_APP_ID, 'not running. Running apps:', bobboRunningApps)
-      await global.__BROWSER__.close()
-      await afterAllSetup(bobboConductor, bobboConductor, closeServer)
+      await afterAllSetup(conductor, closeServer)
     }
   }, TIMEOUT)
   afterAll(async () => {
     await global.__BROWSER__.close()
-    await afterAllSetup(aliceConductor, bobboConductor, closeServer)
+    await afterAllSetup(conductor, closeServer)
   })
 
   const checkChannelState = async () => {
@@ -214,7 +208,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       // bobbo checks stats after message
       newStats = await handleZomeCall(bobboChat.call, ['chat', 'stats', { category: 'General' }])
       expect(newStats).toEqual({ ...expectedStats, messages: expectedStats.messages + 1 })
-      expectedStats = newStats
+      expectedStats = newStats;
     })
 
     it('displays channels created by another agent', async () => {
