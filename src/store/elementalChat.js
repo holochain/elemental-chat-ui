@@ -261,9 +261,9 @@ export default {
     handleMessageSignal: ({ commit }, payload) => {
       log('adding signal message: ', payload)
       commit('addChannels', [payload.channelData])
-      commit('addMessagesToChannel', {
-        channel: payload.channelData,
-        messages: [payload.messageData]
+      commit('addMessage', {
+        channelId: payload.channelData.entry.uuid,
+        message: payload.messageData
       })
     },
     createMessage: async (
@@ -424,6 +424,46 @@ export default {
     }
   },
   mutations: {
+    addMessage (state, { channelId, message }) {
+      const channel = { ...state.channels.find(channel => channel.entry.uuid === channelId) }
+
+      if (!channel) {
+        throw new Error(`Tried to add message to channel we don't have: ${channelId}`)
+      }
+
+      if (channel.messages.some(channelMessage => channelMessage.entry.uuid === message.entry.uuid)) return
+
+      channel.messages = [...channel.messages, message].sort((a, b) => a.createdAt - b.createdAt)
+
+      const chunkRemainder = calculateRemainder(channel.messages.length)
+      const chunkQuotient = calculateQuotient(channel.messages.length)
+      const totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
+      channel.currentMessageCount = calculateCurrentMsgs(chunkRemainder, chunkQuotient)
+      channel.totalMessageCount = totalMessageCount
+
+      // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
+      const storedChannel = getStoredChannel(channel.entry.uuid)
+      if (state.currentChannelId !== channel.entry.uuid &&
+        totalMessageCount > storedChannel.messageCount
+      ) {
+        const { unseen } = _setUnseen(state, channel.entry.uuid)
+        channel.unseen = unseen
+      }
+
+      console.log('CHANNEL complete : ', channel)
+
+      state.channels = state.channels.map(c => {
+        if (c.entry.uuid === channel.entry.uuid) {
+          return channel
+        } else {
+          return c
+        }
+      })
+
+      // Update stats. This is a relatively expensive thing to do. There are definitely more effecient ways of updating.
+      // If the UI seems sluggish, look here for possible optimizations.
+      storeChannels(state.channels)
+    },
     addMessagesToChannel (state, payload) {
       const { channel, messages } = payload
 
