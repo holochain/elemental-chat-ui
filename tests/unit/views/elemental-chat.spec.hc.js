@@ -2,11 +2,10 @@
 import Vuetify from 'vuetify'
 import Vue from 'vue'
 import { within, fireEvent } from '@testing-library/vue'
-import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../test-utils'
+import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement, wait } from '../../test-utils'
 import { DNA_VERSION_MOCK, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, getStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy, mockHolochainState } from '../../mock-helpers'
 import store from '@/store/index'
 import ElementalChat from '@/ElementalChat.vue'
-import wait from 'waait'
 
 jest.mock('@/store/callZome')
 

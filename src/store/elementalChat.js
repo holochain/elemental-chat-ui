@@ -479,10 +479,8 @@ export default {
         // if this channel doesn't have any messages yet, we restore the unseen status
         channel.unseen = storedChannel.unseen
       }
-
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
         .sort((a, b) => a.createdAt - b.createdAt)
-
       const chunkRemainder = calculateRemainder(channel.messages.length)
       const chunkQuotient = calculateQuotient(channel.messages.length)
       const totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
