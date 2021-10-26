@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@babel/preset-env": "^7.13.8",
-    "@holo-host/web-sdk": "0.5.1",
+    "@holo-host/web-sdk": "^0.5.3",
     "@holochain/conductor-api": "0.2.1",
     "@testing-library/jest-dom": "^5.11.9",
     "@whi/stdlog": "^0.3.4",

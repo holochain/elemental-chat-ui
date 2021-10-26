@@ -1081,10 +1081,10 @@
   resolved "https://registry.yarnpkg.com/@holo-host/wasm-key-manager/-/wasm-key-manager-1.0.0.tgz#32e5365ddc4518a01c17d2aba09d11bf3a042429"
   integrity sha512-GTfeQ2iYvYYrIkuaF0QupWP/y8sdItwL6Tr1osyaU7eUsWtGfpZqDcTZny8KNDdnQAEEP2nDWZORA/Z3EMJa3w==
 
-"@holo-host/web-sdk@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@holo-host/web-sdk/-/web-sdk-0.5.1.tgz#e83e7d94343273c0b6a59d6125d511c012e24304"
-  integrity sha512-lbAubx84WFJ9Rg6SasoWOKclTd1tBf4nYOl8lvNMe4G0DvJzjP66goXsrHg/kFmWshvmmDLOU9HGvtvg7Gf5oQ==
+"@holo-host/web-sdk@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@holo-host/web-sdk/-/web-sdk-0.5.3.tgz#8fed24a69226f555d13e7a5d8da5c22bbf108461"
+  integrity sha512-IUed2IDkWS3YGyMGvhlseYCWKIHwC/PlzUwUiqA/MmShjTW3bX4pkuK3VF6IUznp7SO/4ZlrSb4C0WSFnTtF5Q==
   dependencies:
     "@holo-host/comb" "^0.2.0"
 
