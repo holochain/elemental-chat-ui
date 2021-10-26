@@ -18,29 +18,31 @@ jobs:
     steps:
     - name: Fetch source code
       uses: actions/checkout@v2
-    - name: Use Nix
-      uses: cachix/install-nix-action@v12
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Configure Nix substituters
-      run: |
-        set -xe
-        mkdir -p ~/.config/nix/
-        cp ./.github/nix.conf ~/.config/nix/
-    - name: Prepare Nix environment
-      run: nix-shell --command "echo Completed"
-    - name: Check Holochain version
-      run: nix-shell --command "holochain -V"
     - name: Install node-modules
       run: yarn install
     - name: Run unit tests ENV=holo
       run: yarn test:ci-unit-holo
     - name: Run unit tests ENV=holochain
       run: yarn test:ci-unit-hc
+    - name: Use Nix
+      uses: cachix/install-nix-action@v12
+    - name: Configure Nix substituters
+      run: |
+        set -xe
+        mkdir -p ~/.config/nix/
+        cp ./.github/nix.conf ~/.config/nix/
+    - uses: cachix/cachix-action@v10
+      with:
+        name: holochain-ci
+    - name: Prepare Nix environment
+      run: nix-shell --command "echo Completed"
+    - name: Check Holochain version
+      run: nix-shell --command "holochain -V"
     - name: Run integration tests ENV=holo
-      run: yarn test:ci-integration-holo
+      run: nix-shell --run 'yarn test:ci-integration-holo'
     - name: Run integration tests ENV=holochain
       run: nix-shell --run 'yarn test:ci-integration-hc'
-

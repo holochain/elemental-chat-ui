@@ -1,9 +1,9 @@
+import { wait } from '../../test-utils'
 import path from 'path'
 import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH, WAITTIME } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
 import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
-import wait from 'waait'
 
 export const waitForState = async (stateChecker, desiredState, callName, callRegistryCb = () => null, pollingInterval = 1000, timeout = 9000) => {
   return Promise.race([

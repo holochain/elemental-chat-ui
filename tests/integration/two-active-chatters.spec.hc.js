@@ -1,9 +1,9 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
-import wait from 'waait'
+import { wait } from '../test-utils'
 import { v4 as uuidv4 } from 'uuid'
 import { orchestrator } from './setup/tryorama'
-import { handleZomeCall, waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup, getStats } from './setup/helpers'
+import { handleZomeCall, waitForState, findElementsByText, findElementsByClassAndText, registerNickname, getElementProperty, awaitZomeResult, setupTwoChatters, afterAllSetup, getStats, BOBBO_INSTALLED_APP_ID } from './setup/helpers'
 import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
 import { mapValues } from 'lodash'
@@ -38,9 +38,9 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
     await waitForState(checkRefreshChatterState, 'done', 'chat.refresh_chatter')
     expectedStats = { ...expectedStats, agents: expectedStats.agents + 1, active: expectedStats.active + 1 }
 
-    const installedApps = await conductor.adminWs().listActiveApps()
-    if (!installedApps.find(app => app === INSTALLED_APP_ID)) {
-      console.error('Error: Elemental Chat App not installed')
+    const aliceRunningApps = await conductor.adminWs().listApps({ status_filter: { Running: null }})
+    if (!aliceRunningApps.find(app => app.installed_app_id === INSTALLED_APP_ID)) {
+      console.error('Error:', INSTALLED_APP_ID, 'not running. Running apps:', aliceRunningApps)
       await global.__BROWSER__.close()
       await afterAllSetup(conductor, closeServer)
     }
@@ -180,7 +180,7 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       newMessage.channel = channelInFocus.entry
       newMessage.entry.content = 'Hello from Alice, the native holochain user on the shared network. :)'
 
-      // alice (web) sends a message      
+      // alice (web) sends a message
       await page.focus('textarea')
       await page.keyboard.type(newMessageContent(), { delay: 100 })
       // press 'Enter' to submit
@@ -203,10 +203,12 @@ orchestrator.registerScenario('Two Active Chatters', async scenario => {
       expect(newMessageHTML).toContain(newMessageContent())
       expect(newMessageHTML).toContain(webUserNick)
 
+      await wait(WAITTIME)
+
       // bobbo checks stats after message
       newStats = await handleZomeCall(bobboChat.call, ['chat', 'stats', { category: 'General' }])
       expect(newStats).toEqual({ ...expectedStats, messages: expectedStats.messages + 1 })
-      expectedStats = newStats
+      expectedStats = newStats;
     })
 
     it('displays channels created by another agent', async () => {

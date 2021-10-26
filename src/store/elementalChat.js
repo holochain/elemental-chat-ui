@@ -4,16 +4,16 @@ import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
 
-export const CHUNK_COUNT = 20
-const calculateRemainder = messageCount => messageCount % CHUNK_COUNT
-const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_COUNT)
-const calculateCurrentMsgs = (chunkRemainder, chunkQuotient) => (chunkQuotient * CHUNK_COUNT) + chunkRemainder
+export const CHUNK_SIZE = 20
+const calculateRemainder = messageCount => messageCount % CHUNK_SIZE
+const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_SIZE)
+const calculateCurrentMsgs = (chunkRemainder, chunkQuotient) => (chunkQuotient * CHUNK_SIZE) + chunkRemainder
 const calculateTotalMsgs = (chunkRemainder, channel) => {
   return chunkRemainder
-    ? (channel.latestChunk) * CHUNK_COUNT + chunkRemainder
+    ? (channel.latestChunk) * CHUNK_SIZE + chunkRemainder
     : (chunkRemainder === 0 && (channel.messages || []).length > 0)
-        ? (channel.latestChunk + 1) * CHUNK_COUNT
-        : channel.latestChunk * CHUNK_COUNT
+        ? (channel.latestChunk + 1) * CHUNK_SIZE
+        : channel.latestChunk * CHUNK_SIZE
 }
 
 function sortChannels (val) {
@@ -114,7 +114,7 @@ const handleListMessagesResult = (state, commit, channelId, messages) => {
     messages: messages.map((msg) => {
       msg.createdBy = toUint8Array(msg.createdBy)
       return msg
-    }).sort((a, b) => a.createdAt[0] - b.createdAt[0])
+    }).sort((a, b) => a.createdAt - b.createdAt)
   })
   commit('setLoadingChannelContent', { removeById: channelId })
 }
@@ -197,7 +197,7 @@ export default {
         latestChunk = 0
       }
 
-      const channelMsgCount = channel.currentMessageCount || CHUNK_COUNT
+      const channelMsgCount = channel.currentMessageCount || CHUNK_SIZE
       const chunkRemainder = calculateRemainder(channelMsgCount)
       const chunkQuotient = calculateQuotient(channelMsgCount)
       const loadedChunkEarliest = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
@@ -261,9 +261,9 @@ export default {
     handleMessageSignal: ({ commit }, payload) => {
       log('adding signal message: ', payload)
       commit('addChannels', [payload.channelData])
-      commit('addMessagesToChannel', {
-        channel: payload.channelData,
-        messages: [payload.messageData]
+      commit('addMessage', {
+        channelId: payload.channelData.entry.uuid,
+        message: payload.messageData
       })
     },
     createMessage: async (
@@ -288,7 +288,7 @@ export default {
       const chunkRemainder = calculateRemainder(newTotalMessageCount)
       const chunkQuotient = calculateQuotient(newTotalMessageCount)
 
-      const chunk = CHUNK_COUNT > newTotalMessageCount
+      const chunk = CHUNK_SIZE > newTotalMessageCount
         ? 0
         : chunkRemainder === 0
           ? chunkQuotient - 1
@@ -380,7 +380,7 @@ export default {
 
           let messages = [...result.messages]
 
-          messages.sort((a, b) => a.createdAt[0] - b.createdAt[0])
+          messages.sort((a, b) => a.createdAt - b.createdAt)
           messages = messages.map((msg) => {
             msg.createdBy = toUint8Array(msg.createdBy)
             return msg
@@ -424,6 +424,46 @@ export default {
     }
   },
   mutations: {
+    addMessage (state, { channelId, message }) {
+      const channel = { ...state.channels.find(channel => channel.entry.uuid === channelId) }
+
+      if (!channel) {
+        throw new Error(`Tried to add message to channel we don't have: ${channelId}`)
+      }
+
+      if (channel.messages.some(channelMessage => channelMessage.entry.uuid === message.entry.uuid)) return
+
+      channel.messages = [...channel.messages, message].sort((a, b) => a.createdAt - b.createdAt)
+
+      const chunkRemainder = calculateRemainder(channel.messages.length)
+      const chunkQuotient = calculateQuotient(channel.messages.length)
+      const totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
+      channel.currentMessageCount = calculateCurrentMsgs(chunkRemainder, chunkQuotient)
+      channel.totalMessageCount = totalMessageCount
+
+      // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
+      const storedChannel = getStoredChannel(channel.entry.uuid)
+      if (state.currentChannelId !== channel.entry.uuid &&
+        totalMessageCount > storedChannel.messageCount
+      ) {
+        const { unseen } = _setUnseen(state, channel.entry.uuid)
+        channel.unseen = unseen
+      }
+
+      console.log('CHANNEL complete : ', channel)
+
+      state.channels = state.channels.map(c => {
+        if (c.entry.uuid === channel.entry.uuid) {
+          return channel
+        } else {
+          return c
+        }
+      })
+
+      // Update stats. This is a relatively expensive thing to do. There are definitely more effecient ways of updating.
+      // If the UI seems sluggish, look here for possible optimizations.
+      storeChannels(state.channels)
+    },
     addMessagesToChannel (state, payload) {
       const { channel, messages } = payload
 
@@ -439,10 +479,8 @@ export default {
         // if this channel doesn't have any messages yet, we restore the unseen status
         channel.unseen = storedChannel.unseen
       }
-
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
-        .sort((a, b) => a.createdAt[0] - b.createdAt[0])
-
+        .sort((a, b) => a.createdAt - b.createdAt)
       const chunkRemainder = calculateRemainder(channel.messages.length)
       const chunkQuotient = calculateQuotient(channel.messages.length)
       const totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
@@ -485,9 +523,11 @@ export default {
     addChannels (state, newChannels) {
       const channels = state.channels
       // order is important in this uniqBy because we want existing copy of the channel to win
+
       state.channels = sortChannels(uniqBy([...channels, ...newChannels], channel => channel.entry.uuid))
         .map(c => ({
           last_seen: { First: null }, // and order is important in this object because we want existing values of c.last_seen to win
+          messages: [],
           ...c
         }))
 

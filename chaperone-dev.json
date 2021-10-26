@@ -5,7 +5,7 @@
   "connection": {
     "secure": false,
     "host": "364wjvpl32c64n4y4xftcscbvfoidgaxz5vt02ir3jax8m48kp.holohost.net",
-    "port": 4656,
+    "port": 443,
     "path": "/hosting/"
   },
   "mode": 1

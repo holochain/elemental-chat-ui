@@ -36,7 +36,7 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
     case 'chat.create_message':
       return {
         ...payload,
-        createdAt: [0, 0],
+        createdAt: 0,
         entryHash: Buffer.from('uhCEkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64'),
         createdBy: rootState.holochain.agentKey || Buffer.from('agent public key')
       }

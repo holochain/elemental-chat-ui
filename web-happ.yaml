@@ -1,0 +1,7 @@
+---
+manifest_version: "1"
+name: elemental-chat
+ui:
+  bundled: "./elemental-chat-ui.zip"
+happ_manifest:
+  bundled: "../elemental-chat/elemental-chat.happ"

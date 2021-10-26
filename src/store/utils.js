@@ -20,13 +20,13 @@ export const delay = milliseconds => {
 
 export const formPaginationDateTime = message => {
   // set datetime string for polling reference
-  const convertedDatetime = new Date(message.createdAt[0] * 1000)
+  const convertedDatetime = new Date(Math.floor(message.createdAt / 1000))
   return `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
 }
 
-export const shouldAllowPagination = (container, channel) => {
+export const shouldAllowPagination = channel => {
   // conditionally show button
-  return container.scrollTop === 0 && (channel.currentMessageCount !== channel.totalMessageCount)
+  return channel.currentMessageCount !== channel.totalMessageCount
 }
 
 // NB: This is a hack to cleanly monitor ws calls in puppeteer
