@@ -7,13 +7,7 @@ import Vuetify from 'vuetify'
 const removeExtraSpaces = str => str.replace(/  +/g, ' ')
 const removeTabs = str => str.replace('\t', '')
 export const cleanString = str => removeTabs(removeExtraSpaces(str)).trim()
-export const wait = ms => {
-  if (process.env.CI === "1" && process.env.INTEGRATION !== "1") {
-    console.log("In CI so not going to wait");
-    return
-  }
-  return new Promise(r => setTimeout(r, ms))
-}
+export const wait = ms => new Promise(r => setTimeout(r, ms))
 
 const withMarkup = (query, debug) => text => query((_, element) => {
   const hasText = (element) => cleanString(element.textContent) === cleanString(text)
