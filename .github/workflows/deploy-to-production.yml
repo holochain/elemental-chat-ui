@@ -11,9 +11,9 @@ jobs:
     name: Deploy
     steps:
       - uses: actions/checkout@v2
-      - run: npm ci
+      - run: yarn install --frozen-lockfile
       - name: Build site
-        run: 'npm run build:holo-host'
+        run: yarn run build:holo-host
       - name: Publish to MainNet
         uses: cloudflare/wrangler-action@1.1.0
         with:
