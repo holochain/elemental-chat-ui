@@ -1,5 +1,7 @@
 import { WEB_CLIENT_PORT } from '@/consts'
 import * as tryorama from '@holochain/tryorama'
+import wait from 'waait'
+import { WAITTIME } from './globals'
 
 const path = require('path')
 
@@ -26,11 +28,11 @@ export const initializeTryorama = async scenario_name => {
     scenarioStarted(scenario)
     return scenarioEndedPromise
   })
-  const finalized = orchestrator.run()
+  orchestrator.run()
   const s = await scenarioPromise
   const close = async () => {
     endScenario()
-    await finalized
+    await wait(WAITTIME)
   }
   return { s, close }
 }
