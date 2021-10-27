@@ -2,7 +2,7 @@
 build () {
     export VUE_APP_DNA_VERSION=$1
     export VUE_APP_DNA_UID=$2
-    npm run build:self-hosted
+    yarn run build:self-hosted
     cd dist
     rm service-worker.js
     zip -r elemental-chat.zip .
