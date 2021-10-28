@@ -18,6 +18,9 @@ import { TIMEOUT, WAITTIME } from './setup/globals'
 import { INSTALLED_APP_ID } from '@/consts'
 import { mapValues } from 'lodash'
 
+// TEMPORARY: Remove and reset this extended waittime after hc header issue is resolved
+const EXTENDED_WAITTIME = WAITTIME + 3000
+
 const callRegistry = {}
 const callStats = user => user.call('chat', 'stats', { category: 'General' })
 const newChannel = {
@@ -54,7 +57,7 @@ beforeAll(async () => {
   } = await setupTwoChatters(scenario, createPage, callRegistry))
   expectedStats = startingStats
   console.log('starting stats : ', expectedStats)
-  await wait(WAITTIME)
+  await wait(EXTENDED_WAITTIME)
   // scenario setup:
   console.log('Setting up default channel...')
   channelInFocus = await handleZomeCall(aliceChat.call, [
@@ -117,7 +120,7 @@ const checkAgentsState = async () => {
       agents: expectedStats.agents + 1,
       active: expectedStats.active + 1
     }
-    await wait(WAITTIME)
+    await wait(EXTENDED_WAITTIME)
   }
 }
 
@@ -239,7 +242,7 @@ describe('Two Player Active Chat', () => {
 
     // bobbo (tryorama node) declares self as chatter
     await handleZomeCall(bobboChat.call, ['chat', 'refresh_chatter', null])
-    await wait(WAITTIME)
+    await wait(EXTENDED_WAITTIME)
 
     const stats2 = await getStats(page)
     console.log('Stats after second agent: ', stats2)
@@ -357,7 +360,7 @@ describe('Two Player Active Chat', () => {
     const newChannelButton = await page.$('#refresh')
     await newChannelButton.click()
 
-    await wait(WAITTIME)
+    await wait(EXTENDED_WAITTIME)
 
     // alice makes sure the channel exists first
     let newChannelText
