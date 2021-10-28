@@ -1088,12 +1088,11 @@
   dependencies:
     "@holo-host/comb" "^0.2.0"
 
-"@holochain/conductor-api@^0.2.0", "@holochain/conductor-api@holochain/holochain-conductor-api#98461f712508b1ec1e0f244213c79abf2d03cfde":
+"@holochain/conductor-api@^0.2.0", "@holochain/conductor-api@holochain/holochain-conductor-api#aaedcbbe5bff6c7fb3dd15607aca976afebb046b":
   version "0.2.1"
-  resolved "https://codeload.github.com/holochain/holochain-conductor-api/tar.gz/98461f712508b1ec1e0f244213c79abf2d03cfde"
+  resolved "https://codeload.github.com/holochain/holochain-conductor-api/tar.gz/aaedcbbe5bff6c7fb3dd15607aca976afebb046b"
   dependencies:
     "@msgpack/msgpack" "2.4.0"
-    "@types/ws" "^7.2.4"
     cross-fetch "^3.1.4"
     isomorphic-ws "^4.0.1"
     nanoid "^3.1.9"
@@ -1913,13 +1912,6 @@
     "@types/webpack-sources" "*"
     anymatch "^3.0.0"
     source-map "^0.6.0"
-
-"@types/ws@^7.2.4":
-  version "7.4.7"
-  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-7.4.7.tgz#f7c390a36f7a0679aa69de2d501319f4f8d9b702"
-  integrity sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==
-  dependencies:
-    "@types/node" "*"
 
 "@types/yargs-parser@*":
   version "20.2.1"
