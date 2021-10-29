@@ -1,6 +1,6 @@
 {
   "name": "elemental-chat-ui",
-  "version": "0.0.1-alpha34",
+  "version": "0.0.1-alpha39",
   "private": true,
   "scripts": {
     "build:holo-host": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
@@ -25,7 +25,7 @@
     "test:integration": "yarn test-setup:happ && yarn test:ci-integration-hc && yarn test:ci-integration-holo",
     "test": "yarn test:unit && yarn test:integration",
     "serve:self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service serve",
-    "serve:holo": "VUE_APP_ANONYMOUS='enabled' VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24273/' vue-cli-service serve",
+    "serve:holo": "VUE_APP_ANONYMOUS='enabled' VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service serve",
     "serve:holochain": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
     "serve:hc-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:holochain",
     "serve:hc-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:holochain",
