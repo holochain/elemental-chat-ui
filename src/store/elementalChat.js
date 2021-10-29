@@ -201,16 +201,21 @@ export default {
       const chunkRemainder = calculateRemainder(channelMsgCount)
       const chunkQuotient = calculateQuotient(channelMsgCount)
       const loadedChunkEarliest = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
-      const loadedChunkLatest = loadedChunkEarliest - 1
+      const loadedChunkOldest = loadedChunkEarliest - 1
 
       let chunkStart = (firstChunkLoad && latestChunk > 0)
         ? latestChunk - 1
         : firstChunkLoad
           ? latestChunk
-          : latestChunk - loadedChunkEarliest
-      let chunkEnd = firstChunkLoad
+          : (loadedChunkEarliest === 1)
+            ? 0
+            : latestChunk - loadedChunkEarliest
+
+      let chunkEnd = (firstChunkLoad || latestChunk === 0)
         ? latestChunk
-        : latestChunk - loadedChunkLatest
+        : chunkStart === 0
+          ? 1
+          : latestChunk - loadedChunkOldest
 
       if (chunkStart < 0) {
         chunkStart = 0
