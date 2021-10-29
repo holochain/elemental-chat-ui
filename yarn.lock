@@ -1088,10 +1088,10 @@
   dependencies:
     "@holo-host/comb" "^0.2.0"
 
-"@holochain/conductor-api@^0.2.0", "@holochain/conductor-api@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.2.2.tgz#ae506f903a08e5c02a6e4431a2863de40e2d712f"
-  integrity sha512-YoClczC3st+vLWDx5O3b401xjtSMletb7LsifbGElKlLb66dTs5Vp7XxNxIKqIxIYjfKHLuvpZM8ZuQqv7bGUg==
+"@holochain/conductor-api@^0.2.0", "@holochain/conductor-api@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@holochain/conductor-api/-/conductor-api-0.2.3.tgz#6b21f01f85bad3636515e404040bfc8797e33b5e"
+  integrity sha512-buGi6NqrUYheT35yVW6js0vpL1Ve7hdgSoZgfndD6rjRHgz8W0eFnM3Dbfz0ryhxpWfPr0V1LSiZmMNkAREBDw==
   dependencies:
     "@msgpack/msgpack" "2.4.0"
     cross-fetch "^3.1.4"
