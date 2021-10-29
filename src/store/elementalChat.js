@@ -201,44 +201,33 @@ export default {
       const chunkRemainder = calculateRemainder(channelMsgCount)
       const chunkQuotient = calculateQuotient(channelMsgCount)
       const loadedChunkEarliest = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
-      const loadedChunkOldest = loadedChunkEarliest - 1
+      const loadedChunkLatest = loadedChunkEarliest - 1
 
-      // on page refresh, if volume of messages in channel exceeds a single chunk (ie: chunk 0)
-      // (nb: last chunk in channel is 0)
-      const chunkStart = (firstChunkLoad && latestChunk > 0) // >> latestChunk just returns the highest number of chunks available (chunk # increases with msg volume)
-        // -> then load the chunk prior to latest as dna pagination fetch start (older timestamp of dna fetch)
+      let chunkStart = (firstChunkLoad && latestChunk > 0)
         ? latestChunk - 1
-        // else if just refreshed page (and ONLY A SINGLE chunk exists)
         : firstChunkLoad
-          // -> then load the only chunk
-          ? latestChunk // (should equal 0)
-          // else if did not refresh page (THEN MULIPLE CHUNKS EXIST) && if the most recent message chunk displayed is the second to oldest (ie: 1)
-          : (loadedChunkEarliest === 1)
-            // -> then load the original/oldest chunk (ie: 0)
-            ? 0
-            // -> otherwise load *next* most recent (one chunk beyond whatever is currently displaying)
-            : latestChunk - loadedChunkEarliest
-
-      // if just refresh page
-      const chunkEnd = (firstChunkLoad || latestChunk === 0)
-        // -> then load the latest chunk (most recent messages) as dna pagination fetch end (more recent timestamps of fetch)
+          ? latestChunk
+          : latestChunk - loadedChunkEarliest
+      let chunkEnd = firstChunkLoad
         ? latestChunk
-        // else if (there are multiple chunks and...) the start of pagination fetch is for the original/oldest chunk (ie 0)
-        : chunkStart === 0
-          // -> set the end of the pagination fetch to 1
-          ? 1
-          // -> otherwise load *next* most recent (one chunk beyond whatever is currently displaying)
-          : latestChunk - loadedChunkOldest
+        : latestChunk - loadedChunkLatest
 
-      const payload = { channel: channel.entry, chunk: { start: chunkStart, end: chunkEnd }, active_chatter: activeChatter || true }
-      callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
-        .then(async result => {
-          if (result) {
-            // NOTE: messages will be aggregated with current messages in following chain of fns
-            handleListMessagesResult(state, commit, channel.entry.uuid, result.messages)
-          }
-        })
-        .catch(error => log('listMessages zome error', error))
+      if (chunkStart < 0) {
+        chunkStart = 0
+        chunkEnd = 1
+      }
+
+      if (chunkStart >= 0) {
+        const payload = { channel: channel.entry, chunk: { start: chunkStart, end: chunkEnd }, active_chatter: activeChatter || true }
+        return callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
+          .then(async result => {
+            if (result) {
+              // NOTE: messages will be aggregated with current messages in following chain of fns
+              handleListMessagesResult(state, commit, channel.entry.uuid, result.messages)
+            }
+          })
+          .catch(error => log('listMessages zome error', error))
+      }
     },
     listAllMessages({ commit, state, rootState, dispatch, getters }) {
       // NOTE: To reduce the inital load expense, we have decided to call list_channels, then get only load first chuck for each channel
