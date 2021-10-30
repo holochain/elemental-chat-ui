@@ -3,7 +3,7 @@
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
       <v-card v-if="showLoadButton" style="display: grid" aria-label='Load More'>
         <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" class='pagination-button' aria-label="Load More Button">
-          Load More Messages
+          Check For More Messages
         </v-btn>
       <div><Spinner v-if='listMessagesLoading' size='18px' class='message-subheader' /></div>
       <div><p size='18px' class='message-subheader'>{{ this.earliestDate }}</p></div>

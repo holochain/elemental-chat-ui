@@ -25,7 +25,7 @@ export const formPaginationDateTime = message => {
 }
 
 export const shouldAllowPagination = channel => {
-  // conditionally show button
+  // if the messages in display equal the total amount stored
   return channel.currentMessageCount !== channel.totalMessageCount
 }
 
@@ -69,7 +69,7 @@ export const retryIfSourceChainHeadMoved = async call => {
 }
 
 class CustomError extends Error {
-  constructor (...params) {
+  constructor(...params) {
     super(...params)
     this.name = this.constructor.name
     if (Error.captureStackTrace) {
@@ -78,6 +78,6 @@ class CustomError extends Error {
   }
 }
 
-export class TimeoutError extends CustomError {}
-export class UndefinedClientError extends CustomError {}
-export class HoloError extends CustomError {}
+export class TimeoutError extends CustomError { }
+export class UndefinedClientError extends CustomError { }
+export class HoloError extends CustomError { }
