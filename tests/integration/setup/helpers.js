@@ -1,4 +1,4 @@
-import { wait } from '../../test-utils'
+import wait from 'waait'
 import path from 'path'
 import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH, WAITTIME } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'

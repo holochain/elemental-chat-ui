@@ -1,6 +1,6 @@
 /* global it, describe, expect, beforeAll, afterAll */
 import 'regenerator-runtime/runtime.js'
-import { wait } from '../test-utils'
+import wait from 'waait'
 import { v4 as uuidv4 } from 'uuid'
 import { initializeTryorama } from './setup/tryorama'
 import {

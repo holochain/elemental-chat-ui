@@ -1,5 +1,6 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
-import { stubElement, wait } from '../../test-utils'
+import App from '@/App.vue'
+import { stubElement } from '../../test-utils'
 import {
   AGENT_KEY_MOCK,
   DNA_HASH_MOCK,
@@ -11,11 +12,12 @@ import {
   getStubbedStore,
   mockHolochainState
 } from '../../mock-helpers'
+
 import { createLocalVue } from '@vue/test-utils'
 import Vuex from 'vuex'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
-import App from '@/App.vue'
+import wait from 'waait'
 
 jest.mock('@/store/callZome')
 
