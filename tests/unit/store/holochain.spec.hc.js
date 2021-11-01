@@ -3,7 +3,7 @@ import { createLocalVue } from '@vue/test-utils'
 import { getStubbedStore, DNA_HASH_MOCK, AGENT_KEY_MOCK, getStubbedMutations } from '../../mock-helpers'
 import { isHoloHosted } from '@/utils'
 import Vuex from 'vuex'
-import { wait } from '../../test-utils'
+import wait from 'waait'
 
 jest.mock('@/store/callZome')
 

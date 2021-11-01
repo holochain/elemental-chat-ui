@@ -4,7 +4,7 @@ import { getStubbedStore, DNA_HASH_MOCK, AGENT_KEY_MOCK } from '../../mock-helpe
 import { Connection } from '@holo-host/web-sdk'
 import { isHoloHosted } from '@/utils'
 import Vuex from 'vuex'
-import { wait } from '../../test-utils'
+import wait from 'waait'
 
 const MockConductor = require('@holo-host/mock-conductor')
 

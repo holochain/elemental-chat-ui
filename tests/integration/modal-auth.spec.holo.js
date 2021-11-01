@@ -1,5 +1,5 @@
 /* global it, describe, expect, beforeAll, afterAll */
-import { wait } from '../test-utils'
+import wait from 'waait'
 import { TIMEOUT, WAITTIME, HOSTED_AGENT, CHAPERONE_URL_REGEX, CHAPERONE_URL_REGEX_HCC } from './setup/globals'
 import { findIframe, holoAuthenticateUser, findElementsByText, getStats, registerNickname, setupPage } from './setup/helpers'
 import httpServers from './setup/setupServers'
@@ -66,7 +66,7 @@ describe('Authentication Flow', () => {
     const iframe = await findIframe(page, chaperoneUrlCheck.local)
     const chaperoneModal = await iframe.evaluateHandle(() => document)
     await wait(WAITTIME)
-    
+
     const [loginTitle] = await findElementsByText('h1', 'Elemental Chat', chaperoneModal)
     expect(loginTitle).toBeTruthy()
 
@@ -160,7 +160,7 @@ describe('Authentication Flow', () => {
       onSignUpPage = false
     }
     expect(onSignUpPage).toBe(true)
-    
+
     let onSignInPage = true
     try {
       const [signUpTitle] = await findElementsByText('h1', 'Elemental Chat Login', chaperoneModal)

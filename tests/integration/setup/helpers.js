@@ -1,4 +1,4 @@
-import { wait } from '../../test-utils'
+import wait from 'waait'
 import path from 'path'
 import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH, WAITTIME } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
@@ -278,14 +278,4 @@ export const setupPage = async (page, callRegistry, url) => {
     page.goto(url),
     page.waitForNavigation({ waitUntil: 'networkidle0' })
   ])
-}
-
-export const afterAllSetup = async (conductor, closeServer) => {
-  console.log('👉 Shutting down tryorama player conductor(s)...')
-  await conductor.shutdown()
-  console.log('✅ Closed tryorama player conductor(s)')
-
-  console.log('👉 Closing the UI server...')
-  await closeServer()
-  console.log('✅ Closed the UI server...')
 }
