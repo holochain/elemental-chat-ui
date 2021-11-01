@@ -3,6 +3,7 @@ import { createLocalVue, shallowMount, mount } from '@vue/test-utils'
 import Vuex from 'vuex'
 import { storeRaw } from '@/store'
 import Vuetify from 'vuetify'
+import wait from 'waait'
 
 const removeExtraSpaces = str => str.replace(/  +/g, ' ')
 const removeTabs = str => str.replace('\t', '')
