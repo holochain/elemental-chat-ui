@@ -8,7 +8,7 @@
       <v-spacer></v-spacer>
 
       <v-toolbar-title v-if="isHoloAnonymous === false" @click="holoLogout" class="logout" aria-label="Logout with Holo">
-        <span>Logout</span>
+        <span>Log out</span>
       </v-toolbar-title>
       <v-toolbar-title v-if="isHoloAnonymous === true" @click="holoSignin" class="login" aria-label="Log in with Holo">
         <span>Login</span>
@@ -32,7 +32,7 @@
               <v-icon>mdi-account-cog</v-icon>
             </v-btn>
           </template>
-          <span>Update user handle</span>
+          <span>Update nickname</span>
         </v-tooltip>
         <v-tooltip bottom aria-label="App Stats Tooltip">
           <template v-slot:activator="{ on, attrs }">
@@ -49,7 +49,7 @@
               <v-icon>mdi-chart-line</v-icon>
             </v-btn>
           </template>
-          <span>View Stats</span>
+          <span>View stats</span>
         </v-tooltip>
         <v-tooltip bottom aria-label="App Version Tooltip">
           <template v-slot:activator="{ on, attrs }">

@@ -36,7 +36,7 @@
             <v-icon>mdi-chat-plus-outline</v-icon>
           </v-btn>
         </template>
-        <span>Add a public Channel.</span>
+        <span>Add a public channel.</span>
       </v-tooltip>
     </v-toolbar>
     <v-card height="100%" outlined dark>

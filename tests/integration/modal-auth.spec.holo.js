@@ -90,7 +90,7 @@ describe('Authentication Flow', () => {
     const [nickname] = await findElementsByText('div', 'AliceHosted', page)
     expect(nickname).toBeTruthy()
 
-    const [logoutButton] = await findElementsByText('span', 'Logout', page)
+    const [logoutButton] = await findElementsByText('span', 'Log out', page)
     await logoutButton.click()
 
     await wait(500)
