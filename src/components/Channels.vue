@@ -42,7 +42,7 @@
     <v-card height="100%" outlined dark>
       <v-row class="mx-0  channels-container" justify="center" align="start">
         <v-col cols="12">
-          <v-text-field
+          <!-- <v-text-field
             id="channel-name"
             v-if="showChannelInput"
             v-model="actionChannel.info.name"
@@ -53,7 +53,7 @@
             @keydown.enter="handleCreateChannel(actionChannel)"
             append-icon="mdi-plus-box-outline"
             @click:append="handleCreateChannel(actionChannel)"
-          />
+          /> -->
           <v-list v-if="channels.length" dense :key='refreshKey' role='list' aria-label="Channel List">
             <v-list-item
               v-for="(channel, i) in channels"
@@ -101,7 +101,7 @@ export default {
       refreshKey: 0
     }
   },
-  components: { 
+  components: {
     Spinner
   },
   methods: {
