@@ -2,16 +2,47 @@
     <head>
         <style type="text/css">
             body {
-                display: flex;
                 height: 100vh;
+                padding: 50px;
+                color: rgb(38, 42, 51);
+                background-color: #EFF0F3;
+                font-family: 'Nunito', sans-serif;
+                font-size: 18px
+            }
+            img {
+                width: 140px;
+            }
+            .content {
+                display: flex;
             }
             .message {
                 margin: auto;
+                padding-top: 100px;
+                flex-basis: 70%;
+            }
+            a {
+                color: #00a6ae;
+                transition: .3s;
+            }
+            a:hover {
+                color: #5c4aa8;
             }
         </style>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300&display=swap" rel="stylesheet"> 
+
         <title>Elemental Chat</title>
     </head>
     <body>
-        <div class="message">Elemental Chat is down for maintenance. Check back soon.</div>
+        <img src="./holo-logo-dark.png" />
+        <div class='content'>
+            <div class="message">
+                <p>We deeply appreciate everyone's participation in the Elemental Chat Alpha Release testing. As a result of your feedback and testing activity, we're temporarily pausing the release so we can make changes and updates to improve the user experience for all. </p>
+                <p>The next round of testing will likely begin next week. We'll announce on the Holo Forum and other channels. </p>
+                <p>Questions will be answered in an <a href="https://forum.holo.host/t/pause-testing-ec-landing-page-draft/4248">Elemental Chat Forum Thread.</a> Thanks for all your help so far!</p>
+            </div>
+        </div>
     </body>
 </html>
