@@ -62,13 +62,14 @@ export default {
       return this.channel.currentMessageCount
     },
     earliestDate () {
+      // TODO: this should always return a date. the false clause should return now
       return this.messages[0]
         ? formPaginationDateTime(this.messages[0])
         : ''
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['createMessage', 'getMessageChunk']),
+    ...mapActions('elementalChat', ['createMessage', 'listMessages']),
     handleCreateMessage (content) {
       this.scrollToEnd()
       this.createMessage({
@@ -100,10 +101,11 @@ export default {
     },
     loadMoreMessages () {
       this.lastSeenMsgId = this.messages[0].entry.uuid
-      this.getMessageChunk({
+      this.listMessages({
         channel: this.channel,
-        latestChunk: this.channel.latestChunk,
-        activeChatter: true
+        earlier_than: this.earliestDate(),
+        target_message_count: 20,
+        active_chatter: true
       })
     },
     isMyMessage (message) {

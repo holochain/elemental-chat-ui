@@ -1,10 +1,13 @@
 import { isHoloHosted, log } from '@/utils'
 import { logZomeCall, actionType, UndefinedClientError } from '@/store/utils'
 import wait from 'waait'
+import { callZome as mockCallZome } from './__mocks__/callZome'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
   return state.holoClient.zomeCall(state.dnaAlias, zomeName, fnName, payload)
 }
+
+// const callZomeLocal = mockCallZome
 
 const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
   if (!state.holochainClient) {
@@ -12,6 +15,7 @@ const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
       'Attempted callZomeLocal before holochainClient is defined'
     )
   }
+
   return state.holochainClient.callZome(
     {
       cap: null,

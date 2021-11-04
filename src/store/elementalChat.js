@@ -4,18 +4,6 @@ import { toUint8Array, log } from '@/utils'
 import { arrayBufferToBase64, retryIfSourceChainHeadMoved } from './utils'
 import { callZome } from './callZome'
 
-export const CHUNK_SIZE = 20
-const calculateRemainder = messageCount => messageCount % CHUNK_SIZE
-const calculateQuotient = messageCount => Math.floor(messageCount / CHUNK_SIZE)
-const calculateCurrentMsgs = (chunkRemainder, chunkQuotient) => (chunkQuotient * CHUNK_SIZE) + chunkRemainder
-const calculateTotalMsgs = (chunkRemainder, channel) => {
-  return chunkRemainder
-    ? (channel.latestChunk) * CHUNK_SIZE + chunkRemainder
-    : (chunkRemainder === 0 && (channel.messages || []).length > 0)
-      ? (channel.latestChunk + 1) * CHUNK_SIZE
-      : channel.latestChunk * CHUNK_SIZE
-}
-
 function sortChannels(val) {
   val.sort((a, b) => (a.info.name > b.info.name ? 1 : -1))
   return val
@@ -30,9 +18,10 @@ function storeChannels(channels) {
       messageCount: 0,
       unseen: false
     }
-    const currentChannelMsgCount = (channel.messages || []).length
-    const chunkRemainder = calculateRemainder(currentChannelMsgCount)
-    const messageCount = calculateTotalMsgs(chunkRemainder, channel) || storedChannel.messageCount
+
+    // TODO: this logic needs updating to track the most recent message seen in each channel
+
+    const messageCount = 0
 
     acc[id] = {
       ...storedChannel,
@@ -192,47 +181,23 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    getMessageChunk: async ({ state, commit, rootState, dispatch }, { channel, latestChunk, activeChatter, firstChunkLoad }) => {
-      if (!latestChunk) {
-        latestChunk = 0
+    listMessages: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count, active_chatter }) => {      
+      
+      const payload = { 
+        channel,
+        earlier_than,
+        target_message_count,
+        active_chatter
       }
 
-      const channelMsgCount = channel.currentMessageCount || CHUNK_SIZE
-      const chunkRemainder = calculateRemainder(channelMsgCount)
-      const chunkQuotient = calculateQuotient(channelMsgCount)
-      const loadedChunkEarliest = chunkRemainder ? chunkQuotient + 1 : chunkQuotient
-      const loadedChunkOldest = loadedChunkEarliest - 1
-
-      let chunkStart = (firstChunkLoad && latestChunk > 0)
-        ? latestChunk - 1
-        : firstChunkLoad
-          ? latestChunk
-          : (loadedChunkEarliest === 1)
-            ? 0
-            : latestChunk - loadedChunkEarliest
-
-      let chunkEnd = (firstChunkLoad || latestChunk === 0)
-        ? latestChunk
-        : chunkStart === 0
-          ? 1
-          : latestChunk - loadedChunkOldest
-
-      if (chunkStart < 0) {
-        chunkStart = 0
-        chunkEnd = 1
-      }
-
-      if (chunkStart >= 0) {
-        const payload = { channel: channel.entry, chunk: { start: chunkStart, end: chunkEnd }, active_chatter: activeChatter || true }
-        return callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
-          .then(async result => {
-            if (result) {
-              // NOTE: messages will be aggregated with current messages in following chain of fns
-              handleListMessagesResult(state, commit, channel.entry.uuid, result.messages)
-            }
-          })
-          .catch(error => log('listMessages zome error', error))
-      }
+      return callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
+        .then(async result => {
+          if (result) {
+            // NOTE: messages will be aggregated with current messages in following chain of fns
+            handleListMessagesResult(state, commit, channel_id, result.messages)
+          }
+        })
+        .catch(error => log('listMessages zome error', error))
     },
     listAllMessages({ commit, state, rootState, dispatch, getters }) {
       // NOTE: To reduce the inital load expense, we have decided to call list_channels, then get only load first chuck for each channel
@@ -250,7 +215,12 @@ export default {
             }
 
             result.channels.forEach(channel => {
-              dispatch('getMessageChunk', { channel: channel, latestChunk: channel.latestChunk, activeChatter: false, firstChunkLoad: true })
+              dispatch('listMessages', { 
+                channel, 
+                earlier_than: null,
+                target_message_count: 20,
+                activeChatter: true
+              })
             })
           }
         })
@@ -296,16 +266,6 @@ export default {
         payload.channel.totalMessageCount = 0
       }
 
-      const newTotalMessageCount = payload.channel.totalMessageCount + 1 // adding the new message to count
-      const chunkRemainder = calculateRemainder(newTotalMessageCount)
-      const chunkQuotient = calculateQuotient(newTotalMessageCount)
-
-      const chunk = CHUNK_SIZE > newTotalMessageCount
-        ? 0
-        : chunkRemainder === 0
-          ? chunkQuotient - 1
-          : chunkQuotient
-
       const holochainPayload = {
         last_seen: lastSeen,
         channel: payload.channel.entry,
@@ -313,7 +273,7 @@ export default {
           uuid: uuidv4(),
           content: `${state.agentHandle}: ${payload.content}`
         },
-        chunk
+        chunk: 0
       }
 
       let message
@@ -331,11 +291,6 @@ export default {
       }
 
       const channel = payload.channel
-      if (chunk !== channel.latestChunk) {
-        console.log('Note: Resetting channel.latestChunk to match response from DNA...')
-        // optimistically update channel chunk before next pull
-        channel.latestChunk = chunk
-      }
 
       commit('addMessagesToChannel', { channel, messages: [message] })
       message.entryHash = toUint8Array(message.entryHash)
@@ -351,6 +306,7 @@ export default {
         return msg
       })
       const chatters = payload.channel.activeChatters.map(c => toUint8Array(c))
+
       dispatch('signalSpecificChatters', {
         signal_message_data: {
           messageData: message,
@@ -363,47 +319,6 @@ export default {
     signalSpecificChatters: async ({ rootState, dispatch }, payload) => {
       callZome(dispatch, rootState, 'chat', 'signal_specific_chatters', payload, 60000)
         .catch(error => log('signalSpecificChatters zome error:', error))
-    },
-    async listMessages({ commit, state, rootState, dispatch }, payload) {
-      const holochainPayload = {
-        channel: payload.channel.entry,
-        chunk: payload.chunk,
-        active_chatter: payload.active_chatter
-      }
-
-      callZome(
-        dispatch,
-        rootState,
-        'chat',
-        'list_messages',
-        holochainPayload,
-        30000
-      )
-        .then(result => {
-          if (result.messages.length > 0) {
-            const messageHash = toUint8Array(
-              result.messages[result.messages.length - 1].entryHash
-            )
-            payload.channel.last_seen = {
-              Message: messageHash
-            }
-          }
-          handleListMessagesResult(state, commit, payload.channel.entry.uuid, [...result.messages])
-
-          let messages = [...result.messages]
-
-          messages.sort((a, b) => a.createdAt - b.createdAt)
-          messages = messages.map((msg) => {
-            msg.createdBy = toUint8Array(msg.createdBy)
-            return msg
-          })
-
-          commit('addMessagesToChannel', {
-            channel: payload.channel,
-            messages
-          })
-        })
-        .catch(error => log('listMessages zome done', error))
     },
     refreshChatter({ dispatch, rootState }) {
       retryIfSourceChainHeadMoved(() => callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000))
@@ -447,12 +362,6 @@ export default {
 
       channel.messages = [...channel.messages, message].sort((a, b) => a.createdAt - b.createdAt)
 
-      const chunkRemainder = calculateRemainder(channel.messages.length)
-      const chunkQuotient = calculateQuotient(channel.messages.length)
-      const totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
-      channel.currentMessageCount = calculateCurrentMsgs(chunkRemainder, chunkQuotient)
-      channel.totalMessageCount = totalMessageCount
-
       // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
       const storedChannel = getStoredChannel(channel.entry.uuid)
       if (state.currentChannelId !== channel.entry.uuid &&
@@ -493,11 +402,6 @@ export default {
       }
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
         .sort((a, b) => a.createdAt - b.createdAt)
-      const chunkRemainder = calculateRemainder(channel.messages.length)
-      const chunkQuotient = calculateQuotient(channel.messages.length)
-      const totalMessageCount = calculateTotalMsgs(chunkRemainder, channel)
-      channel.currentMessageCount = calculateCurrentMsgs(chunkRemainder, chunkQuotient)
-      channel.totalMessageCount = totalMessageCount
 
       // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
       if (state.currentChannelId !== channel.entry.uuid &&
