@@ -166,6 +166,7 @@ export default {
         name: payload.info.name,
         entry: payload.entry
       }
+
       callZome(
         dispatch,
         rootState,
@@ -181,20 +182,25 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    listMessages: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count, active_chatter }) => {      
+    listMessagesPage: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count, active_chatter }) => {      
       
       const payload = { 
-        channel,
+        channel: channel.entry,
         earlier_than,
         target_message_count,
-        active_chatter
+        active_chatter: active_chatter || true
       }
 
-      return callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
+      console.log(
+        '^&* listMessagesPage payload',
+        payload,
+      )
+
+      return callZome(dispatch, rootState, 'chat', 'list_page_messages', payload, 50000)
         .then(async result => {
           if (result) {
             // NOTE: messages will be aggregated with current messages in following chain of fns
-            handleListMessagesResult(state, commit, channel_id, result.messages)
+            handleListMessagesResult(state, commit, channel.entry.uuid, result.messages)
           }
         })
         .catch(error => log('listMessages zome error', error))
@@ -215,9 +221,9 @@ export default {
             }
 
             result.channels.forEach(channel => {
-              dispatch('listMessages', { 
+              dispatch('listMessagesPage', { 
                 channel, 
-                earlier_than: null,
+                earlier_than:  Date.now() * 1000,
                 target_message_count: 20,
                 activeChatter: true
               })
@@ -260,10 +266,6 @@ export default {
         lastSeen = {
           Message: toUint8Array(lastSeen.Message)
         }
-      }
-
-      if (payload.channel.totalMessageCount === undefined) {
-        payload.channel.totalMessageCount = 0
       }
 
       const holochainPayload = {
@@ -363,13 +365,7 @@ export default {
       channel.messages = [...channel.messages, message].sort((a, b) => a.createdAt - b.createdAt)
 
       // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
-      const storedChannel = getStoredChannel(channel.entry.uuid)
-      if (state.currentChannelId !== channel.entry.uuid &&
-        totalMessageCount > storedChannel.messageCount
-      ) {
-        const { unseen } = _setUnseen(state, channel.entry.uuid)
-        channel.unseen = unseen
-      }
+      // TODO
 
       console.log('CHANNEL complete : ', channel)
 
@@ -404,12 +400,7 @@ export default {
         .sort((a, b) => a.createdAt - b.createdAt)
 
       // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
-      if (state.currentChannelId !== channel.entry.uuid &&
-        totalMessageCount > storedChannel.messageCount
-      ) {
-        const { unseen } = _setUnseen(state, channel.entry.uuid)
-        channel.unseen = unseen
-      }
+      // TODO
 
       console.log('CHANNEL complete : ', channel)
 
@@ -511,7 +502,7 @@ export default {
       }
     },
     channelsLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_channel || isLoading.list_channels,
-    listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_messages,
+    listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_page_messages,
     createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message
   }
 }

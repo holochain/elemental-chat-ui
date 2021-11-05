@@ -1,12 +1,12 @@
 <template>
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
-      <v-card v-if="showLoadButton" style="display: grid" aria-label='Load More'>
+      <v-card style="display: grid" aria-label='Load More'>
         <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" class='pagination-button' aria-label="Load More Button">
           Check For More Messages
         </v-btn>
       <div><Spinner v-if='listMessagesLoading' size='18px' class='message-subheader' /></div>
-      <div><p size='18px' class='message-subheader'>{{ this.earliestDate }}</p></div>
+      <div><p size='18px' class='message-subheader'>{{ this.presentedEarliestDate }}</p></div>
       </v-card>
       <ul class="pb-10 pl-0" aria-label="Message List">
         <li
@@ -30,7 +30,7 @@
 </template>
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex'
-import { arrayBufferToBase64, formPaginationDateTime, shouldAllowPagination } from '@/store/utils'
+import { arrayBufferToBase64, presentPaginationDateTime } from '@/store/utils'
 import Message from './Message.vue'
 import Spinner from './Spinner'
 
@@ -52,24 +52,18 @@ export default {
     messages () {
       return this.channel.messages
     },
-    showLoadButton () {
-      return shouldAllowPagination(this.channel)
-    },
-    totalMessageCount () {
-      return this.channel.totalMessageCount
-    },
-    currentMessageCount () {
-      return this.channel.currentMessageCount
-    },
     earliestDate () {
       // TODO: this should always return a date. the false clause should return now
       return this.messages[0]
-        ? formPaginationDateTime(this.messages[0])
-        : ''
+        ? this.messages[0].createdAt
+        : (Date.now() * 1000)
+    },
+    presentedEarliestDate () {
+      return presentPaginationDateTime(this.earliestDate)
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['createMessage', 'listMessages']),
+    ...mapActions('elementalChat', ['createMessage', 'listMessagesPage']),
     handleCreateMessage (content) {
       this.scrollToEnd()
       this.createMessage({
@@ -101,10 +95,10 @@ export default {
     },
     loadMoreMessages () {
       this.lastSeenMsgId = this.messages[0].entry.uuid
-      this.listMessages({
+      this.listMessagesPage({
         channel: this.channel,
-        earlier_than: this.earliestDate(),
-        target_message_count: 20,
+        earlier_than: this.earliestDate,
+        target_message_count: 31,
         active_chatter: true
       })
     },

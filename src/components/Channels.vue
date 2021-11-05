@@ -21,24 +21,24 @@
         </template>
         <span>Check for new channels</span>
       </v-tooltip>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            id="add-channel"
+            color="action"
+            icon
+            v-bind="attrs"
+            v-on="on"
+            @click="showingAdd = true"
+            small
+            aria-label="Add New Channel"
+          >
+            <v-icon>mdi-chat-plus-outline</v-icon>
+          </v-btn>
+        </template>
+        <span>Add a public Channel.</span>
+      </v-tooltip>  
     </v-toolbar>
-    <v-tooltip bottom>
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          id="add-channel"
-          color="action"
-          icon
-          v-bind="attrs"
-          v-on="on"
-          @click="showingAdd = true"
-          small
-          aria-label="Add New Channel"
-        >
-          <v-icon>mdi-chat-plus-outline</v-icon>
-        </v-btn>
-      </template>
-      <span>Add a public Channel.</span>
-    </v-tooltip>
     <v-card height="100%" outlined dark>
       <v-row class="mx-0  channels-container" justify="center" align="start">
         <v-col cols="12">
