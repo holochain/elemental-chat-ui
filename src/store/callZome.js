@@ -7,8 +7,6 @@ const callZomeHolo = (_, state, zomeName, fnName, payload) => {
   return state.holoClient.zomeCall(state.dnaAlias, zomeName, fnName, payload)
 }
 
-// const callZomeLocal = mockCallZome
-
 const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
   if (!state.holochainClient) {
     throw new UndefinedClientError(

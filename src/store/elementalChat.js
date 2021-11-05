@@ -33,17 +33,6 @@ function storeChannels(channels) {
   }, {})))
 }
 
-function storeChannelUnseen(id, unseen) {
-  const currentChannelCounts = JSON.parse(window.localStorage.getItem('channels') || '{}')
-  window.localStorage.setItem('channels', JSON.stringify({
-    ...currentChannelCounts,
-    [id]: {
-      ...currentChannelCounts[id],
-      unseen
-    }
-  }))
-}
-
 function getStoredStats() {
   const channelCountsString = window.localStorage.getItem('channels')
 
@@ -364,10 +353,10 @@ export default {
 
       channel.messages = [...channel.messages, message].sort((a, b) => a.createdAt - b.createdAt)
 
-      // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
-      // TODO
-
-      console.log('CHANNEL complete : ', channel)
+      if (channel.entry.uuid !== state.currentChannelId) {
+        // TODO: this should be more sophisticated, taking into account what has previously been seen
+        channel.unseen = true
+      }
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
@@ -390,19 +379,17 @@ export default {
       )
       if (!doesChannelExist) return
 
-      const storedChannel = getStoredChannel(channel.entry.uuid)
       if (channel.messages === undefined) {
         channel.messages = []
-        // if this channel doesn't have any messages yet, we restore the unseen status
-        channel.unseen = storedChannel.unseen
       }
+
+      if (channel.entry.uuid !== state.currentChannelId) {
+        // TODO: this should be more sophisticated, taking into account what has previously been seen
+        channel.unseen = true
+      }
+
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
         .sort((a, b) => a.createdAt - b.createdAt)
-
-      // Set the updated channel to unseen if it's not the current channel and if it now has more messages than our stored count
-      // TODO
-
-      console.log('CHANNEL complete : ', channel)
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
@@ -424,7 +411,6 @@ export default {
 
       if (channel) {
         channel.unseen = false
-        storeChannelUnseen(uuid, false)
       }
     },
     addChannels(state, newChannels) {
@@ -439,9 +425,6 @@ export default {
         }))
 
       storeChannels(state.channels)
-    },
-    setUnseen(state, payload) {
-      _setUnseen(state, payload)
     },
     setLoadingChannelContent(state, { addList, removeById }) {
       if (addList) {
@@ -505,15 +488,4 @@ export default {
     listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_page_messages,
     createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message
   }
-}
-
-function _setUnseen(state, uuid) {
-  // find channel by uuid and update unseen when found
-  const channel = state.channels.find(channel => channel.entry.uuid === uuid)
-
-  if (channel) {
-    channel.unseen = true
-    storeChannelUnseen(uuid)
-  }
-  return channel
 }
