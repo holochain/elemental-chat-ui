@@ -43,26 +43,6 @@ function storeChannels(channels) {
   }, {})))
 }
 
-function getStoredStats() {
-  const channelCountsString = window.localStorage.getItem('channels')
-
-  const zeroStats = {
-    channelCount: 0,
-    messageCount: 0
-  }
-
-  if (channelCountsString) {
-    const channelCounts = JSON.parse(channelCountsString)
-    return Object.entries(channelCounts).reduce((acc, [_, { messageCount }]) => {
-      acc.channelCount++
-      acc.messageCount += messageCount
-      return acc
-    }, zeroStats)
-  } else {
-    return zeroStats
-  }
-}
-
 function getStoredChannel(id) {
   const channels = JSON.parse(window.localStorage.getItem('channels') || '{}')
   if (channels[id]) {
@@ -138,8 +118,20 @@ export default {
         return
       }
 
+      const {
+        channelCount,
+        messageCount
+      } = rootState.elementalChat.channels.reduce((acc, channel) => ({
+        channelCount: acc.channelCount + 1,
+        messageCount: acc.messageCount + channel.messages.length
+      }), {
+        channelCount: 0,
+        messageCount: 0
+      })
+
       commit('setStats', {
-        ...getStoredStats(),
+        channelCount,
+        messageCount,
         agentCount: stats.agents,
         activeCount: stats.active
       })
