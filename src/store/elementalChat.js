@@ -9,23 +9,33 @@ function sortChannels(val) {
   return val
 }
 
+function getLastMessageId (channel) {
+  const lastMessage = channel.messages.length > 0 
+  ? channel.messages[channel.messages.length - 1]
+  : null
+
+  const lastMessageId = lastMessage
+    ? lastMessage.entry.uuid
+    : null
+
+  return lastMessageId
+}
+
 function storeChannels(channels) {
   const storedChannels = JSON.parse(window.localStorage.getItem('channels') || '{}')
   window.localStorage.setItem('channels', JSON.stringify(channels.reduce((acc, channel) => {
     const id = channel.entry.uuid
 
     const storedChannel = storedChannels[id] || {
-      messageCount: 0,
+      lastMessageId: null,
       unseen: false
     }
 
-    // TODO: this logic needs updating to track the most recent message seen in each channel
-
-    const messageCount = 0
+    const lastMessageId = getLastMessageId(channel) || storedChannel.lastMessageId
 
     acc[id] = {
       ...storedChannel,
-      messageCount,
+      lastMessageId,
       unseen: channel.unseen || storedChannel.unseen // overwrites with stored value because if unseen isn't set, we just did a page load
     }
 
@@ -61,7 +71,7 @@ function getStoredChannel(id) {
     console.error(`tried to find message count for unknown channel ${id}`)
     return {
       unseen: false,
-      messageCount: 0
+      lastMessageId: null
     }
   }
 }
@@ -343,13 +353,16 @@ export default {
         channel.messages = []
       }
 
-      if (channel.entry.uuid !== state.currentChannelId) {
-        // TODO: this should be more sophisticated, taking into account what has previously been seen
-        channel.unseen = true
-      }
-
       channel.messages = uniqBy([...channel.messages, ...messages], message => message.entry.uuid)
         .sort((a, b) => a.createdAt - b.createdAt)
+
+      const storedChannel = getStoredChannel(channelId)
+
+      if (channel.entry.uuid !== state.currentChannelId &&
+          storedChannel.lastMessageId !== getLastMessageId(channel)) {
+        channel.unseen = true
+      }
+  
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
@@ -358,9 +371,7 @@ export default {
           return c
         }
       })
-
-      // Update stats. This is a relatively expensive thing to do. There are definitely more effecient ways of updating.
-      // If the UI seems sluggish, look here for possible optimizations.
+      
       storeChannels(state.channels)
     },
     setCurrentChannelId(state, uuid) {
