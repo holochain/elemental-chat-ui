@@ -83,12 +83,9 @@ export const handleSignal = (signal, dispatch) => {
   }
 }
 
-const handleListMessagesResult = (state, commit, channelId, messages) => {
-  const channel = state.channels.find(
-    c => c.entry.uuid === channelId
-  )
+const handleListMessagesResult = (_, commit, channelId, messages) => {
   commit('addMessagesToChannel', {
-    channel,
+    channelId,
     messages: messages.map((msg) => {
       msg.createdBy = toUint8Array(msg.createdBy)
       return msg
@@ -238,9 +235,9 @@ export default {
     handleMessageSignal: ({ commit }, payload) => {
       log('adding signal message: ', payload)
       commit('addChannels', [payload.channelData])
-      commit('addMessage', {
+      commit('addMessagesToChannel', {
         channelId: payload.channelData.entry.uuid,
-        message: payload.messageData
+        messages: [payload.messageData]
       })
     },
     createMessage: async (
@@ -283,7 +280,7 @@ export default {
 
       const channel = payload.channel
 
-      commit('addMessagesToChannel', { channel, messages: [message] })
+      commit('addMessagesToChannel', { channelId: channel.entry.uuid, messages: [message] })
       message.entryHash = toUint8Array(message.entryHash)
       message.createdBy = toUint8Array(message.createdBy)
 
@@ -342,42 +339,11 @@ export default {
     }
   },
   mutations: {
-    addMessage(state, { channelId, message }) {
+    addMessagesToChannel(state, { channelId, messages }) {
       const channel = { ...state.channels.find(channel => channel.entry.uuid === channelId) }
 
-      if (!channel) {
-        throw new Error(`Tried to add message to channel we don't have: ${channelId}`)
-      }
-
-      if (channel.messages.some(channelMessage => channelMessage.entry.uuid === message.entry.uuid)) return
-
-      channel.messages = [...channel.messages, message].sort((a, b) => a.createdAt - b.createdAt)
-
-      if (channel.entry.uuid !== state.currentChannelId) {
-        // TODO: this should be more sophisticated, taking into account what has previously been seen
-        channel.unseen = true
-      }
-
-      state.channels = state.channels.map(c => {
-        if (c.entry.uuid === channel.entry.uuid) {
-          return channel
-        } else {
-          return c
-        }
-      })
-
-      // Update stats. This is a relatively expensive thing to do. There are definitely more effecient ways of updating.
-      // If the UI seems sluggish, look here for possible optimizations.
-      storeChannels(state.channels)
-    },
-    addMessagesToChannel(state, payload) {
-      const { channel, messages } = payload
-
       // verify channel (within which the message belongs) exists
-      const doesChannelExist = state.channels.find(
-        c => c.entry.uuid === channel.entry.uuid
-      )
-      if (!doesChannelExist) return
+      if (!channel) return
 
       if (channel.messages === undefined) {
         channel.messages = []
