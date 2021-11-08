@@ -10,6 +10,10 @@ export function isAnonymousEnabled () {
   return process.env.VUE_APP_ANONYMOUS === 'enabled'
 }
 
+export function shouldShowAddChannel () {
+  return !process.env.VUE_APP_HIDE_ADD_CHANNEL
+}
+
 export function toUint8Array (value) {
   if (!value) throw new Error("No value provided to 'toUnit8Array' function")
   if (!!value.type && value.type === 'Buffer') {

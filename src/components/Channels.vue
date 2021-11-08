@@ -21,7 +21,7 @@
         </template>
         <span>Check for new channels</span>
       </v-tooltip>
-      <v-tooltip bottom>
+      <v-tooltip v-if="shouldShowAddChannel" bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn
             id="add-channel"
@@ -44,7 +44,7 @@
         <v-col cols="12">
           <v-text-field
             id="channel-name"
-            v-if="showChannelInput"
+            v-if="showChannelInput && shouldShowAddChannel"
             v-model="actionChannel.info.name"
             label="Channel Name"
             dense
@@ -85,6 +85,7 @@
 import { mapState, mapGetters, mapActions } from 'vuex'
 import { v4 as uuidv4 } from 'uuid'
 import Spinner from './Spinner'
+import { shouldShowAddChannel } from '../utils'
 
 const makeEmptyChannel = () => ({
   info: { name: '' },
@@ -128,7 +129,8 @@ export default {
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
     showChannelInput () {
       return this.showingAdd || !this.channels.length
-    }
+    },
+    shouldShowAddChannel
   },
   watch: {
     showingAdd () {
