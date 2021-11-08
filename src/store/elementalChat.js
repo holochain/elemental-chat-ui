@@ -168,19 +168,13 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    listMessagesPage: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count, active_chatter }) => {      
-      
+    listMessagesPage: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count, active_chatter }) => {            
       const payload = { 
         channel: channel.entry,
         earlier_than,
         target_message_count,
         active_chatter: active_chatter || true
       }
-
-      console.log(
-        '^&* listMessagesPage payload',
-        payload,
-      )
 
       return callZome(dispatch, rootState, 'chat', 'list_page_messages', payload, 50000)
         .then(async result => {

@@ -24,11 +24,6 @@ export const presentPaginationDateTime = us => {
   return `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
 }
 
-export const shouldAllowPagination = channel => {
-  // if the messages in display equal the total amount stored
-  return channel.currentMessageCount !== channel.totalMessageCount
-}
-
 // NB: This is a hack to cleanly monitor ws calls in puppeteer
 
 // As we no longer use json-rpc calls, we no longer have a unique id associated with each call.

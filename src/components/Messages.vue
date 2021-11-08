@@ -73,15 +73,7 @@ export default {
     },
     onScroll () {
       const container = this.$el.querySelector('#container')
-      // NOTE: Set last seen message to top of scroll upon pagination trigger
-      // -- (we handle this here bc the full list of new messages has been rendered to dom)
-      if (this.lastSeenMsgId) {
-        container.scrollTop = 0
-        const offset = document.getElementById(this.lastSeenMsgId).getBoundingClientRect().top - document.getElementById(this.lastSeenMsgId).offsetParent.getBoundingClientRect().top
-        container.scrollTop = offset
-        // set datetime string for polling reference
-        this.lastSeenMsgId = null
-      }
+
       this.userIsScrolling = true
       const height = container.offsetHeight + Math.abs(container.scrollTop)
       if (height === container.scrollHeight) {
@@ -93,14 +85,22 @@ export default {
       const container = this.$el.querySelector('#container')
       container.scrollTop = container.scrollHeight
     },
-    loadMoreMessages () {
-      this.lastSeenMsgId = this.messages[0].entry.uuid
-      this.listMessagesPage({
+    scrollToMessage (id) {
+      container.scrollTop = 0
+      const messageElement = document.getElementById(id)
+      const offset = messageElement.getBoundingClientRect().top - messageElement.offsetParent.getBoundingClientRect().top
+      container.scrollTop = offset - 100
+    },
+    async loadMoreMessages () {
+      const lastSeenMsgId = this.messages[0].entry.uuid
+      this.lastSeenMsgId = lastSeenMsgId
+      await this.listMessagesPage({
         channel: this.channel,
         earlier_than: this.earliestDate - (60 * 60 * 1000 * 1000), // TODO: this is a hack to work around a dna bug. This should be removed once that bug is fixed
         target_message_count: 20,
         active_chatter: true
       })
+      this.scrollToMessage(lastSeenMsgId)
     },
     isMyMessage (message) {
       return arrayBufferToBase64(message.createdBy) === arrayBufferToBase64(this.agentKey)
@@ -109,13 +109,6 @@ export default {
   watch: {
     channel () {
       this.scrollToEnd()
-    },
-    currentMessageCount (currentCount) {
-      if (currentCount && this.lastSeenMsgId) {
-        const container = this.$el.querySelector('#container')
-        // trigger onscroll
-        container.scrollTop = container.scrollHeight
-      }
     },
     createMessageLoading (isLoading) {
       if (!isLoading) {
