@@ -59,6 +59,7 @@
               v-for="(channel, i) in channels"
               :key="i"
               @click="openChannel(channel.entry.uuid)"
+              :class="['channel', { isCurrent: isCurrentChannel(channel.entry.uuid) }]"
               aria-label="Channel List Items"
             >
               <v-list-item-icon class='channel-icons'>
@@ -67,10 +68,10 @@
               </v-list-item-icon>
 
               <v-list-item-content>
-                <v-list-item-title v-if="channel" v-text="channel.info.name" v-bind:class="{ isLoading: showIsLoading(channel.entry.uuid) }" />
+                <v-list-item-title v-if="channel" v-text="channel.info.name" :class="{ isLoading: showIsLoading(channel.entry.uuid) }" />
               </v-list-item-content>
 
-              <span v-if="showIsLoading(channel.entry.uuid)"><Spinner size='13px' class='spinner' v-bind:class="{ isLoading: showIsLoading(channel.entry.uuid) }" /></span>
+              <span v-if="showIsLoading(channel.entry.uuid)"><Spinner size='13px' class='spinner' :class="{ isLoading: showIsLoading(channel.entry.uuid) }" /></span>
 
             </v-list-item>
           </v-list>
@@ -122,15 +123,18 @@ export default {
     },
     showIsLoading (id) {
       return !!(this.loadingChannelContent.find(channel => channel.entry.uuid === id))
+    },
+    isCurrentChannel(id) {
+      return this.currentChannelId === id  
     }
   },
   computed: {
-    ...mapState('elementalChat', ['channels', 'loadingChannelContent']),
+    ...mapState('elementalChat', ['channels', 'loadingChannelContent', 'currentChannelId']),
     ...mapGetters('elementalChat', ['channel', 'channelsLoading']),
     showChannelInput () {
       return this.showingAdd || !this.channels.length
     },
-    shouldShowAddChannel
+    shouldShowAddChannel,
   },
   watch: {
     showingAdd () {
@@ -152,6 +156,13 @@ export default {
 }
 .isLoading {
   color: #737e77;
+}
+.channel {
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.isCurrent {
+  border-color: #999;
 }
 .spinner {
   margin-top: -4px;
