@@ -11,7 +11,7 @@ export function isAnonymousEnabled () {
 }
 
 export function shouldShowAddChannel () {
-  return !process.env.VUE_APP_HIDE_ADD_CHANNEL
+  return process.env.VUE_APP_HIDE_ADD_CHANNEL !== 'true'
 }
 
 export function toUint8Array (value) {

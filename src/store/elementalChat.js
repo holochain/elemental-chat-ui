@@ -21,26 +21,35 @@ function getLastMessageId (channel) {
   return lastMessageId
 }
 
-function storeChannels(channels) {
+// function storeChannels(channels) {
+//   const storedChannels = JSON.parse(window.localStorage.getItem('channels') || '{}')
+//   window.localStorage.setItem('channels', JSON.stringify(channels.reduce((acc, channel) => {
+//     const id = channel.entry.uuid
+
+//     const storedChannel = storedChannels[id] || {
+//       lastMessageId: null,
+//     }
+
+//     const lastMessageId = getLastMessageId(channel) || storedChannel.lastMessageId
+
+//     acc[id] = {
+//       ...storedChannel,
+//       lastMessageId
+//     }
+
+//     return acc
+//   }, {})))
+// }
+
+function storeLastMessageId(channelId, lastMessageId) {
   const storedChannels = JSON.parse(window.localStorage.getItem('channels') || '{}')
-  window.localStorage.setItem('channels', JSON.stringify(channels.reduce((acc, channel) => {
-    const id = channel.entry.uuid
-
-    const storedChannel = storedChannels[id] || {
-      lastMessageId: null,
-      unseen: false
+  window.localStorage.setItem('channels', JSON.stringify({
+    ...channels,
+    [channelId]: {
+      ...channels[channelId], // currently empty, but leaving it this way for if we want to store more meta data per channel
+      lastMessageId
     }
-
-    const lastMessageId = getLastMessageId(channel) || storedChannel.lastMessageId
-
-    acc[id] = {
-      ...storedChannel,
-      lastMessageId,
-      unseen: channel.unseen || storedChannel.unseen // overwrites with stored value because if unseen isn't set, we just did a page load
-    }
-
-    return acc
-  }, {})))
+  }))
 }
 
 function getStoredChannel(id) {
@@ -50,7 +59,6 @@ function getStoredChannel(id) {
   } else {
     console.error(`tried to find message count for unknown channel ${id}`)
     return {
-      unseen: false,
       lastMessageId: null
     }
   }
@@ -363,8 +371,6 @@ export default {
           return c
         }
       })
-      
-      storeChannels(state.channels)
     },
     setCurrentChannelId(state, uuid) {
       state.currentChannelId = uuid
@@ -374,6 +380,7 @@ export default {
 
       if (channel) {
         channel.unseen = false
+        storeLastMessageId(uuid, getLastMessageId(channel))
       }
     },
     addChannels(state, newChannels) {
@@ -386,8 +393,6 @@ export default {
           messages: [],
           ...c
         }))
-
-      storeChannels(state.channels)
     },
     setLoadingChannelContent(state, { addList, removeById }) {
       if (addList) {

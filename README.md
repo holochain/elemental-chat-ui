@@ -47,6 +47,10 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
   - holo host (self-hosted): `yarn clear:hc && yarn clear:lair`
   - holo-hosted web user: `yarn clear:hc-holo`
 
+### Other environment variables
+#### VUE_APP_HIDE_ADD_CHANNEL
+Setting this to `VUE_APP_HIDE_ADD_CHANNEL=true` before running a `serve` or `build` command will hide the "add channel" button in the ui.
+
 ## How to run automated tests:
 All tests
 - `yarn test`
