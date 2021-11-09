@@ -429,7 +429,7 @@ export default {
       }
     },
     channelsLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_channel || isLoading.list_channels,
-    listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_page_messages,
+    listMessagesLoading: (_, __, { holochain: { isLoading } }) => isLoading.list_messages,
     createMessageLoading: (_, __, { holochain: { isLoading } }) => isLoading.create_message
   }
 }
