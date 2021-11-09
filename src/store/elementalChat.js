@@ -157,10 +157,10 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    listMessagesPage: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count }) => {            
+    listMessages: async ({ state, commit, rootState, dispatch }, { channel, earliest_seen, target_message_count }) => {            
       const payload = { 
         channel: channel.entry,
-        earlier_than,
+        earliest_seen,
         target_message_count,
       }
 
@@ -189,7 +189,7 @@ export default {
             }
 
             result.channels.forEach(channel => {
-              dispatch('listMessagesPage', { 
+              dispatch('listMessages', { 
                 channel, 
                 target_message_count: 20,
               })

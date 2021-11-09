@@ -63,7 +63,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['createMessage', 'listMessagesPage']),
+    ...mapActions('elementalChat', ['createMessage', 'listMessages']),
     handleCreateMessage (content) {
       this.scrollToEnd()
       this.createMessage({
@@ -95,9 +95,9 @@ export default {
     },
     async loadMoreMessages () {
       const lastSeenMsgId = this.messages[0] ? this.messages[0].entry.uuid : null
-      await this.listMessagesPage({
+      await this.listMessages({
         channel: this.channel,
-        earlier_than: this.earliestDate,
+        earliest_seen: this.earliestDate,
         target_message_count: 20,
       })
       this.scrollToMessage(lastSeenMsgId)
