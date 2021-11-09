@@ -86,14 +86,15 @@ export default {
       container.scrollTop = container.scrollHeight
     },
     scrollToMessage (id) {
+      if (!id) return
+      const container = this.$el.querySelector('#container')
       container.scrollTop = 0
       const messageElement = document.getElementById(id)
       const offset = messageElement.getBoundingClientRect().top - messageElement.offsetParent.getBoundingClientRect().top
       container.scrollTop = offset - 100
     },
     async loadMoreMessages () {
-      const lastSeenMsgId = this.messages[0].entry.uuid
-      this.lastSeenMsgId = lastSeenMsgId
+      const lastSeenMsgId = this.messages[0] ? this.messages[0].entry.uuid : null
       await this.listMessagesPage({
         channel: this.channel,
         earlier_than: this.earliestDate - (60 * 60 * 1000 * 1000), // TODO: this is a hack to work around a dna bug. This should be removed once that bug is fixed

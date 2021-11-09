@@ -21,32 +21,12 @@ function getLastMessageId (channel) {
   return lastMessageId
 }
 
-// function storeChannels(channels) {
-//   const storedChannels = JSON.parse(window.localStorage.getItem('channels') || '{}')
-//   window.localStorage.setItem('channels', JSON.stringify(channels.reduce((acc, channel) => {
-//     const id = channel.entry.uuid
-
-//     const storedChannel = storedChannels[id] || {
-//       lastMessageId: null,
-//     }
-
-//     const lastMessageId = getLastMessageId(channel) || storedChannel.lastMessageId
-
-//     acc[id] = {
-//       ...storedChannel,
-//       lastMessageId
-//     }
-
-//     return acc
-//   }, {})))
-// }
-
 function storeLastMessageId(channelId, lastMessageId) {
   const storedChannels = JSON.parse(window.localStorage.getItem('channels') || '{}')
   window.localStorage.setItem('channels', JSON.stringify({
-    ...channels,
+    ...storedChannels,
     [channelId]: {
-      ...channels[channelId], // currently empty, but leaving it this way for if we want to store more meta data per channel
+      ...storedChannels[channelId], // currently empty, but leaving it this way for if we want to store more meta data per channel
       lastMessageId
     }
   }))
@@ -57,7 +37,6 @@ function getStoredChannel(id) {
   if (channels[id]) {
     return channels[id]
   } else {
-    console.error(`tried to find message count for unknown channel ${id}`)
     return {
       lastMessageId: null
     }
