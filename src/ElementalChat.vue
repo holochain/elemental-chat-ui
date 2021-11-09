@@ -122,7 +122,7 @@
           </v-row>
           <v-row align="center">
             <v-col class="display-1" cols="6" aria-label="App Statistics Title">
-              Messages:
+              Loaded Messages:
             </v-col>
             <v-col class="display-1" cols="6">
               <span aria-label="App Total Messages">{{ stats.messageCount === undefined ? "--" : stats.messageCount }}</span> <span aria-label="Message Icon">🗨️</span>
