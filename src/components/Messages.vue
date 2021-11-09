@@ -97,9 +97,8 @@ export default {
       const lastSeenMsgId = this.messages[0] ? this.messages[0].entry.uuid : null
       await this.listMessagesPage({
         channel: this.channel,
-        earlier_than: this.earliestDate - (60 * 60 * 1000 * 1000), // TODO: this is a hack to work around a dna bug. This should be removed once that bug is fixed
+        earlier_than: this.earliestDate,
         target_message_count: 20,
-        active_chatter: true
       })
       this.scrollToMessage(lastSeenMsgId)
     },

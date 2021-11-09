@@ -157,15 +157,14 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    listMessagesPage: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count, active_chatter }) => {            
+    listMessagesPage: async ({ state, commit, rootState, dispatch }, { channel, earlier_than, target_message_count }) => {            
       const payload = { 
         channel: channel.entry,
         earlier_than,
         target_message_count,
-        active_chatter: active_chatter || true
       }
 
-      return callZome(dispatch, rootState, 'chat', 'list_page_messages', payload, 50000)
+      return callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
         .then(async result => {
           if (result) {
             // NOTE: messages will be aggregated with current messages in following chain of fns
@@ -192,9 +191,7 @@ export default {
             result.channels.forEach(channel => {
               dispatch('listMessagesPage', { 
                 channel, 
-                earlier_than:  Date.now() * 1000,
                 target_message_count: 20,
-                activeChatter: true
               })
             })
           }
