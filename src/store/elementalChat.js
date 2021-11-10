@@ -161,7 +161,7 @@ export default {
       const payload = { 
         channel: channel.entry,
         earliest_seen,
-        target_message_count,
+        target_message_count: target_message_count || 20,
       }
 
       return callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)

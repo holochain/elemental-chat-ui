@@ -16,6 +16,7 @@ describe('elementalChat store', () => {
   it('manages storeChannelUnseen count', async () => {
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(null)
     const channel1 = createNewChannel('Channel1', AGENT_KEY_MOCK, 1)
+
     await stubbedStore.dispatch('elementalChat/createChannel', channel1)
     expect(stubbedStore.state.elementalChat.currentChannelId).toEqual(1)
     await stubbedStore.dispatch('elementalChat/createChannel', createNewChannel('Channel2', AGENT_KEY_MOCK, 2))
@@ -30,7 +31,7 @@ describe('elementalChat store', () => {
     expect(stubbedStore.state.elementalChat.stats.messageCount).toEqual(0)
 
     stubbedStore.commit('elementalChat/addMessagesToChannel', {
-      channel: channel1,
+      channelId: channel1.entry.uuid,
       messages: [createNewMessage('new message', AGENT_KEY_MOCK, 11)]
     })
     expect(stubbedStore.state.elementalChat.channels[0].unseen).toEqual(false)
@@ -65,7 +66,7 @@ describe('elementalChat store', () => {
 
     // add messages to channel 4
     stubbedStore.commit('elementalChat/addMessagesToChannel', {
-      channel: channel4,
+      channelId: channel4.entry.uuid,
       messages: [createNewMessage('new message', AGENT_KEY_MOCK, 11)]
     })
 
@@ -80,6 +81,7 @@ describe('elementalChat store', () => {
     await store.dispatch('elementalChat/updateProfile', 'Alice')
     const channelId = 1
     const channel = createNewChannel('Channel1', AGENT_KEY_MOCK, channelId)
+
     await store.dispatch('elementalChat/createChannel', createNewChannel('Channel1', AGENT_KEY_MOCK, channelId))
     const storedChannel = () => store.state.elementalChat.channels[0]
     expect(storedChannel().messages.length).toEqual(0)
@@ -91,7 +93,7 @@ describe('elementalChat store', () => {
     ]
     // simulate initial messages loaded into channel
     store.commit('elementalChat/addMessagesToChannel', {
-      channel,
+      channelId: channel.entry.uuid,
       messages: initialMessages
     })
     expect(storedChannel().messages.length).toEqual(3)
@@ -120,7 +122,7 @@ describe('elementalChat store', () => {
     ]
     // simulate more messages arriving through gossip
     store.commit('elementalChat/addMessagesToChannel', {
-      channel: storedChannel(),
+      channelId: storedChannel().entry.uuid,
       messages: newMessages
     })
     expect(storedChannel().messages.length).toEqual(8)
