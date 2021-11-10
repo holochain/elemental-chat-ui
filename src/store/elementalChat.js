@@ -165,7 +165,7 @@ export default {
       }
 
       return callZome(dispatch, rootState, 'chat', 'list_messages', payload, 50000)
-        .then(async result => {
+        .then(result => {
           if (result) {
             // NOTE: messages will be aggregated with current messages in following chain of fns
             handleListMessagesResult(state, commit, channel.entry.uuid, result.messages)

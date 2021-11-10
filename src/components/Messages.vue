@@ -53,7 +53,6 @@ export default {
       return this.channel.messages
     },
     earliestDate () {
-      // TODO: this should always return a date. the false clause should return now
       return this.messages[0]
         ? this.messages[0].createdAt
         : (Date.now() * 1000)
@@ -91,6 +90,7 @@ export default {
       container.scrollTop = 0
       const messageElement = document.getElementById(id)
       const offset = messageElement.getBoundingClientRect().top - messageElement.offsetParent.getBoundingClientRect().top
+      // adjust the offset by - 100 to show some of the newly loaded, older messages on the page
       container.scrollTop = offset - 100
     },
     async loadMoreMessages () {
