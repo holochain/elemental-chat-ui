@@ -1,12 +1,12 @@
 <template>
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
-      <v-card v-if="showLoadButton" style="display: grid" aria-label='Load More'>
+      <v-card style="display: grid" aria-label='Load More'>
         <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" class='pagination-button' aria-label="Load More Button">
-          Check For More Messages
+          Load More Messages
         </v-btn>
       <div><Spinner v-if='listMessagesLoading' size='18px' class='message-subheader' /></div>
-      <div><p size='18px' class='message-subheader'>{{ this.earliestDate }}</p></div>
+      <div><p size='18px' class='message-subheader'>{{ this.presentedEarliestDate }}</p></div>
       </v-card>
       <ul class="pb-10 pl-0" aria-label="Message List">
         <li
@@ -30,7 +30,7 @@
 </template>
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex'
-import { arrayBufferToBase64, formPaginationDateTime, shouldAllowPagination } from '@/store/utils'
+import { arrayBufferToBase64, presentPaginationDateTime } from '@/store/utils'
 import Message from './Message.vue'
 import Spinner from './Spinner'
 
@@ -52,23 +52,17 @@ export default {
     messages () {
       return this.channel.messages
     },
-    showLoadButton () {
-      return shouldAllowPagination(this.channel)
-    },
-    totalMessageCount () {
-      return this.channel.totalMessageCount
-    },
-    currentMessageCount () {
-      return this.channel.currentMessageCount
-    },
     earliestDate () {
       return this.messages[0]
-        ? formPaginationDateTime(this.messages[0])
-        : ''
+        ? this.messages[0].createdAt
+        : (Date.now() * 1000)
+    },
+    presentedEarliestDate () {
+      return presentPaginationDateTime(this.earliestDate)
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['createMessage', 'getMessageChunk']),
+    ...mapActions('elementalChat', ['createMessage', 'listMessages']),
     handleCreateMessage (content) {
       this.scrollToEnd()
       this.createMessage({
@@ -78,15 +72,7 @@ export default {
     },
     onScroll () {
       const container = this.$el.querySelector('#container')
-      // NOTE: Set last seen message to top of scroll upon pagination trigger
-      // -- (we handle this here bc the full list of new messages has been rendered to dom)
-      if (this.lastSeenMsgId) {
-        container.scrollTop = 0
-        const offset = document.getElementById(this.lastSeenMsgId).getBoundingClientRect().top - document.getElementById(this.lastSeenMsgId).offsetParent.getBoundingClientRect().top
-        container.scrollTop = offset
-        // set datetime string for polling reference
-        this.lastSeenMsgId = null
-      }
+
       this.userIsScrolling = true
       const height = container.offsetHeight + Math.abs(container.scrollTop)
       if (height === container.scrollHeight) {
@@ -98,13 +84,23 @@ export default {
       const container = this.$el.querySelector('#container')
       container.scrollTop = container.scrollHeight
     },
-    loadMoreMessages () {
-      this.lastSeenMsgId = this.messages[0].entry.uuid
-      this.getMessageChunk({
+    scrollToMessage (id) {
+      if (!id) return
+      const container = this.$el.querySelector('#container')
+      container.scrollTop = 0
+      const messageElement = document.getElementById(id)
+      const offset = messageElement.getBoundingClientRect().top - messageElement.offsetParent.getBoundingClientRect().top
+      // adjust the offset by - 100 to show some of the newly loaded, older messages on the page
+      container.scrollTop = offset - 100
+    },
+    async loadMoreMessages () {
+      const lastSeenMsgId = this.messages[0] ? this.messages[0].entry.uuid : null
+      await this.listMessages({
         channel: this.channel,
-        latestChunk: this.channel.latestChunk,
-        activeChatter: true
+        earliest_seen: this.earliestDate,
+        target_message_count: 20,
       })
+      this.scrollToMessage(lastSeenMsgId)
     },
     isMyMessage (message) {
       return arrayBufferToBase64(message.createdBy) === arrayBufferToBase64(this.agentKey)
@@ -113,13 +109,6 @@ export default {
   watch: {
     channel () {
       this.scrollToEnd()
-    },
-    currentMessageCount (currentCount) {
-      if (currentCount && this.lastSeenMsgId) {
-        const container = this.$el.querySelector('#container')
-        // trigger onscroll
-        container.scrollTop = container.scrollHeight
-      }
     },
     createMessageLoading (isLoading) {
       if (!isLoading) {
