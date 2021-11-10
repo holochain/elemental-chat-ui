@@ -139,7 +139,6 @@ describe('Two Player Active Chat', () => {
   const newMessageContent = () => newMessage.entry.content
 
   it('calls refresh_chatter for user on page load ', async () => {
-    console.log('^&* 1\n^&* 1\n^&* 1\n^&* 1\n^&* 1\n^&* 1\n^&* 1\n')
     // verify page title
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
@@ -150,7 +149,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('displays new channels after pressing refresh button', async () => {
-    console.log('^&* 2\n^&* 2\n^&* 2\n^&* 2\n^&* 2\n^&* 2\n^&* 2\n')
     // alice (web) refreshes channel list
     const refreshChannelButton = await page.$('#refresh')
     await refreshChannelButton.click()
@@ -174,7 +172,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('creates and displays new channel', async () => {
-    console.log('^&* 3\n^&* 3\n^&* 3\n^&* 3\n^&* 3\n^&* 3\n^&* 3\n')
     await checkChannelState()
     // alice (web user) creates a channel
     newChannel.name = 'Alice Hangout Room'
@@ -234,7 +231,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('displays correct stats before and after new chatter', async () => {
-    console.log('^&* 4\n^&* 4\n^&* 4\n^&* 4\n^&* 4\n^&* 4\n^&* 4\n')
     await checkChannelState()
 
     // alice (web) clicks on get-stats
@@ -264,7 +260,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('creates and displays new message', async () => {
-    console.log('^&* 5\n^&* 5\n^&* 5\n^&* 5\n^&* 5\n^&* 5\n^&* 5\n')
     await checkChannelState()
     newPage = page
     const elementsWithText = await findElementsByText(
@@ -275,8 +270,6 @@ describe('Two Player Active Chat', () => {
     const newChannelElement = elementsWithText.pop()
     await newChannelElement.click()
     await wait(WAITTIME)
-
-    console.log('^&* 5.1\n^&* 5.1\n^&* 5.1\n^&* 5.1\n^&* 5.1\n^&* 5.1\n^&* 5.1\n')
 
     // new message
     newMessage.channel = channelInFocus.entry
@@ -290,8 +283,6 @@ describe('Two Player Active Chat', () => {
     page.keyboard.press(String.fromCharCode(13))
 
     const checkNewMessageState = () => callRegistry['chat.create_message']
-
-    console.log('^&* 5.2\n^&* 5.2\n^&* 5.2\n^&* 5.2\n^&* 5.2\n^&* 5.2\n^&* 5.2\n')
 
     await waitForState(
       checkNewMessageState,
@@ -314,8 +305,6 @@ describe('Two Player Active Chat', () => {
     console.log('message list : ', messages)
     expect(messages[0].entry.content).toContain(newMessageContent())
 
-    console.log('^&* 5.3\n^&* 5.3\n^&* 5.3\n^&* 5.3\n^&* 5.3\n^&* 5.3\n^&* 5.3\n')
-
     // check for new message content is on page
     newPage = page
     const [newMessageElement] = await findElementsByText(
@@ -333,8 +322,6 @@ describe('Two Player Active Chat', () => {
 
     await wait(WAITTIME)
 
-    console.log('^&* 5.4\n^&* 5.4\n^&* 5.4\n^&* 5.4\n^&* 5.4\n^&* 5.4\n^&* 5.4\n')
-
     // update expectedStats after message
     newStats = await handleZomeCall(bobboChat.call, [
       'chat',
@@ -346,7 +333,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('displays channels created by another agent', async () => {
-    console.log('^&* 6\n^&* 6\n^&* 6\n^&* 6\n^&* 6\n^&* 6\n^&* 6\n')
     await checkChannelState()
     await checkAgentsState()
     newChannel.name = 'Bobbo Collaboration Room'
@@ -395,7 +381,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('displays a signal message', async () => {
-    console.log('^&* 7\n^&* 7\n^&* 7\n^&* 7\n^&* 7\n^&* 7\n^&* 7\n')
     await checkChannelState()
     await checkAgentsState()
     // bobbo checks channels
@@ -476,7 +461,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('displays new messages after pressing refresh button', async () => {
-    console.log('^&* 8\n^&* 8\n^&* 8\n^&* 8\n^&* 8\n^&* 8\n^&* 8\n')
     await checkChannelState()
     newMessage.channel = channelInFocus.entry
     newMessage.entry.uuid = uuidv4()
@@ -515,7 +499,6 @@ describe('Two Player Active Chat', () => {
   })
 
   it('handles updating agent handle', async () => {
-    console.log('^&* 9\n^&* 9\n^&* 9\n^&* 9\n^&* 9\n^&* 9\n^&* 9\n')
     await page.click('#update-handle')
     await wait(WAITTIME)
     const [dialog] = await page.$$('.v-dialog')
