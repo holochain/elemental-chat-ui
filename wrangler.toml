@@ -14,6 +14,11 @@ name = "elemental-chat"
 route = "elemental-chat.holo.host/*"
 workers_dev = true
 
+[env.staging]
+name = "test-elemental-chat"
+route = "test-elemental-chat.holo.host/*"
+workers_dev = true
+
 [env.scaletest]
 name = "scaletest-elemental-chat"
 route = "scaletest-elemental-chat.holo.host/*"
