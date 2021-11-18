@@ -15,7 +15,7 @@ route = "elemental-chat.holo.host/*"
 workers_dev = true
 
 [env.testrelease]
-name = "test.elemental-chat"
+name = "test-elemental-chat"
 route = "test-elemental-chat.holo.host/*"
 workers_dev = true
 
