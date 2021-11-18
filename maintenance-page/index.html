@@ -3,30 +3,64 @@
         <style type="text/css">
             body {
                 height: 100vh;
-                padding: 50px;
-                color: rgb(38, 42, 51);
-                background-color: #EFF0F3;
+                padding: 0;
+                color: black;
+                background-color: black;
                 font-family: 'Nunito', sans-serif;
-                font-size: 18px
+                font-size: 18px;
+                display: flex;
             }
-            img {
-                width: 140px;
+            .box {
+                position: relative;
+                background-color: white;
+                border-radius: 8px;
+                max-width: 580px;
+                margin: auto;
+                padding: 100px 150px 140px 150px;
             }
+
+            .ec-logo {
+                position: absolute;
+                top: -73px;
+                width: 189px;
+                left: -71px;
+            }   
+
             .content {
                 display: flex;
             }
             .message {
-                margin: auto;
-                padding-top: 100px;
-                flex-basis: 70%;
+                font-size: 24px;
             }
-            a {
-                color: #00a6ae;
-                transition: .3s;
+
+            .footer {
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                bottom: 30px;
+                right: 30px;
             }
-            a:hover {
-                color: #5c4aa8;
+
+            .logo-link {
+                display: flex;
+                align-items: center;
             }
+
+            .hosted-by {
+                margin-bottom: 10px;
+                font-size: 12px;
+            }
+
+            .holo-logo {
+                width: 28px;
+                margin-right: 10px;
+            }
+
+            .holo-text {
+                width: 104px;
+            }
+
+
         </style>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,12 +70,17 @@
         <title>Elemental Chat</title>
     </head>
     <body>
-        <a href="https://holo.host/"><img src="./holo-logo-dark.png" /></a>
-        <div class='content'>
+        <div class='box'>
+            <img src='./ec-logo-tilted.png' class='ec-logo' />
             <div class="message">
-                <p>We deeply appreciate everyone's participation in the Elemental Chat Alpha Release testing. As a result of your feedback and testing activity, we're temporarily pausing the release so we can make changes and updates to improve the user experience for all. </p>
-                <p>The next round of testing will likely begin next week. We'll announce on the Holo Forum and other channels. </p>
-                <p>Questions will be answered in an <a href="https://forum.holo.host/t/pause-testing-ec-landing-page-draft/4248">Elemental Chat Forum Thread.</a> Thanks for all your help so far!</p>
+                Elemental Chat is not currently available for use. Check <a href='https://holo.host/'>Holo’s home page</a> banner for the latest updates. 
+            </div>
+            <div class='footer'>
+                <div class='hosted-by'>Hosted by</div>
+                <a href="https://holo.host/" class='logo-link'>
+                    <img src="./black-holo-logo.png" class='holo-logo' />
+                    <img src="./holo-text.png" class='holo-text' />
+                </a>
             </div>
         </div>
     </body>

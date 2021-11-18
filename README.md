@@ -103,6 +103,13 @@ build-holo-scale-test
 1. Edit release URL value in holo-nixpkgs and create branch
 1. Test on holoport after hydra builds
 
+## Publish Maintenance page
+To replace the EC UI with a maintenance page, you first have to setup the wrangler cli (which requires cloudflare access). Then run
+```
+yarn install
+yarn publish:maintenance-page
+```
+
 ## Contribute
 
 Holochain is an open source project. We welcome all sorts of participation and are actively working on increasing surface area to accept it. Please see our [contributing guidelines](/CONTRIBUTING.md) for our general practices and protocols on participating in the community, as well as specific expectations around things like code formatting, testing practices, continuous integration, etc.
