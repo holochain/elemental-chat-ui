@@ -237,16 +237,18 @@ export default {
         cell_data: [
           {
             cell_id: [dnaHash, agentId],
-            cell_nick
+            role_id
           }
         ]
       } = appInfo
 
-      state.dnaAlias = cell_nick
+      state.dnaAlias = role_id
       log(`dnaAlias = ${state.dnaAlias}`)
       state.dnaHash = Buffer.from(dnaHash)
       log(`dnaHash = ${state.dnaHash.toString('base64')}`)
+
       state.agentKey = Buffer.from(agentId)
+
       log('agentKey = ', state.agentKey.toString('base64'))
 
       if (state.holoStatus === 'loading_info') {

@@ -18,7 +18,7 @@ describe('holochain store in holo env', () => {
   const MOCK_CELL_DATA = {
     cell_data: [{
       cell_id: MOCK_CELL_ID,
-      cell_nick: 'elemental-chat'
+      role_id: 'elemental-chat'
     }]
   }
 
@@ -37,7 +37,7 @@ describe('holochain store in holo env', () => {
   it('handles initalizing Holo Client', async () => {
     Connection.mockImplementation(() => ({
       ready: jest.fn((_) => Promise.resolve(true)),
-      appInfo: jest.fn((_) => Promise.resolve({ cell_data: [{ cell_id: 'cellId', cell_nick: 'dnaAlias' }] })),
+      appInfo: jest.fn((_) => Promise.resolve({ cell_data: [{ cell_id: 'cellId', role_id: 'dnaAlias' }] })),
       addListener: jest.fn(() => {})
     }))
     // mock init fn
