@@ -199,7 +199,7 @@ export default {
           )}`
         )
       }
-      // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead
+      // We can't store the webSdkConnection object directly in vuex, so store this wrapper instead.
       state.holoClient = {
         signUp: (...args) => webSdkConnection.signUp(...args),
         signIn: (...args) => webSdkConnection.signIn(...args),
