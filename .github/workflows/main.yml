@@ -38,6 +38,8 @@ jobs:
     - uses: cachix/cachix-action@v10
       with:
         name: holochain-ci
+    - name: Set NIX_PATH
+      run: "echo NIX_PATH=nixpkgs=$(nix eval --impure --raw --expr '(import (import ./nix/sources.nix {}).holochain-nixpkgs {}).pkgs.path') >> $GITHUB_ENV"
     - name: Prepare Nix environment
       run: nix-shell --command "echo Completed"
     - name: Check Holochain version
