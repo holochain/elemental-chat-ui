@@ -6,7 +6,7 @@ export const holochainClient = Promise.resolve({
     return {
       cell_data: [{
         cell_id: 'test_cell_id',
-        cell_nick: 'test_cell_nick'
+        role_id: 'test_role_id'
       }]
     }
   },
