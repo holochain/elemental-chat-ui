@@ -246,9 +246,9 @@ export default {
       console.log(`watcher activated: canMakeZomeCalls=${can}`)
       if (can) {
         await this.listAllMessages()
+        await this.refreshChatter()
         if (!(isHoloHosted() && this.isHoloAnonymous)) {
           await this.getProfile()
-          await this.refreshChatter()
         }
       }
     }
