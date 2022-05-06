@@ -10,7 +10,7 @@ function sortChannels(val) {
 }
 
 function getLastMessageId (channel) {
-  const lastMessage = channel.messages.length > 0 
+  const lastMessage = channel.messages.length > 0
   ? channel.messages[channel.messages.length - 1]
   : null
 
@@ -76,6 +76,7 @@ let refreshChatterIntervalId = null
 
 export default {
   namespaced: true,
+
   state: {
     channels: [],
     currentChannelId: null,
@@ -86,6 +87,7 @@ export default {
     // When this is true, the UI prompts the user to enter their handle.
     needsHandle: false
   },
+
   actions: {
     initialize({ dispatch }) {
       const currentChannelId = window.localStorage.getItem('currentChannelId')
@@ -93,6 +95,7 @@ export default {
         dispatch('joinChannel', currentChannelId)
       }
     },
+
     getStats: async ({ rootState, dispatch, commit }) => {
       commit('setStatsLoading', true)
 
@@ -123,12 +126,14 @@ export default {
         activeCount: stats.active
       })
     },
+
     setChannelPolling({ dispatch }) {
       clearInterval(listChannelsIntervalId)
       listChannelsIntervalId = setInterval(() => {
         dispatch('listAllMessages')
       }, 3600000) // Polling every hour
     },
+
     setRefreshChatterInterval({ dispatch }) {
       clearInterval(refreshChatterIntervalId)
       // refresh chatter state every 2 hours
@@ -136,6 +141,7 @@ export default {
         dispatch('refreshChatter')
       }, 1000 * 60 * 60 * 2)
     },
+
     createChannel: async ({ commit, rootState, dispatch }, payload) => {
       const holochainPayload = {
         name: payload.info.name,
@@ -157,8 +163,9 @@ export default {
         })
         .catch(error => log('createChannel zome error', error))
     },
-    listMessages: async ({ state, commit, rootState, dispatch }, { channel, earliest_seen, target_message_count }) => {            
-      const payload = { 
+
+    listMessages: async ({ state, commit, rootState, dispatch }, { channel, earliest_seen, target_message_count }) => {
+      const payload = {
         channel: channel.entry,
         earliest_seen,
         target_message_count: target_message_count || 20,
@@ -173,6 +180,7 @@ export default {
         })
         .catch(error => log('listMessages zome error', error))
     },
+
     listAllMessages({ commit, state, rootState, dispatch, getters }) {
       // NOTE: To reduce the inital load expense, we have decided to call list_channels, then get only load first chuck for each channel
       // ** instead of calling the list_all_messages endpoint
@@ -189,8 +197,8 @@ export default {
             }
 
             result.channels.forEach(channel => {
-              dispatch('listMessages', { 
-                channel, 
+              dispatch('listMessages', {
+                channel,
                 target_message_count: 20,
               })
             })
@@ -198,6 +206,7 @@ export default {
         })
         .catch(error => log('list_channels zome error during listAllMessages call', error))
     },
+
     listChannels({ commit, rootState, dispatch, getters }) {
       const payload = { category: 'General' }
       callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
@@ -212,6 +221,7 @@ export default {
         })
         .catch(error => log('listChannels zome error', error))
     },
+
     handleMessageSignal: ({ commit }, payload) => {
       log('adding signal message: ', payload)
       commit('addChannels', [payload.channelData])
@@ -220,6 +230,7 @@ export default {
         messages: [payload.messageData]
       })
     },
+
     createMessage: async (
       { commit, rootState, dispatch, state },
       payload
@@ -284,16 +295,20 @@ export default {
         include_active_chatters: true
       })
     },
+
     signalSpecificChatters: async ({ rootState, dispatch }, payload) => {
       callZome(dispatch, rootState, 'chat', 'signal_specific_chatters', payload, 60000)
         .catch(error => log('signalSpecificChatters zome error:', error))
     },
+
     refreshChatter({ dispatch, rootState }) {
       retryIfSourceChainHeadMoved(() => callZome(dispatch, rootState, 'chat', 'refresh_chatter', null, 30000))
     },
+
     joinChannel({ commit }, payload) {
       commit('setCurrentChannelId', payload)
     },
+
     updateProfile({ commit, dispatch, rootState }, payload) {
       const args = {
         nickname: payload
@@ -301,6 +316,7 @@ export default {
       retryIfSourceChainHeadMoved(() => callZome(dispatch, rootState, 'profile', 'update_my_profile', args, 30000))
       commit('setAgentHandle', payload)
     },
+
     async getProfile({ commit, dispatch, rootState }) {
       const profile = await retryIfSourceChainHeadMoved(() => callZome(
         dispatch,
@@ -318,6 +334,7 @@ export default {
       }
     }
   },
+
   mutations: {
     addMessagesToChannel(state, { channelId, messages }) {
       const channel = { ...state.channels.find(channel => channel.entry.uuid === channelId) }
@@ -338,7 +355,7 @@ export default {
           storedChannel.lastMessageId !== getLastMessageId(channel)) {
         channel.unseen = true
       }
-  
+
 
       state.channels = state.channels.map(c => {
         if (c.entry.uuid === channel.entry.uuid) {
@@ -348,6 +365,7 @@ export default {
         }
       })
     },
+
     setCurrentChannelId(state, uuid) {
       state.currentChannelId = uuid
       window.localStorage.setItem('currentChannelId', uuid)
@@ -359,6 +377,7 @@ export default {
         storeLastMessageId(uuid, getLastMessageId(channel))
       }
     },
+
     addChannels(state, newChannels) {
       const channels = state.channels
       // order is important in this uniqBy because we want existing copy of the channel to win
@@ -370,6 +389,7 @@ export default {
           ...c
         }))
     },
+
     setLoadingChannelContent(state, { addList, removeById }) {
       if (addList) {
         state.loadingChannelContent = state.loadingChannelContent.length > 1
@@ -381,9 +401,11 @@ export default {
           : []
       }
     },
+
     setStatsLoading(state, payload) {
       state.statsLoading = payload
     },
+
     setStats(state, payload) {
       state.statsLoading = false
       state.stats.agentCount = payload.agentCount
@@ -391,16 +413,19 @@ export default {
       state.stats.channelCount = payload.channelCount
       state.stats.messageCount = payload.messageCount
     },
+
     setAgentHandle(state, payload) {
       state.agentHandle = payload
       if (payload) {
         state.needsHandle = false
       }
     },
+
     setNeedsHandle(state, payload) {
       state.needsHandle = payload
     }
   },
+
   getters: {
     channel: (state, _, { holochain: { agentKey } }) => {
       const emptyChannel = {

@@ -4,7 +4,7 @@ import wait from 'waait'
 import { callZome as mockCallZome } from './__mocks__/callZome'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
-  return state.holoClient.zomeCall(state.dnaAlias, zomeName, fnName, payload)
+  return state.holochainClient.zomeCall(state.dnaAlias, zomeName, fnName, payload)
 }
 
 const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
