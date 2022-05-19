@@ -170,6 +170,7 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
       channelsList.push(createMockChannel(`Channel #${i}`, agentState.agentHandle || `test-agent-${i}`, i))
     }
   }
+
   return new Vuex.Store({
     actions: { ...actions.index },
     mutations: { ...mutations.index },
