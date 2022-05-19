@@ -42,7 +42,7 @@ Vue based user interface for [elemental-chat DNA](https://github.com/holochain/e
 1.  In a terminal window, spin up your Envoy-Chaperone development server.
     - When using this dev binary, you will connect to chaperone and envoy, but circumvent the resolvers to assign a host.
       - To spin up holo-dev-server, run: `run:holo`
-2.  In a new terminal window, serve the UI for the host agent in the same terminal window: `yarn serve:self-hosted`
+2.  In a new terminal window, serve the UI for the host agent in the same terminal window: `yarn serve:holo`
 
 4)  When you're done and you want to clean up all holochain databases that `hc` created in `/tmp`, run one of the following depending on your prior context:
 
