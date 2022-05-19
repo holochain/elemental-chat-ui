@@ -18,7 +18,7 @@ describe('holochain store in holo env', () => {
   const MOCK_CELL_DATA = {
     cell_data: [{
       cell_id: MOCK_CELL_ID,
-      cell_nick: 'elemental-chat'
+      role_id: 'elemental-chat'
     }]
   }
 

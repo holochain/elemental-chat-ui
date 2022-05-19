@@ -285,6 +285,7 @@ export default {
       log(`dnaHash = ${state.dnaHash.toString('base64')}`)
 
       state.agentKey = Buffer.from(agentId)
+
       log('agentKey = ', state.agentKey.toString('base64'))
     },
 
