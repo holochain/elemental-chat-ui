@@ -340,6 +340,7 @@ export default {
     }
   },
   getters: {
-    isAvailable: state => state.holo.agent.isAvailable
+    isAvailable: state => state.holo.agent.isAvailable,
+    isAnonymous: state => state.holo.agent.isAnonymous
   }
 }

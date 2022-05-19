@@ -17,7 +17,7 @@
   <div v-else-if="this.channels.length > 0" class='input-wrapper' aria-label='Message Input Wrapper'>
     <v-textarea
       class="ml-0 mr-0"
-      :class="{ 'send-not-allowed': isHoloAnonymous }"
+      :class="{ 'send-not-allowed': isAnonymous }"
       v-model="content"
       label="Send a message"
       maxlength="1000"
@@ -61,7 +61,7 @@ export default {
   },
   computed: {
     ...mapState('elementalChat', ['channels']),
-    ...mapState('holochain', ['isHoloAnonymous']),
+    ...mapGetters('holochain', ['isAnonymous']),
     ...mapGetters('elementalChat', ['createMessageLoading']),
     isDisplayMode () {
       return !!this.message
@@ -87,7 +87,7 @@ export default {
   methods: {
     ...mapMutations(['setErrorMessage']),
     createMessage () {
-      if (this.isHoloAnonymous) {
+      if (this.isAnonymous) {
         return
       }
 
