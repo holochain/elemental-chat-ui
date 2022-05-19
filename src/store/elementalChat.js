@@ -44,6 +44,8 @@ function getStoredChannel(id) {
 }
 
 export const handleSignal = (signal, dispatch) => {
+  console.log('Elemental chat UI: Got Signal', signal)
+
   const signalData = signal.data.payload
   const { signal_name: signalName, signal_payload: signalPayload } = signalData
 
@@ -188,6 +190,8 @@ export default {
       callZome(dispatch, rootState, 'chat', 'list_channels', payload, 30000)
         .then(async result => {
           if (result) {
+            console.log('RESULT IN listAllMessages : ', result)
+
             commit('addChannels', result.channels)
             commit('setLoadingChannelContent', { addList: state.channels })
 
@@ -236,7 +240,8 @@ export default {
       payload
     ) => {
       if (state.agentHandle === null) {
-        throw new Error('cannot post message without having handle')
+        // throw new Error('cannot post message without having handle')
+        state.agentHandle = "Tester"
       }
       let lastSeen = payload.channel.last_seen
       if (lastSeen.Message) {

@@ -6,9 +6,8 @@ import { handleSignal } from './elementalChat'
 import { inspect } from 'util'
 import { isAnonymousEnabled } from '../utils'
 
-let client
-
-window.WebSdk = WebSdk
+global.window.WebSdk = WebSdk
+export let holoClient;
 
 console.log('APP_CONTEXT : ', process.env.VUE_APP_CONTEXT)
 console.log('INSTALLED_APP_ID : ', INSTALLED_APP_ID)
@@ -24,7 +23,6 @@ if (WEB_CLIENT_URI !== undefined) {
 // commit, dispatch and state (unused) here are relative to the holochain store, not the global store
 const initializeClientLocal = async (commit, dispatch, _) => {
   try {
-    console.log('------> initializeClientLocal');
     const holochainClient = await AppWebsocket.connect(
       WEB_CLIENT_URI,
       20000,
@@ -42,7 +40,7 @@ const initializeClientLocal = async (commit, dispatch, _) => {
     holochainClient.client.socket.onclose = function (e) {
       // TODO: decide if we would like to remove this clause:
       // whenever we disconnect from conductor (in dev setup - running 'holochain-conductor-api'),
-      // we create new keys... therefore the identity shouold not be held inbetween sessions
+      // we create new keys... therefore the identity should not be held in-between sessions
       // ^^ NOTE: this no longer true with hc cli.
       commit('resetHolochainConnectionState')
       console.log(
@@ -61,31 +59,42 @@ export default {
   namespaced: true,
 
   state: {
-    hasClient: false,
-    agent: {},
-    happId: null,
-    roleId: null,
     holochainClient: null,
-    holoClient: null,
-    // empty, connecting_to_host, failed_to_load_chaperone, holo_initialized, loading_info, ready
-    holoStatus: 'empty',
-    isHoloAnonymous: null,
+    holo: {
+      client: null,
+      hasClient: false,
+      status: "empty", // empty, connecting_to_host, failed_to_load_chaperone, holo_initialized, loading_info, ready
+      agent: {
+        hostUrl: "",
+        isAnonymous: true,
+        isAvailable: false,
+        unrecoverableError: false,
+      },
+    },
+    happId: null,
+    agentKey: null,
+    roleId: null, 
+    dnaHash: null,// Question: why does the ui need to pass both the dna hash AND the role id ->> should be able to store and locate the cell_data by one or the other in chaperone with installed_app_id (before making an outbound zome_call, etc)
     conductorDisconnected: true,
     reconnectingIn: 0,
-    dnaHash: null,
-    agentKey: null,
-    dnaAlias: null,
     isLoading: {},
-    hostUrl: ''
   },
 
   actions: {
     async initialize ({ commit, dispatch, state }) {
       if (isHoloHosted()) {
+        if (state.holo.hasClient) {
+          throw new Error(
+            `initialize holo-hosting env: unexpected pre-existing holo.client ${inspect(
+              holoClient
+            )}`
+          )
+        }
+
         commit('connectingHolo')
 
         try {
-          client = await WebSdk.connect({
+          holoClient = await WebSdk.connect({
             chaperoneUrl: process.env.VUE_APP_CHAPERONE_SERVER_URL,
             authFormCustomization: {
               anonymousAllowed: true,
@@ -93,136 +102,48 @@ export default {
               appName: 'Elemental Chat',
               logoUrl: 'img/ECLogoWhiteMiddle.png',
               infoLink: 'https://holo.host/faq-tag/elemental-chat',
-              // membraneProofServer: {
-              //   url: 'https://holo-registration-service.holo.host',
-              //   payload: {
-              //     role: 'holofuel'
-              //   }
-              // },
+              membraneProofServer: {},
               skipRegistration: true
             }
           })
+          console.log('Connected to WebSDK', holoClient)
         } catch (e) {
-          console.log('Elemental Chat UI: WebSdkApi.connect threw', e.message)
+          console.error('Elemental Chat UI: Failed to connect to Chaperone from WebSDK:', e)
+          commit('failedToLoadChaperone')
           return
         }
 
-        commit('setHasClient', true)
-
-        commit('setAgent', client.agent)
-        commit('setHappId', client.happId)
-
-        client.on('agent-state', agentState => {
-          console.log('Agent state:', agentState);
-          commit('setAgent', agentState)
-
+        holoClient.on('agent-state', agentState => {
+          console.log('received agent state:', agentState);
+          
           if (agentState.unrecoverableError) {
             dispatch('handleUnrecoverableAgentState', agentState.unrecoverableError)
           }
 
-          if (agentState.isAvailable) {
-            dispatch('getHoloAppInfo')
-            commit('setHolochainClient', client)
-
+          if (agentState.isAnonymous === undefined) {
+            commit('holoLogout')
           }
+
+          commit('setAgent', agentState)
         })
+        
+        holoClient.on('signal', payload => handleSignal(payload, dispatch))
 
-        client.on('signal', payload => dispatch('handleSignal', payload))
+        commit('holoInitialized', { anonymous: true })
+        commit('setHasHoloClient', !!holoClient)
+        commit('setHappId', holoClient.happId)
+        commit('setAgent', holoClient.agent)
 
-        // commit('createHoloClient', client)
-
-        console.log('--> Connected via webSDK client:', client)
-        // state.holoClient.ready().catch(e => {
-        //   console.error('Failed to load chaperone:', e)
-        //   commit('failedToLoadChaperone')
-        // })
+        try {
+          await dispatch('getHoloAppInfo')
+          commit('setHoloIsReady')
+        } catch (e) {
+          console.log('Elemental Chat UI:', e)
+        }
       } else {
         initializeClientLocal(commit, dispatch, state)
       }
     },
-
-    async signIn ({ commit }) {
-      console.log('--------> SIGNIN!');
-      await client.signIn()
-      commit('holoInitialized', { anonymous: false })
-    },
-
-    async signInUncancellable () {
-      await client.signIn({ cancellable: false })
-    },
-
-    async signUp ({ commit }) {
-      console.log('--------> SIGNUP!');
-      await client.signUp()
-      commit('holoInitialized', { anonymous: false })
-    },
-
-    async signOut ({ commit }) {
-      await client.signOut()
-      commit('disconnectedFromHost')
-    },
-
-    handleSignal (_, signal) {
-      console.log('Elemental chat UI: Got Signal', signal)
-    },
-
-    async zomeCall ({ state }, args) {
-      console.log('DUMMY UI ZOME CALL args', args)
-      const { zomeName, fnName, payload } = args
-      const result = await client.zomeCall({
-        roleId: state.roleId,
-        zomeName,
-        fnName,
-        payload
-      })
-
-      // result may be of form { type: 'ok', data: ... } or { type 'error', data: ... }, we're letting the caller deal with that
-      return result
-    },
-
-    getAppInfo () {
-      return client.appInfo()
-    },
-
-    cellData () {
-      return client.cellData
-    },
-
-    happId () {
-      return client.happId
-    },
-    async agentInfoHappId () {
-      return {
-        agent: client.agent,
-        happId: client.agentInfo
-      }
-    },
-    handleUnrecoverableAgentState (_, error) {
-      // handle this error in the ui
-      console.error('Unrecoverable Agent State', error)
-    },
-
-    async getHoloAppInfo ({ commit, dispatch }) {
-      console.log('--------> getHoloAppInfo');
-      commit('loadingAppInfo')
-      const appInfo = await dispatch('getAppInfo')
-
-      commit('setAppInfo', appInfo)
-
-      const {
-        cell_data: [
-          {
-            role_id
-          }
-        ]
-      } = appInfo
-
-      commit('setRoleId', role_id)
-    },
-
-
-
-
 
     skipBackoff ({ commit }) {
       commit('setReconnecting', 0)
@@ -232,38 +153,56 @@ export default {
       commit('resetHolochainConnectionState')
     },
 
-    async loadHostInfo ({ commit, state }) {
-      const { url } = await state.holoClient.holoInfo()
-      commit('setHostUrl', url)
+    handleUnrecoverableAgentState ({ commit }, error) {
+      // TODO: Review with C/ux design re: how handle Unrecoverable Error in the ui.
+      console.error('Unrecoverable Agent State', error)
+      commit('holoLogout')
+      commit('resetHolochainConnectionState')
+    },
+
+    async getHoloAppInfo ({ commit, state }) {
+      if (state.roleId !== null) {
+        state.holo.status = 'ready'
+        log(
+        `already loaded roleId from earlier; setting holo.status = ${state.holo.status}`
+        )
+      } else {
+        commit('setHoloLoadingAppInfo')
+        const appInfo = await holoClient.appInfo()
+        commit('setAppInfo', appInfo)
+      }
     },
 
     async holoLogout ({ commit, state }) {
-      if (state.isHoloAnonymous !== false) {
+      if (state.holo.agent.isAnonymous !== false) {
         throw new Error(
-          `cannot log out without being logged in (isHoloAnonymous === ${state.isHoloAnonymous})`
-        )
-      }
-      commit('elementalChat/setAgentHandle', null, { root: true })
-      commit('holoLogout')
-      await state.holoClient.signOut()
+          `cannot log out without being logged in (isHoloAnonymous === ${state.holo.agent.isAnonymous})`
+          )
+        }
+        commit('elementalChat/setAgentHandle', null, { root: true })
+        commit('holoLogout')
+        commit('disconnectedFromHost')
+      await holoClient.signOut()
     },
 
-    async holoSignin ({ state }) {
-      if (state.isHoloAnonymous !== true) {
+    async holoSignin ({ commit, state }) {
+      if (state.holo.agent.isAnonymous !== true) {
         throw new Error(
-          `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
+          `cannot log in without being anonymous (isHoloAnonymous === ${state.holo.agent.isAnonymous})`
         )
       }
-      await state.holoClient.signIn({ cancellable: isAnonymousEnabled() })
+      await holoClient.signIn({ cancellable: isAnonymousEnabled() })
+      commit('holoInitialized', { anonymous: false})
     },
 
-    async holoSignup ({ state }) {
-      if (state.isHoloAnonymous !== true) {
+    async holoSignup ({ commit, state }) {
+      if (state.holo.agent.isAnonymous !== true) {
         throw new Error(
-          `cannot log in without being anonymous (isHoloAnonymous === ${state.isHoloAnonymous})`
+          `cannot log in without being anonymous (isHoloAnonymous === ${state.holo.agent.isAnonymous})`
         )
       }
-      await state.holoClient.signUp({ cancellable: isAnonymousEnabled() })
+      await holoClient.signUp({ cancellable: isAnonymousEnabled() })
+      commit('holoInitialized', { anonymous: false})
     },
 
     callIsLoading ({ commit }, payload) {
@@ -277,54 +216,56 @@ export default {
 
   mutations: {
     connectingHolo (state) {
-      if (state.holoStatus !== 'empty') {
-        throw new Error(`connectingHolo: unexpected state ${state.holoStatus}`)
+      if (state.holo.status !== 'empty') {
+        throw new Error(`connectingHolo: unexpected state ${state.holo.status}`)
       }
-      state.holoStatus = 'connecting_to_host'
-      log(`connecting to host; setting holoStatus = ${state.holoStatus}`)
+      state.holo.status = 'connecting_to_host'
+      log(`connecting to host; setting holo Status = ${state.holo.status}`)
     },
 
     disconnectedFromHost (state) {
-      state.holoStatus = 'connecting_to_host'
-      log(`disconnected from host; setting holoStatus = ${state.holoStatus}`)
+      state.holo.status = 'connecting_to_host'
+      log(`disconnected from host; setting holo Status = ${state.holo.status}. Current agent info : ${inspect(state.holo.agent)}`)
     },
 
     holoInitialized (state, { anonymous }) {
-      if (state.holoStatus === 'connecting_to_host') {
-        state.holoStatus = 'holo_initialized'
-        log(`holo initialized; setting holoStatus = ${state.holoStatus}`)
+      if (state.holo.status === 'connecting_to_host') {
+        state.holo.status = 'holo_initialized'
+        log(`holo initialized; setting holo.status = ${state.holo.status}`)
       }
-      // Prevent going from false -> true since that transition is reverved for holoLogout.
-      if (!(state.isHoloAnonymous === false && anonymous === true)) {
-        state.isHoloAnonymous = anonymous
-        log(`setting isHoloAnonymous = ${state.isHoloAnonymous}`)
+      // Prevent going from false -> true since that transition is reserved for holoLogout.
+      if (!(state.holo.agent.isAnonymous === false && anonymous === true)) {
+        state.holo.agent.isAnonymous = anonymous
+        log(`setting isHoloAnonymous = ${state.holo.agent.isAnonymous}`)
       }
     },
 
     failedToLoadChaperone (state) {
-      if (state.holoStatus !== 'connecting_to_host') {
+      if (state.holo.status !== 'connecting_to_host') {
         throw new Error(
-          `could not set state to failed_to_load_chaperone: unexpected state ${state.holoStatus}`
-        )
-      }
-      state.holoStatus = 'failed_to_load_chaperone'
-      log(`failed to load chaperone; setting holoStatus = ${state.holoStatus}`)
+          `could not set state to failed_to_load_chaperone: unexpected state ${state.holo.status}`
+          )
+        }
+      state.holo.status = 'failed_to_load_chaperone'
+      log(`failed to load chaperone; setting holo.status = ${state.holo.status}`)
     },
 
-    loadingAppInfo (state) {
-      if (!state.agent.isAvailable) {
-        throw new Error(`loadingAppInfo: unexpected state ${state.holoStatus}`)
-      }
-      state.holoStatus = 'loading_info'
-      log(
-        `beginning to load app info; setting holoStatus = ${state.holoStatus}`
-      )
-      if (state.dnaAlias !== null) {
-        state.holoStatus = 'ready'
+    setHoloLoadingAppInfo (state) {
+      if (state.holo.status !== 'holo_initialized') {
+        throw new Error(`setHoloLoadingAppInfo: unexpected state ${state.holo.status}`)
+      } else {
+        state.holo.status = 'loading_info'
         log(
-          `already loaded dnaAlias from earlier; setting holoStatus = ${state.holoStatus}`
-        )
+          `beginning to load app info; setting holo.status = ${state.holo.status}`
+          )
       }
+    },
+
+    setHoloIsReady (state) {
+      state.holo.status = 'ready'
+      log(
+        `holo is loaded; setting holo.status = ${state.holo.status}`
+      )
     },
 
     setAppInfo (state, appInfo) {
@@ -337,19 +278,14 @@ export default {
         ]
       } = appInfo
 
-      state.dnaAlias = role_id
-      log(`dnaAlias = ${state.dnaAlias}`)
+      state.roleId = role_id
+      log(`roleId = ${state.roleId}`)
+
       state.dnaHash = Buffer.from(dnaHash)
       log(`dnaHash = ${state.dnaHash.toString('base64')}`)
+
       state.agentKey = Buffer.from(agentId)
       log('agentKey = ', state.agentKey.toString('base64'))
-
-      if (state.holoStatus === 'loading_info') {
-        state.holoStatus = 'ready'
-        log(
-          `finished loading app info; setting holoStatus = ${state.holoStatus}`
-        )
-      }
     },
 
     setReconnecting (state, payload) {
@@ -365,7 +301,7 @@ export default {
 
     holoLogout (state) {
       state.agentKey = null
-      state.isHoloAnonymous = true
+      state.holo.agent.isAnonymous = true
     },
 
     resetHolochainConnectionState (state) {
@@ -374,7 +310,7 @@ export default {
       state.reconnectingIn = RECONNECT_SECONDS
     },
 
-    // this currently only track the function name. For a dna with multiple zomes the function names should be nested inside zome names
+    // NB: This currently only tracks the function name. For a dna with multiple zomes the function names should be nested inside zome names
     updateIsLoading (state, { fnName, value }) {
       state.isLoading = {
         ...state.isLoading,
@@ -382,24 +318,27 @@ export default {
       }
     },
 
-    setHostUrl (state, payload) {
-      state.hostUrl = payload
-    },
-
-    setHasClient (state, hasClient) {
-      state.hasClient = hasClient
+    setHasHoloClient (state, hasHoloClient) {
+      state.holo.hasClient = hasHoloClient
     },
 
     setAgent (state, agent) {
-      state.agent = agent
+      if (agent.isAvailable === undefined) {
+        agent.isAvailable = false
+      }
+
+      const { id, ...agentState } = agent
+      state.holo.agent = { 
+        pubkey_base64: id,
+        ...agentState
+      }
     },
 
     setHappId (state, happId) {
       state.happId = happId
-    },
-
-    setRoleId (state, roleId) {
-      state.roleId = roleId
     }
+  },
+  getters: {
+    isAvailable: state => state.holo.agent.isAvailable
   }
 }
