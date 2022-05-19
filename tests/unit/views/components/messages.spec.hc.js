@@ -20,8 +20,9 @@ describe('Messages with real store', () => {
     jest.resetModules()
   })
 
-  it('creates a new message within new channel', async () => {
+  it('creates a new message within new channel', async () => {        
     await store.commit('elementalChat/setAgentHandle', 'Alice')
+    await store.commit('holochain/setAgent', { isAvailable: true, isAnonymous: false })    
     expect(store.state.elementalChat.agentHandle).toStrictEqual('Alice')
     // create channel
     channelTitle = 'Music Room'

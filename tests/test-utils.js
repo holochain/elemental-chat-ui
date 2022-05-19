@@ -32,9 +32,12 @@ export const handleOneWithMarkup = (query, text, debug) => {
   if (!results) {
     return console.error(`No element was found to contain string ${text}`)
   } else if (results.length > 1) {
+
     // when multiple results, return the top most parent element containing the correct text
     return results[0]
-  } else return results
+  } else {
+    return results
+  }
 }
 
 export const renderAndWait = async (element, options = {}, ms = 0, callback) => {

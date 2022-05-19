@@ -284,6 +284,7 @@ export default {
       log(`dnaHash = ${state.dnaHash.toString('base64')}`)
 
       state.agentKey = Buffer.from(agentId)
+
       log('agentKey = ', state.agentKey.toString('base64'))
     },
 
@@ -338,6 +339,7 @@ export default {
     }
   },
   getters: {
-    isAvailable: state => state.holo.agent.isAvailable
+    isAvailable: state => state.holo.agent.isAvailable,
+    isAnonymous: state => state.holo.agent.isAnonymous
   }
 }

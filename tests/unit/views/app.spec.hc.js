@@ -32,7 +32,7 @@ describe('App with store stubs and mocks', () => {
     cell_data: [
       {
         cell_id: MOCK_CELL_ID,
-        cell_nick: 'elemental-chat'
+        role_id: 'elemental-chat'
       }
     ]
   }
@@ -57,7 +57,6 @@ describe('App with store stubs and mocks', () => {
       holo: {
         client: false,
         agent: {},
-        isHoloAnonymous: null,
         // TODO / NOTE: Not made available in the most recent websdk / chaperone release 
         // hostUrl: '',
       }
@@ -120,7 +119,6 @@ describe('App with store stubs and mocks', () => {
       holo: {
         client: false,
         agent: {},
-        isHoloAnonymous: null,
         // hostUrl: '',
       }
     }
@@ -153,7 +151,6 @@ describe('App with store stubs and mocks', () => {
       holo: {
         client: false,
         agent: {}, 
-        isHoloAnonymous: null,
         // hostUrl: '',
       }
     }
