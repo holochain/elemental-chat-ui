@@ -81,7 +81,6 @@ export default {
 
   actions: {
     async initialize ({ commit, dispatch, state }) {
-      console.log('^&* initialize, isHoloHosted', isHoloHosted())
       if (isHoloHosted()) {
         if (state.holo.hasClient) {
           throw new Error(
@@ -271,7 +270,7 @@ export default {
       const {
         cell_data: [
           {
-            cell_id: [dnaHash, agentId],
+            cell_id: [dnaHash, _agentId],
             role_id
           }
         ]
@@ -282,10 +281,6 @@ export default {
 
       state.dnaHash = Buffer.from(dnaHash)
       log(`dnaHash = ${state.dnaHash.toString('base64')}`)
-
-      state.agentKey = Buffer.from(agentId)
-
-      log('agentKey = ', state.agentKey.toString('base64'))
     },
 
     setReconnecting (state, payload) {
@@ -332,6 +327,7 @@ export default {
         pubkey_base64: id,
         ...agentState
       }
+      state.agentKey = Uint8Array.from(Buffer.from(id, 'base64'))
     },
 
     setHappId (state, happId) {

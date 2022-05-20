@@ -224,9 +224,6 @@ export default {
         : !this.conductorDisconnected
     }
   },
-  created () {
-    console.log('agentKey started as', this.agentKey)
-  },
   watch: {
     async shouldHandleLogin (should) {
       console.log(`watcher activated: shouldHandleLogin=${should}`)
