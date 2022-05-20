@@ -46,8 +46,7 @@ function getStoredChannel(id) {
 export const handleSignal = (signal, dispatch) => {
   console.log('Elemental chat UI: Got Signal', signal)
 
-  const signalData = signal.data.payload
-  const { signal_name: signalName, signal_payload: signalPayload } = signalData
+  const { signal_name: signalName, signal_payload: signalPayload } = signal.data
 
   log(`signal received: ${signalName}`, signalPayload)
 

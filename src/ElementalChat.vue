@@ -219,7 +219,9 @@ export default {
     },
     canMakeZomeCalls() {
       // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. holo.agent.isAnonymous refers to the current status of our hosted agent.
-      return isHoloHosted() ? this.holo.agent === 'ready' && this.isAvailable && (isAnonymousEnabled() || this.holo.agent.isAnonymous === false) : !this.conductorDisconnected
+      return isHoloHosted() ? 
+        this.holo.status === 'ready' && this.isAvailable && (isAnonymousEnabled() || this.holo.agent.isAnonymous === false) 
+        : !this.conductorDisconnected
     }
   },
   created () {
