@@ -4,11 +4,6 @@ import wait from 'waait'
 import { holoClient } from '@/store/holochain'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
-  // return state.holo.client.zomeCall(state.roleId, zomeName, fnName, payload)
-  console.log("state.roleId", state.roleId)
-  console.log("zomeName", zomeName)
-  console.log("fnName", fnName)
-  console.log("payload", payload)
   return holoClient.zomeCall({
     roleId: state.roleId,
     zomeName,

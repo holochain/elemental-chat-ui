@@ -61,7 +61,6 @@ export default {
   state: {
     holochainClient: null,
     holo: {
-      client: null,
       hasClient: false,
       status: "empty", // empty, connecting_to_host, failed_to_load_chaperone, holo_initialized, loading_info, ready
       agent: {
@@ -74,7 +73,7 @@ export default {
     happId: null,
     agentKey: null,
     roleId: null, 
-    dnaHash: null,// Question: why does the ui need to pass both the dna hash AND the role id ->> should be able to store and locate the cell_data by one or the other in chaperone with installed_app_id (before making an outbound zome_call, etc)
+    dnaHash: null,
     conductorDisconnected: true,
     reconnectingIn: 0,
     isLoading: {},
