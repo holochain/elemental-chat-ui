@@ -82,6 +82,7 @@ export default {
 
   actions: {
     async initialize ({ commit, dispatch, state }) {
+      console.log('^&* initialize, isHoloHosted', isHoloHosted())
       if (isHoloHosted()) {
         if (state.holo.hasClient) {
           throw new Error(
@@ -102,7 +103,6 @@ export default {
               appName: 'Elemental Chat',
               logoUrl: 'img/ECLogoWhiteMiddle.png',
               infoLink: 'https://holo.host/faq-tag/elemental-chat',
-              membraneProofServer: {},
               skipRegistration: true
             }
           })

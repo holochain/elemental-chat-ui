@@ -108,6 +108,8 @@ export const getStats = async page => {
     }
   }
 
+  await wait(60_000)
+
   const [closeButton] = await findElementsByText('button', 'Close', page)
   await closeButton.click()
   return {
