@@ -22,7 +22,7 @@ describe('Messages with real store', () => {
 
   it('creates a new message within new channel', async () => {        
     await store.commit('elementalChat/setAgentHandle', 'Alice')
-    await store.commit('holochain/setAgent', { isAvailable: true, isAnonymous: false })    
+    await store.commit('holochain/setAgent', { isAvailable: true, isAnonymous: false, id: 'uhC0kyTmmWcm-ap9mwfGCqAf2QFK80IuUJqSzWh8TKNyDNU9tXkdx' })
     expect(store.state.elementalChat.agentHandle).toStrictEqual('Alice')
     // create channel
     channelTitle = 'Music Room'

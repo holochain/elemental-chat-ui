@@ -20,6 +20,7 @@ const mockHoloClient = {
   on: () => {},
   appInfo: () => MOCK_APP_INFO,
   agent: {
+    id: 'uhC0kyTmmWcm-ap9mwfGCqAf2QFK80IuUJqSzWh8TKNyDNU9tXkdx',
     isAnonymous: false
   },
   happId: 'mock-happ-id'
