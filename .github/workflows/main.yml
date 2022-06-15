@@ -46,5 +46,4 @@ jobs:
       run: nix-shell --command "holochain -V"
     - name: Run integration tests ENV=holo
       run: nix-shell --run 'yarn test:ci-integration-holo'
-    - name: Run integration tests ENV=holochain
-      run: nix-shell --run 'yarn test:ci-integration-hc'
+      
