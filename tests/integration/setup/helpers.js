@@ -108,8 +108,6 @@ export const getStats = async page => {
     }
   }
 
-  await wait(60_000)
-
   const [closeButton] = await findElementsByText('button', 'Close', page)
   await closeButton.click()
   return {
@@ -150,27 +148,21 @@ export const awaitZomeResult = async (
 /// Holo Test helpers:
 // -------------------
 export const holoAuthenticateUser = async (frame, modalElement, email, password, type = 'signup') => {
-  const id_prefix = type === 'signup' ? 'signup-' : ''
+  await frame.type(`#email`, email, { delay: 100 })
 
-  await frame.type(`#${id_prefix}email`, email, { delay: 100 })
-  const emailValue = await frame.$eval(`#${id_prefix}email`, el => el.value)
+  await frame.type(`#password`, password, { delay: 100 })
 
-  await frame.type(`#${id_prefix}password`, password, { delay: 100 })
-  const passwordValue = await frame.$eval(`#${id_prefix}password`, el => el.value)
-
-  let confirmationValue, submitbuttonText
+  let submitbuttonText
   if (type === 'signup') {
     submitbuttonText = 'Submit'
-    await frame.type(`#${id_prefix}password-confirm`, password, { delay: 100 })
-    confirmationValue = await frame.$eval(`#${id_prefix}password-confirm`, el => el.value)
+    await frame.type(`#confirm-password`, password, { delay: 100 })
+    await frame.type(`#registration_code`, "reg-code", { delay: 100 })
   } else {
     submitbuttonText = 'Login'
   }
 
   const [submitButton] = await findElementsByText('button', submitbuttonText, modalElement)
   await submitButton.click()
-
-  return { emailValue, passwordValue, confirmationValue }
 }
 
 /// Test Setup helpers:

@@ -53,8 +53,8 @@ export const callZome = async (
 
   if (isHoloHosted()) {
     console.log('state.holo.status', state.holo.status)
-    if (state.holo.status !== 'ready')  {
-      log(`callZome called on holo.client before status was ready. Current status = (${state.holo.status})`)
+    if (!state.holo.agent.isAvailable)  {
+      log(`callZome called on holo.client with unavailable agent. Current status = (${state.holo.status})`)
       throw new Error('Called holoClient.callZome before client was ready for traffic.')
     }
   } else {

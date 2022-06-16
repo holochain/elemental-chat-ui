@@ -1051,6 +1051,14 @@
   dependencies:
     postmate "^1.5.1"
 
+"@holo-host/comb@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@holo-host/comb/-/comb-0.3.0.tgz#d87c2043eafbc5e2dd80d48f231f9a4df77f3164"
+  integrity sha512-Ksqh3Gukf/NFI7hzs7tZwnCG4IADisahdWktLpgXdt5y283Ha4uncEIvkjVcP1YSP07Rhq5Ht+JPgDIlwvvT5w==
+  dependencies:
+    "@msgpack/msgpack" "^2.7.1"
+    postmate "^1.5.1"
+
 "@holo-host/cryptolib@^0.3.0":
   version "0.3.1"
   resolved "https://registry.npmjs.org/@holo-host/cryptolib/-/cryptolib-0.3.1.tgz"
@@ -1081,12 +1089,12 @@
   resolved "https://registry.npmjs.org/@holo-host/wasm-key-manager/-/wasm-key-manager-1.0.0.tgz"
   integrity sha512-GTfeQ2iYvYYrIkuaF0QupWP/y8sdItwL6Tr1osyaU7eUsWtGfpZqDcTZny8KNDdnQAEEP2nDWZORA/Z3EMJa3w==
 
-"@holo-host/web-sdk@^0.6.4-prerelease":
-  version "0.6.4-prerelease"
-  resolved "https://registry.yarnpkg.com/@holo-host/web-sdk/-/web-sdk-0.6.4-prerelease.tgz#d32a71c10ba289246460ec76919c2f0db935635c"
-  integrity sha512-QP0Sib5oVpCtr7pJvqxdetzPqxIcwE4y+g0XwKEV80vAH8E6y35uOSp0JyJVbnOZQ1WyjaqCEsM/QYggPxFb/Q==
+"@holo-host/web-sdk@^0.6.6-prerelease":
+  version "0.6.6-prerelease"
+  resolved "https://registry.yarnpkg.com/@holo-host/web-sdk/-/web-sdk-0.6.6-prerelease.tgz#01fea6e2fc47f17957c98f302ba6a144f60d044b"
+  integrity sha512-ZuHGtEtevN2O9KAxBfKZOlaR/LhRA791Wo4Kv5sdU5caUBsYMkP3XH8FX20Eu2wDnMFHBNGDUPDgqlkAyIZsxA==
   dependencies:
-    "@holo-host/comb" "^0.2.0"
+    "@holo-host/comb" "^0.3.0"
 
 "@holochain/conductor-api@^0.2.0", "@holochain/conductor-api@^0.2.3":
   version "0.2.3"
@@ -1525,6 +1533,11 @@
   version "2.7.1"
   resolved "https://registry.npmjs.org/@msgpack/msgpack/-/msgpack-2.7.1.tgz"
   integrity sha512-ApwiSL2c9ObewdOE/sqt788P1C5lomBOHyO8nUBCr4ofErBCnYQ003NtJ8lS9OQZc11ximkbmgAZJjB8y6cCdA==
+
+"@msgpack/msgpack@^2.7.1":
+  version "2.7.2"
+  resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-2.7.2.tgz#f34b8aa0c49f0dd55eb7eba577081299cbf3f90b"
+  integrity sha512-rYEi46+gIzufyYUAoHDnRzkWGxajpD9vVXFQ3g1vbjrBm6P7MBmm+s/fqPa46sxa+8FOUdEuRQKaugo5a4JWpw==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"

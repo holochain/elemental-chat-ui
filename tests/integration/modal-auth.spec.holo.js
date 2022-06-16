@@ -33,10 +33,13 @@ describe('Authentication Flow', () => {
     console.log('✅ Closed the UI server...')
   })
 
-  it.only('can make anonymous zome calls', async () => {
+  it('can make anonymous zome calls', async () => {
     await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
     await wait(500)
+
     const stats = await getStats(page)
+
+    console.log('GOT STATs', stats)
     expect(stats).toEqual({
       agents: '0',
       active: '0',
@@ -53,28 +56,28 @@ describe('Authentication Flow', () => {
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
+
+
     // Wait for "Connecting to HoloPort..." overlay to disappear
-    const [loginButton] = await findElementsByText('span', 'Login', page)
-    await loginButton.click()
+    // const [loginButton] = await findElementsByText('span', 'Login', page)
+    // await loginButton.click()
 
     // *********
     // Sign Up and Log Into hApp
     // *********
     // wait for the modal to load
     await wait(WAITTIME)
+
     await page.waitForSelector('iframe')
     const iframe = await findIframe(page, chaperoneUrlCheck.local)
     const chaperoneModal = await iframe.evaluateHandle(() => document)
-    await wait(WAITTIME)
+    await wait(1_000)
+
 
     const [loginTitle] = await findElementsByText('h1', 'Elemental Chat', chaperoneModal)
     expect(loginTitle).toBeTruthy()
 
-    const { emailValue, passwordValue, confirmationValue } = await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
-
-    expect(emailValue).toBe(HOSTED_AGENT.email)
-    expect(passwordValue).toBe(HOSTED_AGENT.password)
-    expect(confirmationValue).toEqual(passwordValue)
+    await holoAuthenticateUser(iframe, chaperoneModal, HOSTED_AGENT.email, HOSTED_AGENT.password, 'signup')
 
     // Wait for signup to complete
     await wait(WAITTIME)
@@ -102,11 +105,13 @@ describe('Authentication Flow', () => {
 
     const [nickname2] = await findElementsByText('div', 'AliceHosted', page)
     expect(nickname2).toBeTruthy()
+
+    const [logoutButton2] = await findElementsByText('span', 'Logout', page)
+    await logoutButton2.click()
   })
 
   it('makes the appropriate zome calls on initialization', async () => {
     await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
-    await wait(1000)
     expect(callRegistry).toEqual({
       'chat.list_channels': 'done'
     })
@@ -128,11 +133,16 @@ describe('Authentication Flow', () => {
 
     console.log('callRegistry : ', callRegistry)
 
+    // await wait(60_000)
+
     expect(callRegistry).toEqual({
       'chat.list_channels': 'done',
       'chat.refresh_chatter': 'done',
       'profile.get_my_profile': 'done'
     })
+
+    const [logoutButton] = await findElementsByText('span', 'Logout', page)
+    await logoutButton.click()
   })
 
   it('renders the sign-up page when provided sign-up uri search param', async () => {
@@ -153,7 +163,8 @@ describe('Authentication Flow', () => {
 
     let onSignUpPage = true
     try {
-      const [signUpTitle] = await findElementsByText('h2', 'Sign Up', chaperoneModal)
+      // await wait(60_000)
+      const [signUpTitle] = await findElementsByText('h3', 'Create Login Credentials', chaperoneModal)
       await signUpTitle.click()
     } catch (error) {
       console.log('error : ', error)
@@ -189,7 +200,7 @@ describe('Authentication Flow', () => {
 
     let onSignUpPage = true
     try {
-      const [signUpTitle] = await findElementsByText('h2', 'Create Login Credentials', chaperoneModal)
+      const [signUpTitle] = await findElementsByText('h3', 'Create Login Credentials', chaperoneModal)
       await signUpTitle.click()
     } catch (error) {
       onSignUpPage = false

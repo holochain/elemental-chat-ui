@@ -72,7 +72,7 @@ export default {
     },
     happId: null,
     agentKey: null,
-    roleId: null, 
+    roleId: 'elemental-chat', 
     dnaHash: null,
     conductorDisconnected: true,
     reconnectingIn: 0,
@@ -111,9 +111,7 @@ export default {
           return
         }
 
-        holoClient.on('agent-state', agentState => {
-          console.log('received agent state:', agentState);
-          
+        holoClient.on('agent-state', agentState => {          
           if (agentState.unrecoverableError) {
             dispatch('handleUnrecoverableAgentState', agentState.unrecoverableError)
           }
@@ -122,7 +120,8 @@ export default {
             commit('holoLogout')
           }
 
-          commit('setAgent', agentState)
+          if (agentState.isAvailable)
+          commit('setAgent', agentState)          
         })
         
         holoClient.on('signal', payload => handleSignal(payload, dispatch))
@@ -134,7 +133,6 @@ export default {
 
         try {
           await dispatch('getHoloAppInfo')
-          commit('setHoloIsReady')
         } catch (e) {
           console.log('Elemental Chat UI:', e)
         }
@@ -158,17 +156,10 @@ export default {
       commit('resetHolochainConnectionState')
     },
 
-    async getHoloAppInfo ({ commit, state }) {
-      if (state.roleId !== null) {
-        state.holo.status = 'ready'
-        log(
-        `already loaded roleId from earlier; setting holo.status = ${state.holo.status}`
-        )
-      } else {
-        commit('setHoloLoadingAppInfo')
-        const appInfo = await holoClient.appInfo()
-        commit('setAppInfo', appInfo)
-      }
+    async getHoloAppInfo ({ commit }) {
+      commit('setHoloLoadingAppInfo')
+      const appInfo = await holoClient.appInfo()
+      commit('setAppInfo', appInfo)
     },
 
     async holoLogout ({ commit, state }) {
@@ -259,26 +250,16 @@ export default {
       }
     },
 
-    setHoloIsReady (state) {
-      state.holo.status = 'ready'
-      log(
-        `holo is loaded; setting holo.status = ${state.holo.status}`
-      )
-    },
-
     setAppInfo (state, appInfo) {
       const {
         cell_data: [
           {
             cell_id: [dnaHash, _agentId],
-            role_id
+            _role_id
           }
         ]
       } = appInfo
-
-      state.roleId = role_id
-      log(`roleId = ${state.roleId}`)
-
+     
       state.dnaHash = Buffer.from(dnaHash)
       log(`dnaHash = ${state.dnaHash.toString('base64')}`)
     },
@@ -323,10 +304,15 @@ export default {
       }
 
       const { id, ...agentState } = agent
-      state.holo.agent = { 
-        pubkey_base64: id,
-        ...agentState
+
+      state.holo = {
+        ...state.holo,
+        agent: { 
+          pubkey_base64: id,
+          ...agentState
+        }
       }
+
       state.agentKey = Uint8Array.from(Buffer.from(id, 'base64'))
     },
 

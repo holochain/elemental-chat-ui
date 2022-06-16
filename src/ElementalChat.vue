@@ -189,7 +189,6 @@ export default {
       'conductorDisconnected',
       'dnaHash',
       'agentKey',
-      'roleId',
       'holo',
     ]),
     ...mapState('elementalChat', [
@@ -200,7 +199,7 @@ export default {
     ...mapGetters('elementalChat', [
       'channel'
     ]),
-    ...mapGetters('holochain', ['isAvailable']),
+    ...mapGetters('holochain', ['isAvailable', 'isAnonymous']),
     statsAreLoading () {
       return this.statsLoading
     },
@@ -217,14 +216,28 @@ export default {
     shouldHandleLogin() {
       return isHoloHosted() && this.holo.agent.isAvailable && this.holo.agent.isAnonymous === true
     },
-    canMakeZomeCalls() {
-      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. holo.agent.isAnonymous refers to the current status of our hosted agent.
-      return isHoloHosted() ? 
-        this.holo.status === 'ready' && this.isAvailable && (isAnonymousEnabled() || this.holo.agent.isAnonymous === false) 
-        : !this.conductorDisconnected
+    canMakeHCZomeCalls() {
+      return !this.conductorDisconnected
     }
   },
-  watch: {
+  watch: {   
+    async holo ({ agent }, {agent: old_agent }) {
+      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. holo.agent.isAnonymous refers to the current status of our hosted agent.
+
+      if (agent.isAvailable && (!old_agent.isAvailable || (agent.pubkey_base64 !== old_agent.pubkey_base64))) {
+        await this.listAllMessages()
+        if (!this.holo.agent.isAnonymous) {
+          await this.getProfile()
+          await this.refreshChatter()
+        }
+      }
+    },
+    isAvailable (is) {
+      console.log('\n\n\n^&* isAvailable', is)
+    },
+    isAnonymous (is) {
+      console.log('\n\n\n^&* isAnonymous', is)
+    },
     async shouldHandleLogin (should) {
       console.log(`watcher activated: shouldHandleLogin=${should}`)
       if (should) {
@@ -240,14 +253,15 @@ export default {
         setTimeout(() => window.history.pushState(null, '', '/'), 0)
       }
     },
-    async canMakeZomeCalls (can) {
-      console.log(`watcher activated: canMakeZomeCalls=${can}`)
+    async canMakeHCZomeCalls (can) {
+      if (isHoloHosted()) {
+        return // holo hosted case is handled by the holo watcher above. There's nothing pretty about this
+      }
+      console.log(`^&* watcher activated: canMakeHCZomeCalls=${can}`)
       if (can) {
         await this.listAllMessages()
-        if (!(isHoloHosted() && this.holo.agent.isAnonymous)) {
-          await this.getProfile()
-          await this.refreshChatter()
-        }
+        await this.getProfile()
+        await this.refreshChatter()
       }
     }
   }
