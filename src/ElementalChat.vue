@@ -232,12 +232,6 @@ export default {
         }
       }
     },
-    isAvailable (is) {
-      console.log('\n\n\n^&* isAvailable', is)
-    },
-    isAnonymous (is) {
-      console.log('\n\n\n^&* isAnonymous', is)
-    },
     async shouldHandleLogin (should) {
       console.log(`watcher activated: shouldHandleLogin=${should}`)
       if (should) {
@@ -257,7 +251,7 @@ export default {
       if (isHoloHosted()) {
         return // holo hosted case is handled by the holo watcher above. There's nothing pretty about this
       }
-      console.log(`^&* watcher activated: canMakeHCZomeCalls=${can}`)
+      console.log(`watcher activated: canMakeHCZomeCalls=${can}`)
       if (can) {
         await this.listAllMessages()
         await this.getProfile()

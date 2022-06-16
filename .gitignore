@@ -13,7 +13,6 @@ nix
 .cargo
 .hc*
 .bin/
-tmp
 
 # release artifacts
 *.zip
