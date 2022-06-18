@@ -235,10 +235,10 @@ export default {
     async shouldHandleLogin (should) {
       console.log(`watcher activated: shouldHandleLogin=${should}`)
       if (should) {
-        const urlParams = new URLSearchParams(window.location.search)
-        if (urlParams.has('login')) {
+        const path = window.location.pathname
+        if (path == 'login') {
           await this.holoSignin()
-        } else if (urlParams.has('signup')) {
+        } else if (path == 'signup') {
           await this.holoSignup()
         } else if (!isAnonymousEnabled()) {
           await this.holoSignin()
