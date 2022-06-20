@@ -56,12 +56,6 @@ describe('Authentication Flow', () => {
     const pageTitle = await page.title()
     expect(pageTitle).toBe('Elemental Chat')
 
-
-
-    // Wait for "Connecting to HoloPort..." overlay to disappear
-    // const [loginButton] = await findElementsByText('span', 'Login', page)
-    // await loginButton.click()
-
     // *********
     // Sign Up and Log Into hApp
     // *********
@@ -132,8 +126,6 @@ describe('Authentication Flow', () => {
     await wait(1500)
 
     console.log('callRegistry : ', callRegistry)
-
-    // await wait(60_000)
 
     expect(callRegistry).toEqual({
       'chat.list_channels': 'done',
