@@ -40,6 +40,7 @@ describe('Authentication Flow', () => {
     const stats = await getStats(page)
 
     console.log('GOT STATs', stats)
+
     expect(stats).toEqual({
       agents: '0',
       active: '0',
@@ -105,6 +106,7 @@ describe('Authentication Flow', () => {
   })
 
   it('makes the appropriate zome calls on initialization', async () => {
+
     await setupPage(page, callRegistry, `http://localhost:${serverPorts.ui}/dist/index.html`, { waitForNavigation: true })
     expect(callRegistry).toEqual({
       'chat.list_channels': 'done'
@@ -155,7 +157,6 @@ describe('Authentication Flow', () => {
 
     let onSignUpPage = true
     try {
-      // await wait(60_000)
       const [signUpTitle] = await findElementsByText('h3', 'Create Login Credentials', chaperoneModal)
       await signUpTitle.click()
     } catch (error) {

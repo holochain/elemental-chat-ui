@@ -35,7 +35,7 @@
     "test:ci-unit-hc": "yarn clear:mock-conductor; VUE_APP_CONTEXT='holochain' CI=1 vue-cli-service test:unit --config=./jest.hcunit.config.js",
     "test:ci-unit-holo": "VUE_APP_CONTEXT='holo-host' CI=1 vue-cli-service test:unit --config=./jest.holounit.config.js",
     "test:ci-integration-hc": "yarn test-setup:happ && CI=1 yarn test:integration-hc",
-    "test:ci-integration-holo": "yarn test-setup:happ && CI=1 yarn build:holo-test && INTEGRATION=1 node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000",
+    "test:ci-integration-holo": "yarn test-setup:happ && yarn run:silent-holo && yarn build:holo-test && INTEGRATION=1 CI=1 node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --bail --forceExit --testTimeout=95000000",
     "test:unit": "yarn test:ci-unit-hc && yarn test:ci-unit-holo",
     "test:integration": "yarn test:ci-integration-holo",
     "test": "yarn test:unit && yarn test:integration",
