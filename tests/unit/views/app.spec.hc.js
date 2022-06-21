@@ -52,10 +52,14 @@ describe('App with store stubs and mocks', () => {
       holochainClient: Promise.resolve({}),
       conductorDisconnected: false,
       reconnectingIn: 0,
-      dnaAlias: 'elemental-chat-alias-test',
+      roleId: 'elemental-chat-alias-test',
       isLoading: {},
-      hostUrl: '',
-      holoClient: null
+      holo: {
+        client: false,
+        agent: {},
+        // TODO / NOTE: Not made available in the most recent websdk / chaperone release 
+        // hostUrl: '',
+      }
     }
   })
   beforeEach(() => {
@@ -112,7 +116,11 @@ describe('App with store stubs and mocks', () => {
       ...holochainState,
       conductorDisconnected: true,
       reconnectingIn: 0,
-      holoClient: null
+      holo: {
+        client: false,
+        agent: {},
+        // hostUrl: '',
+      }
     }
     stubbedStore = getStubbedStore(null, disconnectedHolochainState)
     stubbedStore.dispatch = jest.fn()
@@ -140,7 +148,11 @@ describe('App with store stubs and mocks', () => {
       ...holochainState,
       conductorDisconnected: true,
       reconnectingIn: 0,
-      holoClient: null
+      holo: {
+        client: false,
+        agent: {}, 
+        // hostUrl: '',
+      }
     }
     stubbedStore = getStubbedStore(null, disconnectedHolochainState)
     stubbedStore.dispatch = jest.fn()

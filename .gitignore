@@ -12,6 +12,8 @@ nix
 /target/
 .cargo
 .hc*
+.bin/
+tmp
 
 # release artifacts
 *.zip

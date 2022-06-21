@@ -1,11 +1,11 @@
 # This file was generated with the following command:
-# update-holochain-versions --git-src=revision:holochain-0.0.127 --lair-version-req=~0.0 --output-file=holochain_version.nix --rust-version 1.58.1
+# update-holochain-versions --git-src=revision:holochain-0.0.126 --lair-version-req=0.1.0 --output-file=holochain_version.nix
 # For usage instructions please visit https://github.com/holochain/holochain-nixpkgs/#readme
 
 {
     url = "https://github.com/holochain/holochain";
-    rev = "57e5003e44aed57d60a20f66dad101521ae1df95";
-    sha256 = "1izax2syk9nkswql60llh42f7hs9khjfjn3q5j6g8g888ryi6p7h";
+    rev = "holochain-0.0.131";
+    sha256 = "sha256-zEsVDzbhMBBp6hJ4d79PcVIjFTl+Lmpwkl5TAmqZOyM=";
     cargoLock = {
         outputHashes = {
         };
@@ -14,15 +14,15 @@
     binsFilter = [
         "holochain"
         "hc"
-        "kitsune-p2p-tx2-proxy"
+        "kitsune-p2p-proxy"
     ];
 
     rustVersion = "1.58.1";
 
     lair = {
         url = "https://github.com/holochain/lair";
-        rev = "v0.0.9";
-        sha256 = "sha256-glSixh2GtWtJ1wswAA0Q2hnLIFPQY+Tsh36IcUgIbRs=";
+        rev = "v0.1.0";
+        sha256 = "sha256-EWtc9+KcN/RHOg5N4wCLBXRppXheda5uubwrQVojc0s=";
 
         binsFilter = [
             "lair-keystore"

@@ -7,17 +7,17 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
 
-      <v-toolbar-title v-if="isHoloAnonymous === false" @click="holoLogout" class="logout" aria-label="Logout with Holo">
+      <v-toolbar-title v-if="holo.agent.isAnonymous === false" @click="holoLogout" class="logout" aria-label="Logout with Holo">
         <span>Logout</span>
       </v-toolbar-title>
-      <v-toolbar-title v-if="isHoloAnonymous === true" @click="holoSignin" class="login" aria-label="Log in with Holo">
+      <v-toolbar-title v-if="holo.agent.isAnonymous === true" @click="holoSignin" class="login" aria-label="Log in with Holo">
         <span>Login</span>
       </v-toolbar-title>
 
       <v-toolbar-title class="title pl-0">
-        <Identicon v-if="!isHoloHosted() || isHoloAnonymous === false" size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
+        <Identicon v-if="!isHoloHosted() || holo.agent.isAnonymous === false" size="32" :holoHash="agentKey" role='img' aria-label="Agent Identity Icon"/>
         <v-toolbar-title class="handle" aria-label="Agent Handle">{{ handleToDisplay }}</v-toolbar-title>
-        <v-tooltip v-if="isHoloAnonymous !== true" bottom aria-label="Agent Handle Tooltip">
+        <v-tooltip v-if="holo.agent.isAnonymous !== true" bottom aria-label="Agent Handle Tooltip">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               id="update-handle"
@@ -68,7 +68,7 @@
           <div v-if="!dnaHash">Loading Version Info...</div>
           <div v-if="dnaHash" aria-label="App UI Version Info">UI: {{ appVersion }}</div>
           <div v-if="dnaHash" aria-label="App DNA Version Info">DNA: ...{{ dnaHashTail }}</div>
-          <div v-if="dnaHash && isHoloHosted()">Host: {{ hostUrl }}</div>
+          <div v-if="dnaHash && isHoloHosted() && holo.agent">Host: {{ holo.agent.hostUrl }}</div>
         </v-tooltip>
       </v-toolbar-title>
     </v-app-bar>
@@ -187,12 +187,9 @@ export default {
   computed: {
     ...mapState('holochain', [
       'conductorDisconnected',
-      'isHoloAnonymous',
       'dnaHash',
-      'hostUrl',
       'agentKey',
-      'dnaAlias',
-      'holoStatus'
+      'holo',
     ]),
     ...mapState('elementalChat', [
       'stats',
@@ -202,6 +199,7 @@ export default {
     ...mapGetters('elementalChat', [
       'channel'
     ]),
+    ...mapGetters('holochain', ['isAvailable', 'isAnonymous']),
     statsAreLoading () {
       return this.statsLoading
     },
@@ -213,20 +211,27 @@ export default {
       return string.slice(string.length - 6)
     },
     handleToDisplay () {
-      return this.isHoloAnonymous ? 'anonymous' : this.agentHandle
+      return this.holo.agent.isAnonymous ? 'anonymous' : this.agentHandle
     },
     shouldHandleLogin() {
-      return isHoloHosted() && this.holoStatus === 'ready' && this.isHoloAnonymous === true
+      return isHoloHosted() && this.holo.agent.isAvailable && this.holo.agent.isAnonymous === true
     },
-    canMakeZomeCalls() {
-      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. isHoloAnonymous refers to the current status of our hosted agent.
-      return isHoloHosted() ? this.holoStatus === 'ready' && (isAnonymousEnabled() || this.isHoloAnonymous === false) : !this.conductorDisconnected
+    canMakeHCZomeCalls() {
+      return !this.conductorDisconnected
     }
   },
-  created () {
-    console.log('agentKey started as', this.agentKey)
-  },
-  watch: {
+  watch: {   
+    async holo ({ agent }, {agent: old_agent }) {
+      // Note: isAnonymousEnabled refers to whether the feature is enabled when the app is built. holo.agent.isAnonymous refers to the current status of our hosted agent.
+
+      if (agent.isAvailable && (!old_agent.isAvailable || (agent.pubkey_base64 !== old_agent.pubkey_base64))) {
+        await this.listAllMessages()
+        if (!this.holo.agent.isAnonymous) {
+          await this.getProfile()
+          await this.refreshChatter()
+        }
+      }
+    },
     async shouldHandleLogin (should) {
       console.log(`watcher activated: shouldHandleLogin=${should}`)
       if (should) {
@@ -242,14 +247,15 @@ export default {
         setTimeout(() => window.history.pushState(null, '', '/'), 0)
       }
     },
-    async canMakeZomeCalls (can) {
-      console.log(`watcher activated: canMakeZomeCalls=${can}`)
+    async canMakeHCZomeCalls (can) {
+      if (isHoloHosted()) {
+        return // holo hosted case is handled by the holo watcher above. There's nothing pretty about this
+      }
+      console.log(`watcher activated: canMakeHCZomeCalls=${can}`)
       if (can) {
         await this.listAllMessages()
-        if (!(isHoloHosted() && this.isHoloAnonymous)) {
-          await this.getProfile()
-          await this.refreshChatter()
-        }
+        await this.getProfile()
+        await this.refreshChatter()
       }
     }
   }
