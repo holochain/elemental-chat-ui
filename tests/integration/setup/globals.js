@@ -1,5 +1,5 @@
 export const TIMEOUT = 300000
-export const WAITTIME = 7_000
+export const WAITTIME = 6_000
 export const SCREENSHOT_PATH = './screenshots'
 export const POLLING_INTERVAL = 1000
 export const WEB_LOGGING = process.env.VUE_APP_WEB_LOGS === 'true'
