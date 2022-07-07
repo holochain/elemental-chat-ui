@@ -1,8 +1,8 @@
-name = "devnet-elemental-chat"
+name = "qa-elemental-chat"
 type = "webpack"
 account_id = "18ff2b4e6205b938652998cfca0d8cff"
 
-route = "devnet-elemental-chat.holo.host/*"
+route = "elemental-chat.qa.holotest.net/*"
 zone_id = "35f34e8f9d04ef8c87283ea9fb812989"
 
 [site]
@@ -13,12 +13,3 @@ entry-point = "workers-site"
 name = "elemental-chat"
 route = "elemental-chat.holo.host/*"
 workers_dev = true
-
-[env.testrelease]
-name = "test-elemental-chat"
-route = "test-elemental-chat.holo.host/*"
-workers_dev = true
-
-[env.scaletest]
-name = "scaletest-elemental-chat"
-route = "scaletest-elemental-chat.holo.host/*"

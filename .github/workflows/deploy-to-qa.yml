@@ -1,9 +1,9 @@
-name: Continuous Deployment for Scaletest
+name: Continuous Deployment for QA
 
 on:
   push:
     branches:
-      - scaletest
+      - QA
 
 jobs:
   deploy:
@@ -13,9 +13,9 @@ jobs:
       - uses: actions/checkout@v2
       - run: yarn install --frozen-lockfile
       - name: Build site
-        run: yarn run build:holo-scale-test
+        run: yarn run build:holo-QA
       - name: Publish to DevNet
         uses: cloudflare/wrangler-action@1.1.0
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
-          environment: scaletest
+          environment: QA
