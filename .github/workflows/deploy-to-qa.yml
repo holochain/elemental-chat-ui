@@ -9,7 +9,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    strategy:
+      matrix:
+        node-version: [14.x]
+
     steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
       - uses: actions/checkout@v2
       - run: yarn install --frozen-lockfile
       - name: Build site
