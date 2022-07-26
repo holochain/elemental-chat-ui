@@ -26,4 +26,3 @@ jobs:
         uses: cloudflare/wrangler-action@1.1.0
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
-          environment: QA
