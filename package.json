@@ -20,7 +20,7 @@
 		"run:conductor": "hc sandbox clean && hc sandbox generate ./tests/integration/setup/bundle/elemental-chat.happ -r=8888 -a='elemental-chat:alpha19:0001'",
 		"build:holo-test": "VUE_APP_ANONYMOUS='enabled' VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24274' vue-cli-service build --mode development",
 		"build:holo-dev": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-rsm.devnet.holotest.net/' vue-cli-service build --mode development",
-		"build:holo-mainnet": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-rsm.holo.host/' vue-cli-service build",
+		"build:holo-mainnet": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-rsm.holotest.net/' vue-cli-service build",
 		"build:holo-QA": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-rsm.qa.holotest.net/' vue-cli-service build",
 		"build:self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service build",
 		"build:holochain": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service build",
