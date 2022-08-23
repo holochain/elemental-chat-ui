@@ -1,4 +1,5 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
+import App from '@/App.vue'
 import { stubElement } from '../../test-utils'
 import {
   AGENT_KEY_MOCK,
@@ -11,11 +12,11 @@ import {
   getStubbedStore,
   mockHolochainState
 } from '../../mock-helpers'
+
 import { createLocalVue } from '@vue/test-utils'
 import Vuex from 'vuex'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
-import App from '@/App.vue'
 import wait from 'waait'
 
 jest.mock('@/store/callZome')
@@ -31,7 +32,7 @@ describe('App with store stubs and mocks', () => {
     cell_data: [
       {
         cell_id: MOCK_CELL_ID,
-        cell_nick: 'elemental-chat'
+        role_id: 'elemental-chat'
       }
     ]
   }
@@ -51,10 +52,14 @@ describe('App with store stubs and mocks', () => {
       holochainClient: Promise.resolve({}),
       conductorDisconnected: false,
       reconnectingIn: 0,
-      dnaAlias: 'elemental-chat-alias-test',
+      roleId: 'elemental-chat-alias-test',
       isLoading: {},
-      hostUrl: '',
-      holoClient: null
+      holo: {
+        client: false,
+        agent: {},
+        // TODO / NOTE: Not made available in the most recent websdk / chaperone release 
+        // hostUrl: '',
+      }
     }
   })
   beforeEach(() => {
@@ -111,7 +116,11 @@ describe('App with store stubs and mocks', () => {
       ...holochainState,
       conductorDisconnected: true,
       reconnectingIn: 0,
-      holoClient: null
+      holo: {
+        client: false,
+        agent: {},
+        // hostUrl: '',
+      }
     }
     stubbedStore = getStubbedStore(null, disconnectedHolochainState)
     stubbedStore.dispatch = jest.fn()
@@ -139,7 +148,11 @@ describe('App with store stubs and mocks', () => {
       ...holochainState,
       conductorDisconnected: true,
       reconnectingIn: 0,
-      holoClient: null
+      holo: {
+        client: false,
+        agent: {}, 
+        // hostUrl: '',
+      }
     }
     stubbedStore = getStubbedStore(null, disconnectedHolochainState)
     stubbedStore.dispatch = jest.fn()

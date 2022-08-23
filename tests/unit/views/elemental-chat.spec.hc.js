@@ -1,11 +1,12 @@
 /* global jest, it, describe, expect, beforeAll, beforeEach, afterAll */
+import store from '@/store/index'
+import ElementalChat from '@/ElementalChat.vue'
+import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../test-utils'
+import { DNA_VERSION_MOCK, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, getStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy, mockHolochainState } from '../../mock-helpers'
+
 import Vuetify from 'vuetify'
 import Vue from 'vue'
 import { within, fireEvent } from '@testing-library/vue'
-import { renderAndWaitFullSetup, handleOneWithMarkup, stubElement } from '../../test-utils'
-import { DNA_VERSION_MOCK, resetHolochainState, mockAgentState, resetAgentState, mockChatState as defaultChatState, resetChatState, createMockChannel, getStubbedStore, mockWindowRedirect, mockWindowReplace, navigateToNextLocation, windowSpy, mockHolochainState } from '../../mock-helpers'
-import store from '@/store/index'
-import ElementalChat from '@/ElementalChat.vue'
 import wait from 'waait'
 
 jest.mock('@/store/callZome')
@@ -104,11 +105,12 @@ describe('ElementalChat with store stubs and mocks', () => {
 
   it('Renders agent nickname in appbar', async () => {
     const newAgentNickame = 'Alice Alias'
-    stubbedStore = getStubbedStore(null, null, {
+    stubbedStore = getStubbedStore(undefined, undefined, {
       ...defaultChatState,
       needsHandle: false,
       agentHandle: newAgentNickame
     })
+    stubbedStore.state.holochain.holo.agent.isAnonymous = false
     const wrapper = stubElement(ElementalChat, stubbedStore)
     expect(wrapper.is(ElementalChat)).toBe(true)
     expect(wrapper.find('[aria-label="Agent Handle"]').text()).toBe(newAgentNickame)
@@ -140,7 +142,7 @@ describe('ElementalChat with store stubs and mocks', () => {
       channels: [createMockChannel(channelTitle, mockAgentState.agentHandle, channelId)],
       currentChannelId: channelId
     }
-    const stubbedStore = getStubbedStore(null, null, mockChatState)
+    const stubbedStore = getStubbedStore(undefined, undefined, mockChatState)
     const wrapper = stubElement(ElementalChat, stubbedStore)
     expect(wrapper.is(ElementalChat)).toBe(true)
     expect(wrapper.find('[aria-label="App Statistics Headline"]').text()).toBe('Stats')

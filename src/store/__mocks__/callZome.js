@@ -14,7 +14,9 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
         info: {
           name,
           created_by: Buffer.from('uhCAkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64')
-        }
+        },
+        latest_chunk: channel.latestChunk || 0,
+        activeChatters: []
       }
 
     case 'chat.list_channels':
@@ -27,7 +29,7 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
     case 'chat.list_messages':
       const messageChannel = rootState.elementalChat.channels.find(c => c.entry.uuid === payload.channel.uuid)
       return messageChannel.messages
-    
+
     case 'chat.list_all_messages':
       const allMessages = rootState.elementalChat.channels.map(c => ({ channel: c, messages: c.messages }))
       return allMessages
@@ -35,7 +37,7 @@ export const callZome = async (_, rootState, zomeName, fnName, payload) => {
     case 'chat.create_message':
       return {
         ...payload,
-        createdAt: [0, 0],
+        createdAt: 0,
         entryHash: Buffer.from('uhCEkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64'),
         createdBy: rootState.holochain.agentKey || Buffer.from('agent public key')
       }

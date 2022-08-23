@@ -1,9 +1,9 @@
+import wait from 'waait'
 import path from 'path'
 import { TIMEOUT, POLLING_INTERVAL, WEB_LOGGING, SCREENSHOT_PATH, WAITTIME } from './globals'
 import { INSTALLED_APP_ID } from '@/consts'
 import { conductorConfig } from './tryorama'
 import httpServers from './setupServers'
-import wait from 'waait'
 
 export const waitForState = async (stateChecker, desiredState, callName, callRegistryCb = () => null, pollingInterval = 1000, timeout = 9000) => {
   return Promise.race([
@@ -148,27 +148,21 @@ export const awaitZomeResult = async (
 /// Holo Test helpers:
 // -------------------
 export const holoAuthenticateUser = async (frame, modalElement, email, password, type = 'signup') => {
-  const id_prefix = type === 'signup' ? 'signup-' : ''
+  await frame.type(`#email`, email, { delay: 100 })
 
-  await frame.type(`#${id_prefix}email`, email, { delay: 100 })
-  const emailValue = await frame.$eval(`#${id_prefix}email`, el => el.value)
+  await frame.type(`#password`, password, { delay: 100 })
 
-  await frame.type(`#${id_prefix}password`, password, { delay: 100 })
-  const passwordValue = await frame.$eval(`#${id_prefix}password`, el => el.value)
-
-  let confirmationValue, submitbuttonText
+  let submitbuttonText
   if (type === 'signup') {
     submitbuttonText = 'Submit'
-    await frame.type(`#${id_prefix}password-confirm`, password, { delay: 100 })
-    confirmationValue = await frame.$eval(`#${id_prefix}password-confirm`, el => el.value)
+    await frame.type(`#confirm-password`, password, { delay: 100 })
+    await frame.type(`#registration_code`, "reg-code", { delay: 100 })
   } else {
     submitbuttonText = 'Login'
   }
 
   const [submitButton] = await findElementsByText('button', submitbuttonText, modalElement)
   await submitButton.click()
-
-  return { emailValue, passwordValue, confirmationValue }
 }
 
 /// Test Setup helpers:
@@ -278,14 +272,4 @@ export const setupPage = async (page, callRegistry, url) => {
     page.goto(url),
     page.waitForNavigation({ waitUntil: 'networkidle0' })
   ])
-}
-
-export const afterAllSetup = async (conductor, closeServer) => {
-  console.log('👉 Shutting down tryorama player conductor(s)...')
-  await conductor.shutdown()
-  console.log('✅ Closed tryorama player conductor(s)')
-
-  console.log('👉 Closing the UI server...')
-  await closeServer()
-  console.log('✅ Closed the UI server...')
 }

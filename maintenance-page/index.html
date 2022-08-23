@@ -1,0 +1,87 @@
+<html>
+    <head>
+        <style type="text/css">
+            body {
+                height: 100vh;
+                padding: 0;
+                color: black;
+                background-color: black;
+                font-family: 'Nunito', sans-serif;
+                font-size: 18px;
+                display: flex;
+            }
+            .box {
+                position: relative;
+                background-color: white;
+                border-radius: 8px;
+                max-width: 580px;
+                margin: auto;
+                padding: 100px 150px 140px 150px;
+            }
+
+            .ec-logo {
+                position: absolute;
+                top: -73px;
+                width: 189px;
+                left: -71px;
+            }   
+
+            .content {
+                display: flex;
+            }
+            .message {
+                font-size: 24px;
+            }
+
+            .footer {
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                bottom: 30px;
+                right: 30px;
+            }
+
+            .logo-link {
+                display: flex;
+                align-items: center;
+            }
+
+            .hosted-by {
+                margin-bottom: 10px;
+                font-size: 12px;
+            }
+
+            .holo-logo {
+                width: 28px;
+                margin-right: 10px;
+            }
+
+            .holo-text {
+                width: 104px;
+            }
+
+
+        </style>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300&display=swap" rel="stylesheet"> 
+
+        <title>Elemental Chat</title>
+    </head>
+    <body>
+        <div class='box'>
+            <img src='./ec-logo-tilted.png' class='ec-logo' />
+            <div class="message">
+                Elemental Chat testing was a success&mdash;and is currently paused. Check <a href='https://holo.host/'>Holo’s home page</a> banner for the latest updates. Thanks for testing!
+            </div>
+            <div class='footer'>
+                <div class='hosted-by'>Hosted by</div>
+                <a href="https://holo.host/" class='logo-link'>
+                    <img src="./black-holo-logo.png" class='holo-logo' />
+                    <img src="./holo-text.png" class='holo-text' />
+                </a>
+            </div>
+        </div>
+    </body>
+</html>

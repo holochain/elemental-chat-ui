@@ -1,140 +1,141 @@
 {
-  "name": "elemental-chat-ui",
-  "version": "0.0.1-alpha34",
-  "private": true,
-  "scripts": {
-    "build:holo-host": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone.holo.host/' vue-cli-service build",
-    "build:holo-dev": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://devnet-chaperone.holo.host/' vue-cli-service build --mode development",
-    "build:holo-hcc": "VUE_APP_ANONYMOUS='enabled' VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24273/' vue-cli-service build --mode development",
-    "build:holo-scale-test": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://scaletest-chaperone.holo.host/' vue-cli-service build",
-    "build:self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service build",
-    "build:holochain": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service build",
-    "test:unit-hc": "VUE_APP_CONTEXT='holochain' vue-cli-service test:unit --watch=true --config=./jest.hcunit.config.js",
-    "test:unit-holo": "VUE_APP_CONTEXT='holo-host' vue-cli-service test:unit --watch=true --config=./jest.holounit.config.js",
-    "test-setup:happ": "nix-shell --command 'yarn fetch:dna && yarn build:happ' && exit",
-    "test-setup:holo": "yarn run clear:hc-holo && nix-shell --command 'yarn hc-holo:gen-agent && yarn hc-holo:run && yarn run:test-chaperone-hcc' && exit",
-    "test:integration-hc": "yarn run clear:hc && yarn run clear:lair && yarn build:holochain && nix-shell --command 'VUE_APP_CONTEXT='holochain' VUE_APP_WEB_LOGS='false' VUE_APP_TEST_PORT='8888' node scripts/test.js --config=./jest.hcintegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000' && exit",
-    "test:integration-holo": "yarn test-setup:holo && yarn build:holo-hcc && node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000",
-    "test:ci-unit-hc": "VUE_APP_CONTEXT='holochain' CI=1 vue-cli-service test:unit --config=./jest.hcunit.config.js",
-    "test:ci-unit-holo": "VUE_APP_CONTEXT='holo-host' CI=1 vue-cli-service test:unit --config=./jest.holounit.config.js",
-    "test:ci-integration-hc": "yarn test-setup:happ && CI=1 yarn test:integration-hc",
-    "test:ci-integration-holo": "yarn test-setup:happ && CI=1 yarn test:integration-holo",
-    "test:unit": "yarn test:ci-unit-hc && yarn test:ci-unit-holo",
-    "test:integration": "yarn test-setup:happ && yarn test:ci-integration-hc && yarn test:ci-integration-holo",
-    "test": "yarn test:unit && yarn test:integration",
-    "serve:self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service serve",
-    "serve:holo": "VUE_APP_ANONYMOUS='enabled' VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24273/' vue-cli-service serve",
-    "serve:holochain": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
-    "serve:hc-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:holochain",
-    "serve:hc-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:holochain",
-    "hc-host:gen-agent": "sh ./scripts/gen-host-agent.sh",
-    "hc-host:run": "hc sandbox r 0 -p=8888",
-    "hc-holo:gen-agent": "sh ./scripts/gen-holo-agent.sh",
-    "hc-holo:run": "hc sandbox -f=4444 r 0 -p=42233 &",
-    "hc:gen-agents": "sh ./scripts/gen-hc-agents.sh",
-    "hc:run-agent-1": "hc sandbox r 0 -p=8888",
-    "hc:run-agent-2": "hc sandbox r 1 -p=9999",
-    "fetch:happ": "mkdir -p dnas && sh ./scripts/fetch-happ.sh",
-    "fetch:dna": "mkdir -p dnas && sh ./scripts/fetch-dna.sh",
-    "build:happ": "sh ./scripts/build-bundle.sh",
-    "clear:lair": "killall lair-keystore &",
-    "clear:hc": "killall holochain & ",
-    "clear:chaperone": "kill -9 $(lsof -t -i:24273) &",
-    "clear:hc-holo-port": "kill -9 $(lsof -t -i:42233) &",
-    "clear:hc-holo": "yarn clear:chaperone && yarn clear:hc-holo-port && kill -9 $(lsof -t -i:4444) &",
-    "run:test-chaperone-hcc": "yarn chaperone-server --config ./test-chaperone-hcc.json &",
-    "run:chaperone-hcc": "yarn chaperone-server --config ./chaperone-hcc.json",
-    "run:chaperone-dev": "yarn chaperone-server --config ./chaperone-dev.json",
-    "run:conductor": "hc sandbox clean && hc sandbox generate ./tests/integration/setup/bundle/elemental-chat.happ -r=8888 -a='elemental-chat:alpha19:0001'",
-    "lint": "vue-cli-service lint"
-  },
-  "dependencies": {
-    "@babel/preset-env": "^7.13.8",
-    "@holo-host/web-sdk": "0.5.1",
-    "@holochain/conductor-api": "0.0.4",
-    "@testing-library/jest-dom": "^5.11.9",
-    "@whi/stdlog": "^0.3.4",
-    "async-wait-until": "^1.2.6",
-    "babel-plugin-module-resolver": "^4.1.0",
-    "core-js": "^3.6.5",
-    "jest-canvas-mock": "^2.3.1",
-    "jest-environment-jsdom-fourteen": "^1.0.1",
-    "localforage": "^1.9.0",
-    "localforage-getitems": "^1.4.2",
-    "regenerator-runtime": "^0.13.7",
-    "register-service-worker": "^1.7.1",
-    "tape": "^5.2.0",
-    "uuid": "^8.3.1",
-    "vue": "^2.6.11",
-    "vue-jest": "^3.0.7",
-    "vue-loading-spinner": "^1.0.11",
-    "vue-router": "^3.2.0",
-    "vue-test-utils": "^1.0.0-beta.11",
-    "vuetify": "^2.2.11",
-    "vuex": "^3.4.0",
-    "waait": "^1.0.5"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.13.1",
-    "@holo-host/chaperone": "^7.1.3",
-    "@holo-host/mock-conductor": "0.3.3",
-    "@holochain/tryorama": "^0.4.3",
-    "@testing-library/vue": "^5.6.1",
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-pwa": "~4.5.0",
-    "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-unit-jest": "^4.5.11",
-    "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/eslint-config-prettier": "^6.0.0",
-    "@vue/test-utils": "^1.1.3",
-    "babel-core": "^7.0.0-bridge.0",
-    "babel-eslint": "^10.1.0",
-    "babel-jest": "24.9.0",
-    "chai": "^4.1.2",
-    "eslint": "^7.20.0",
-    "eslint-plugin-jest": "^24.1.5",
-    "eslint-plugin-prettier": "^3.1.3",
-    "eslint-plugin-vue": "^6.2.2",
-    "jest": "^26.6.3",
-    "jest-puppeteer": "^4.4.0",
-    "lint-staged": "^9.5.0",
-    "prettier": "^1.19.1",
-    "puppeteer": "^8.0.0",
-    "sass": "^1.26.5",
-    "sass-loader": "^8.0.2",
-    "standard": "^16.0.3",
-    "vue-cli-plugin-vuetify": "~2.0.7",
-    "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.3.0",
-    "webpack": "^4.46.0"
-  },
-  "babel": {
-    "presets": [
-      "@vue/cli-plugin-babel/preset",
-      "@babel/preset-env"
-    ],
-    "plugins": [
-      [
-        "module-resolver",
-        {
-          "root": [
-            "src"
-          ]
-        }
-      ]
-    ]
-  },
-  "lint-staged": {
-    "*.{js,jsx,vue}": [
-      "vue-cli-service lint",
-      "git add"
-    ]
-  },
-  "gitHooks": {
-    "babel": {
-      "pre-commit": "lint-staged"
-    }
-  }
+	"name": "elemental-chat-ui",
+	"version": "0.0.1-alpha39",
+	"private": true,
+	"scripts": {
+		"serve:self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service serve",
+		"serve:holo": "VUE_APP_ANONYMOUS='enabled' VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24274/' vue-cli-service serve",
+		"serve:holochain": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service serve",
+		"serve:hc-agent-1": "VUE_APP_WEB_CLIENT_PORT=8888 yarn serve:holochain",
+		"serve:hc-agent-2": "VUE_APP_WEB_CLIENT_PORT=9999 yarn serve:holochain",
+		"run:holo": "nix-shell --command 'tmp/holo-dev-server dnas/elemental-chat.happ --servicelogger dnas/servicelogger.happ'",
+		"run:silent-holo": "yarn run:holo &",
+		"hc:gen-agents": "sh ./scripts/gen-hc-agents.sh",
+		"hc:run-agent-1": "hc sandbox r 0 -p=8888",
+		"hc:run-agent-2": "hc sandbox r 1 -p=9999",
+		"hc-host:gen-agent": "sh ./scripts/gen-host-agent.sh",
+		"hc-host:run": "hc sandbox r 0 -p=8888",
+		"fetch:resources": "mkdir -p dnas  && mkdir -p bin && sh ./scripts/fetch-resources.sh",
+		"build:happ": "sh ./scripts/build-bundle.sh",
+		"run:conductor": "hc sandbox clean && hc sandbox generate ./tests/integration/setup/bundle/elemental-chat.happ -r=8888 -a='elemental-chat:alpha19:0001'",
+		"build:holo-test": "VUE_APP_ANONYMOUS='enabled' VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='http://localhost:24274' vue-cli-service build --mode development",
+		"build:holo-dev": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-rsm.devnet.holotest.net/' vue-cli-service build --mode development",
+		"build:holo-mainnet": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-rsm.holo.host/' vue-cli-service build",
+		"build:holo-QA": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holo-host' VUE_APP_CHAPERONE_SERVER_URL='https://chaperone-rsm.qa.holotest.net/' vue-cli-service build",
+		"build:self-hosted": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='self-hosted' vue-cli-service build",
+		"build:holochain": "VUE_APP_UI_VERSION=$npm_package_version VUE_APP_CONTEXT='holochain' vue-cli-service build",
+		"build:holochain-zip": "yarn build:holochain && rm -f elemental-chat-ui.zip && (cd dist && rm service-worker.js && zip -r ../elemental-chat-ui.zip $(ls .))",
+		"build:holochain-webhapp": "yarn build:holochain-zip && hc web-app pack .",
+		"test:unit-hc": "yarn clear:mock-conductor; VUE_APP_CONTEXT='holochain' vue-cli-service test:unit --watch=true --config=./jest.hcunit.config.js",
+		"test:unit-holo": "VUE_APP_CONTEXT='holo-host' vue-cli-service test:unit --watch=true --config=./jest.holounit.config.js",
+		"test-setup:happ": "yarn fetch:resources && yarn build:happ",
+		"test-setup:holo": "yarn clear:chaperone; yarn clear:hc; yarn run:silent-holo",
+		"test:integration-hc": "yarn clear:hc; yarn clear:lair; yarn build:holochain && INTEGRATION=1 VUE_APP_CONTEXT='holochain' VUE_APP_WEB_LOGS='false' VUE_APP_TEST_PORT='8888' node scripts/test.js --config=./jest.hcintegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000",
+		"test:integration-holo": "yarn test-setup:holo && yarn build:holo-test && INTEGRATION=1 node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000",
+		"test:ci-unit-hc": "yarn clear:mock-conductor; VUE_APP_CONTEXT='holochain' CI=1 vue-cli-service test:unit --config=./jest.hcunit.config.js",
+		"test:ci-unit-holo": "VUE_APP_CONTEXT='holo-host' CI=1 vue-cli-service test:unit --config=./jest.holounit.config.js",
+		"test:ci-integration-hc": "yarn test-setup:happ && CI=1 yarn test:integration-hc",
+		"test:ci-integration-holo": "yarn test-setup:happ && yarn run:silent-holo && yarn build:holo-test && INTEGRATION=1 CI=1 node scripts/test.js --config=./jest.holointegration.config.js --watch --runInBand --detectOpenHandles --testTimeout=95000000",
+		"test:unit": "yarn test:ci-unit-hc && yarn test:ci-unit-holo",
+		"test:integration": "yarn test:ci-integration-holo",
+		"test": "yarn test:unit && yarn test:integration",
+		"clear:lair": "killall lair-keystore",
+		"clear:hc": "killall holochain",
+		"clear:chaperone": "kill -9 $(lsof -t -i:24274)",
+		"clear:mock-conductor": "kill -9 $(lsof -t -i:8888); kill -9 $(lsof -t -i:9999)",
+		"lint": "vue-cli-service lint",
+		"publish:maintenance-page": "rm -rf dist && cp -r maintenance-page dist && wrangler publish --env testrelease"
+	},
+	"resolutions": {
+		"@holochain/tryorama/@holochain/conductor-api": "^0.2.3"
+	},
+	"dependencies": {
+		"@babel/preset-env": "^7.13.8",
+		"@holo-host/web-sdk": "^0.6.6-prerelease",
+		"@holochain/conductor-api": "^0.2.3",
+		"@testing-library/jest-dom": "^5.11.9",
+		"@whi/stdlog": "^0.3.4",
+		"async-wait-until": "^1.2.6",
+		"babel-plugin-module-resolver": "^4.1.0",
+		"core-js": "^3.6.5",
+		"jest-canvas-mock": "^2.3.1",
+		"jest-environment-jsdom-fourteen": "^1.0.1",
+		"localforage": "^1.9.0",
+		"localforage-getitems": "^1.4.2",
+		"regenerator-runtime": "^0.13.7",
+		"register-service-worker": "^1.7.1",
+		"tape": "^5.2.0",
+		"uuid": "^8.3.1",
+		"vue": "^2.6.11",
+		"vue-jest": "^3.0.7",
+		"vue-loading-spinner": "^1.0.11",
+		"vue-router": "^3.2.0",
+		"vue-test-utils": "^1.0.0-beta.11",
+		"vuetify": "^2.6.7",
+		"vuex": "^3.4.0",
+		"waait": "^1.0.5"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.13.1",
+		"@holo-host/chaperone": "^9.0.0",
+		"@holo-host/mock-conductor": "0.3.3",
+		"@holochain/tryorama": "^0.4.5",
+		"@testing-library/vue": "^5.6.1",
+		"@vue/cli-plugin-babel": "~4.5.0",
+		"@vue/cli-plugin-eslint": "~4.5.0",
+		"@vue/cli-plugin-pwa": "~4.5.0",
+		"@vue/cli-plugin-router": "~4.5.0",
+		"@vue/cli-plugin-unit-jest": "^4.5.11",
+		"@vue/cli-plugin-vuex": "~4.5.0",
+		"@vue/cli-service": "~4.5.0",
+		"@vue/eslint-config-prettier": "^6.0.0",
+		"@vue/test-utils": "^1.1.3",
+		"babel-core": "^7.0.0-bridge.0",
+		"babel-eslint": "^10.1.0",
+		"babel-jest": "24.9.0",
+		"chai": "^4.1.2",
+		"eslint": "^7.20.0",
+		"eslint-plugin-jest": "^24.1.5",
+		"eslint-plugin-prettier": "^3.1.3",
+		"eslint-plugin-vue": "^6.2.2",
+		"jest": "^26.6.3",
+		"jest-puppeteer": "^4.4.0",
+		"lint-staged": "^9.5.0",
+		"prettier": "^1.19.1",
+		"puppeteer": "^8.0.0",
+		"sass": "^1.26.5",
+		"sass-loader": "^8.0.2",
+		"standard": "^16.0.3",
+		"vue-cli-plugin-vuetify": "~2.0.7",
+		"vue-template-compiler": "^2.6.11",
+		"vuetify-loader": "^1.3.0",
+		"webpack": "^4.46.0"
+	},
+	"babel": {
+		"presets": [
+			"@vue/cli-plugin-babel/preset",
+			"@babel/preset-env"
+		],
+		"plugins": [
+			[
+				"module-resolver",
+				{
+					"root": [
+						"src"
+					]
+				}
+			]
+		]
+	},
+	"lint-staged": {
+		"*.{js,jsx,vue}": [
+			"vue-cli-service lint",
+			"git add"
+		]
+	},
+	"gitHooks": {
+		"babel": {
+			"pre-commit": "lint-staged"
+		}
+	}
 }

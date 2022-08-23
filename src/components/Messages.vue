@@ -1,10 +1,18 @@
 <template>
   <v-card flat>
     <div id="container" class="chat-container rounded" @scroll="onScroll" aria-label="Message Container">
+      <v-card style="display: grid" aria-label='Load More'>
+        <v-btn v-if='!listMessagesLoading' text @click="loadMoreMessages" class='pagination-button' aria-label="Load More Button">
+          Load More Messages
+        </v-btn>
+      <div><Spinner v-if='listMessagesLoading' size='18px' class='message-subheader' /></div>
+      <div><p size='18px' class='message-subheader'>{{ this.presentedEarliestDate }}</p></div>
+      </v-card>
       <ul class="pb-10 pl-0" aria-label="Message List">
         <li
           v-for="message in messages"
           :key="message.entry.uuid"
+          :id="message.entry.uuid"
           class="message"
         >
           <Message
@@ -22,32 +30,51 @@
 </template>
 <script>
 import { mapActions, mapState, mapGetters } from 'vuex'
-import { arrayBufferToBase64 } from '@/store/utils'
+import { arrayBufferToBase64, presentPaginationDateTime } from '@/store/utils'
 import Message from './Message.vue'
+import Spinner from './Spinner'
 
 export default {
   name: 'Messages',
   components: {
-    Message
+    Message, 
+    Spinner
   },
   data () {
     return {
-      userIsScrolling: false
+      userIsScrolling: false,
+      lastSeenMsgId: null,
+    }
+  },
+  computed: {
+    ...mapState('holochain', ['conductorDisconnected', 'agentKey']),
+    ...mapGetters('elementalChat', ['channel', 'listMessagesLoading', 'createMessageLoading']),
+    messages () {
+      return this.channel.messages
+    },
+    earliestDate () {
+      return this.messages[0]
+        ? this.messages[0].createdAt
+        : (Date.now() * 1000)
+    },
+    presentedEarliestDate () {
+      return presentPaginationDateTime(this.earliestDate)
     }
   },
   methods: {
-    ...mapActions('elementalChat', ['createMessage']),
+    ...mapActions('elementalChat', ['createMessage', 'listMessages']),
     handleCreateMessage (content) {
+      this.scrollToEnd()
       this.createMessage({
         channel: this.channel,
         content
       })
     },
     onScroll () {
-      this.userIsScrolling = true
       const container = this.$el.querySelector('#container')
-      const height = container.offsetHeight + container.scrollTop
 
+      this.userIsScrolling = true
+      const height = container.offsetHeight + Math.abs(container.scrollTop)
       if (height === container.scrollHeight) {
         this.userIsScrolling = false
       }
@@ -57,20 +84,37 @@ export default {
       const container = this.$el.querySelector('#container')
       container.scrollTop = container.scrollHeight
     },
+    scrollToMessage (id) {
+      if (!id) return
+      const container = this.$el.querySelector('#container')
+      container.scrollTop = 0
+      const messageElement = document.getElementById(id)
+      const offset = messageElement.getBoundingClientRect().top - messageElement.offsetParent.getBoundingClientRect().top
+      // adjust the offset by - 100 to show some of the newly loaded, older messages on the page
+      container.scrollTop = offset - 100
+    },
+    async loadMoreMessages () {
+      const lastSeenMsgId = this.messages[0] ? this.messages[0].entry.uuid : null
+      await this.listMessages({
+        channel: this.channel,
+        earliest_seen: this.earliestDate,
+        target_message_count: 20,
+      })
+      this.scrollToMessage(lastSeenMsgId)
+    },
     isMyMessage (message) {
       return arrayBufferToBase64(message.createdBy) === arrayBufferToBase64(this.agentKey)
-    }
-  },
-  computed: {
-    ...mapState('holochain', ['conductorDisconnected', 'agentKey']),
-    ...mapGetters('elementalChat', ['channel']),
-    messages () {
-      return this.channel.messages
     }
   },
   watch: {
     channel () {
       this.scrollToEnd()
+    },
+    createMessageLoading (isLoading) {
+      if (!isLoading) {
+        this.userIsScrolling = false
+        this.scrollToEnd()
+      }
     }
   },
   mounted () {
@@ -89,5 +133,17 @@ export default {
 }
 ul {
   list-style-type: none;
+}
+.pagination-button {
+  padding: 0 38px;
+  margin: 0 auto;
+  margin-top: 10px;
+  border: 2px solid #d7ea44;
+}
+.message-subheader {
+  display: grid;
+  margin: 0 auto;
+  margin-top: 10px;
+  justify-content: center;
 }
 </style>

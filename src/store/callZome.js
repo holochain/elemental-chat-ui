@@ -1,9 +1,15 @@
 import { isHoloHosted, log } from '@/utils'
 import { logZomeCall, actionType, UndefinedClientError } from '@/store/utils'
 import wait from 'waait'
+import { holoClient } from '@/store/holochain'
 
 const callZomeHolo = (_, state, zomeName, fnName, payload) => {
-  return state.holoClient.zomeCall(state.dnaAlias, zomeName, fnName, payload)
+  return holoClient.zomeCall({
+    roleId: state.roleId,
+    zomeName,
+    fnName,
+    payload
+  })
 }
 
 const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
@@ -12,6 +18,7 @@ const callZomeLocal = async (_, state, zomeName, fnName, payload, timeout) => {
       'Attempted callZomeLocal before holochainClient is defined'
     )
   }
+
   return state.holochainClient.callZome(
     {
       cap: null,
@@ -45,14 +52,15 @@ export const callZome = async (
   const state = rootState.holochain
 
   if (isHoloHosted()) {
-    if (state.holoStatus !== 'ready') {
-      log(`callZome called holoStatus !== ready (${state.holoStatus})`)
-      return
+    console.log('state.holo.status', state.holo.status)
+    if (!state.holo.agent.isAvailable)  {
+      log(`callZome called on holo.client with unavailable agent. Current status = (${state.holo.status})`)
+      throw new Error('Called holoClient.callZome before client was ready for traffic.')
     }
   } else {
     if (state.conductorDisconnected) {
       log('callZome called when disconnected from conductor')
-      return
+      throw new Error('Called callZome when disconnected from conductor.')
     }
   }
 
@@ -61,21 +69,22 @@ export const callZome = async (
   try {
     // Note: Do not remove this log. See /store/utils fore more info.
     logZomeCall(zomeName, fnName, actionType.START)
-    const result = isHoloHosted()
+    const { type, data } = isHoloHosted()
       ? await callZomeHolo(dispatch, state, zomeName, fnName, payload, timeout)
       : await callZomeLocal(dispatch, state, zomeName, fnName, payload, timeout)
 
     // Note: Do not remove this log. See /store/utils fore more info.
     logZomeCall(zomeName, fnName, actionType.DONE)
 
-    if (result instanceof Error || result?.type === 'error') {
-      throw new Error(result.payload.message)
+    if (type !== 'ok' || data instanceof Error || data?.type === 'error') {
+      throw new Error(data.payload.message)
     }
 
     if (LOG_ZOME_CALLS) {
-      log(`${zomeName}.${fnName} result`, result)
+      log(`${zomeName}.${fnName} data`, data)
     }
-    return result
+
+    return data
   } catch (e) {
     log(`${zomeName}.${fnName} ERROR: callZome threw error`, e)
     if (

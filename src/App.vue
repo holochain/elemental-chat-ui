@@ -51,7 +51,7 @@
           <v-card-text>{{ holoConnectionMessage }}</v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn v-if="isHoloAnonymous === false" text @click="disconnectedHoloLogout" class="logout" aria-label="Logout with Holo">
+            <v-btn v-if="holo.agent.isAnonymous === false" text @click="disconnectedHoloLogout" class="logout" aria-label="Logout with Holo">
               Clear Page Data
             </v-btn>
           </v-card-actions>
@@ -146,8 +146,7 @@ export default {
     ...mapState('holochain', [
       'conductorDisconnected',
       'reconnectingIn',
-      'isHoloAnonymous',
-      'holoStatus'
+      'holo',
     ]),
     ...mapState('elementalChat', ['agentHandle', 'needsHandle']),
     ...mapState([
@@ -165,13 +164,13 @@ export default {
       return !isHoloHosted() && this.conductorDisconnected
     },
     shouldDisplayHoloConnecting () {
-      return (isHoloHosted() && this.holoStatus !== 'ready')
+      return (isHoloHosted() && !this.holo.agent.isAvailable)
     },
     shouldShowErrorMessage () {
       return this.errorMessage.length > 0
     },
     holoConnectionMessage () {
-        return this.holoStatus === 'failed_to_load_chaperone' ? 'Failed to load page. Please wait 30 seconds then refresh.' : 'Connecting to a HoloPort...'
+        return this.holo.status === 'failed_to_load_chaperone' ? 'Failed to load page. Please wait 30 seconds then refresh.' : 'Connecting to a HoloPort...'
     }
   },
   created () {

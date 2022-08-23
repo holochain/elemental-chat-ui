@@ -10,6 +10,20 @@ export const arrayBufferToBase64 = buffer => {
   return window.btoa(binary)
 }
 
+export const delay = milliseconds => {
+  const date = Date.now()
+  let currentDate = null
+  do {
+    currentDate = Date.now()
+  } while (currentDate - date < milliseconds)
+}
+
+export const presentPaginationDateTime = us => {
+  // set datetime string for polling reference
+  const convertedDatetime = new Date(Math.floor(us / 1000))
+  return `${convertedDatetime.toLocaleString('default', { month: 'long' })} ${convertedDatetime.getDate()} ${convertedDatetime.getFullYear()}`
+}
+
 // NB: This is a hack to cleanly monitor ws calls in puppeteer
 
 // As we no longer use json-rpc calls, we no longer have a unique id associated with each call.
@@ -50,7 +64,7 @@ export const retryIfSourceChainHeadMoved = async call => {
 }
 
 class CustomError extends Error {
-  constructor (...params) {
+  constructor(...params) {
     super(...params)
     this.name = this.constructor.name
     if (Error.captureStackTrace) {
@@ -59,6 +73,6 @@ class CustomError extends Error {
   }
 }
 
-export class TimeoutError extends CustomError {}
-export class UndefinedClientError extends CustomError {}
-export class HoloError extends CustomError {}
+export class TimeoutError extends CustomError { }
+export class UndefinedClientError extends CustomError { }
+export class HoloError extends CustomError { }

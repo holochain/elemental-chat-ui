@@ -14,7 +14,7 @@ export const DNA_HASH_MOCK = toUint8Array(Buffer.from(DNA_VERSION_MOCK, 'base64'
 export const AGENT_KEY_MOCK = toUint8Array(Buffer.from('uhCAkKCV0Uy9OtfjpcO/oQcPO6JN6TOhnOjwkamI3dNDNi+359faa', 'base64'))
 
 export const timestampToSemanticDate = (timestamp) => {
-  return `${new Date(timestamp[0] * 1000)}`
+  return `${new Date(timestamp / 1000)}`
 }
 
 /// Stubbing Element helpers :
@@ -24,11 +24,11 @@ export const createNewMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4(
   createdBy: agent,
   entry: { content, uuid },
   messages: [],
-  createdAt: [0, 0]
+  createdAt: 0
 })
 
 // create message mocking full obj - after dna
-export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4(), timestamp = [0, 0]) => ({
+export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4(), timestamp = 0) => ({
   entry: {
     uuid,
     content // "agent: testing message"
@@ -39,7 +39,7 @@ export const createMockMessage = (content, agent = AGENT_KEY_MOCK, uuid = uuidv4
 })
 
 // create channel for api - input into dna
-export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4()) => ({
+export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4(), latestChunk = 0) => ({
   info: {
     name,
     created_by: agent
@@ -48,7 +48,8 @@ export const createNewChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4()) 
   messages: [],
   last_seen: {},
   // adding activeChatters as well, as this is added in the getters, which is not accessed when testing store unit tests
-  activeChatters: []
+  activeChatters: [],
+  latestChunk
 })
 
 // create channel mocking full object - after  dna
@@ -60,7 +61,8 @@ export const createMockChannel = (name, agent = AGENT_KEY_MOCK, uuid = uuidv4(),
   entry: { category: 'General', uuid },
   messages: [],
   activeChatters: [agent],
-  unseen
+  unseen,
+  latestChunk: 0
 })
 
 export const getCurrentChannel = chatState => {
@@ -68,12 +70,19 @@ export const getCurrentChannel = chatState => {
   return chatState.channels.find(channel => channel.entry.uuid === chatState.currentChannelId)
 }
 
+export const getCurrentChannelMsgTotal = chatState => {
+  if (chatState.currentChannelId === null) throw new Error('no channel id provided when getting message total')
+  const channel = chatState.channels.find(channel => channel.entry.uuid === chatState.currentChannelId)
+  return channel.totalMessageCount
+}
+
 export const emptyChannel = {
   info: { name: '' },
   entry: { category: 'General', uuid: '' },
   messages: [],
   activeChatters: [],
-  unseen: false
+  unseen: false,
+  latestChunk: 0
 }
 
 export const mockChatState = {
@@ -148,7 +157,7 @@ export const getStubbedMutations = (mutationStubs = {}) => {
 }
 
 export const getStubbedStore = (agentState = mockAgentState, holochainState = mockHolochainState, chatState = mockChatState, actions = stubbedActions, mutations = stubbedMutations, opts = {}) => {
-  const { callLoading, additionalChannels, currentChannel } = opts
+  const { callLoading, additionalChannels } = opts
   if (JSON.stringify(actions) === '{}') {
     actions = getStubbedActions()
   }
@@ -161,6 +170,7 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
       channelsList.push(createMockChannel(`Channel #${i}`, agentState.agentHandle || `test-agent-${i}`, i))
     }
   }
+
   return new Vuex.Store({
     actions: { ...actions.index },
     mutations: { ...mutations.index },
@@ -176,7 +186,8 @@ export const getStubbedStore = (agentState = mockAgentState, holochainState = mo
         mutations: { ...mutations.chat },
         getters: {
           createMessageLoading: () => (callLoading || false),
-          channel: () => getCurrentChannel(chatState)
+          channel: () => getCurrentChannel(chatState),
+          totalMessageCount: () => getCurrentChannelMsgTotal(chatState)
         }
       },
       holochain: {
